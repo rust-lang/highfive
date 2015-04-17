@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["core","@eddyb"]
+        "all": ["core"]
     },
     "dirs": {}
 }
