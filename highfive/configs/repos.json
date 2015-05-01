@@ -22,6 +22,5 @@
 "log",
 "regex",
 "term",
-"rustc-serialize"]
-
-
+"rustc-serialize",
+"rustup"]
