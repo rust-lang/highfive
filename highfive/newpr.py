@@ -30,16 +30,19 @@ raw_welcome = """Thanks for the pull request, and welcome! The Rust team is exci
 
 If any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. The way Github handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.
 
-Please see [CONTRIBUTING.md](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.
+Please see [the contribution instructions](%s) for more information.
 """
 
 
-def welcome_msg(reviewer):
+def welcome_msg(reviewer, link):
     if reviewer is None:
         text = welcome_without_reviewer
     else:
         text = welcome_with_reviewer % reviewer
-    return raw_welcome % text
+    # Default to the Rust contribution guide if "contributing" wasn't set
+    if not link:
+        link = "https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md"
+    return raw_welcome % (text, link)
 
 warning_summary = '<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>\n\n%s'
 unsafe_warning_msg = 'These commits modify **unsafe code**. Please review it carefully!'
@@ -297,6 +300,11 @@ def get_irc_nick(gh_name):
             return rustacean_data[0].get("irc")
     return None
 
+# Find the contribution instructions link for the repo, if there is one
+def find_contrib_link(repo):
+    repoinfo = _load_json_file(repo + '.json')
+    return repoinfo.get('contributing')
+ 
 
 def new_pr(payload, user, token):
     owner = payload['pull_request']['base']['repo']['owner']['login']
@@ -317,7 +325,7 @@ def new_pr(payload, user, token):
     set_assignee(reviewer, owner, repo, issue, user, token, author)
 
     if is_new_contributor(author, owner, repo, user, token):
-        post_comment(welcome_msg(reviewer), owner, repo, issue, user, token)
+        post_comment(welcome_msg(reviewer, find_contrib_link(repo)), owner, repo, issue, user, token)
     elif post_msg:
         post_comment(review_msg(reviewer, author), owner, repo, issue, user, token)
 
