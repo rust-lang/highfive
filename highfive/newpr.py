@@ -30,16 +30,20 @@ raw_welcome = """Thanks for the pull request, and welcome! The Rust team is exci
 
 If any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. The way Github handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.
 
-Please see [CONTRIBUTING.md](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.
+Please see [the contribution instructions](%s) for more information.
 """
 
 
-def welcome_msg(reviewer):
+def welcome_msg(reviewer, config):
     if reviewer is None:
         text = welcome_without_reviewer
     else:
         text = welcome_with_reviewer % reviewer
-    return raw_welcome % text
+    # Default to the Rust contribution guide if "contributing" wasn't set
+    link = config.get('contributing')
+    if not link:
+        link = "https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md"
+    return raw_welcome % (text, link)
 
 warning_summary = '<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>\n\n%s'
 unsafe_warning_msg = 'These commits modify **unsafe code**. Please review it carefully!'
@@ -47,6 +51,7 @@ submodule_warning_msg = 'These commits modify **submodules**.'
 
 review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
+
 def review_msg(reviewer, submitter):
     if reviewer is None:
         text = review_without_reviewer % submitter
@@ -151,8 +156,7 @@ def parse_header_links(value):
 
     return links
 
-def is_new_contributor(username, owner, repo, user, token):
-    config = _load_json_file(repo + '.json')
+def is_new_contributor(username, owner, repo, user, token, config):
     if 'contributors' in config and username in config['contributors']:
         return False
 
@@ -179,14 +183,13 @@ def find_reviewer(commit_msg):
     return match.group(1)
 
 # Choose a reviewer for the PR
-def choose_reviewer(repo, owner, diff, exclude):
+def choose_reviewer(repo, owner, diff, exclude, config):
     if not (owner == 'rust-lang' or (owner == 'nrc' and repo == 'highfive')):
         return 'test_user_selection_ignore_this'
 
     # Get JSON data on reviewers.
-    reviewers = _load_json_file(repo + '.json')
-    dirs = reviewers.get('dirs', {})
-    groups = reviewers['groups']
+    dirs = config.get('dirs', {})
+    groups = config['groups']
 
     # fill in the default groups, ensuring that overwriting is an
     # error.
@@ -297,7 +300,6 @@ def get_irc_nick(gh_name):
             return rustacean_data[0].get("irc")
     return None
 
-
 def new_pr(payload, user, token):
     owner = payload['pull_request']['base']['repo']['owner']['login']
     repo = payload['pull_request']['base']['repo']['name']
@@ -309,15 +311,18 @@ def new_pr(payload, user, token):
     msg = payload["pull_request"]['body']
     reviewer = find_reviewer(msg)
     post_msg = False
+    
+    config = _load_json_file(repo + '.json')
+
     if not reviewer:
         post_msg = True
         diff = api_req("GET", payload["pull_request"]["diff_url"])['body']
-        reviewer = choose_reviewer(repo, owner, diff, author)
+        reviewer = choose_reviewer(repo, owner, diff, author, config)
 
     set_assignee(reviewer, owner, repo, issue, user, token, author)
 
-    if is_new_contributor(author, owner, repo, user, token):
-        post_comment(welcome_msg(reviewer), owner, repo, issue, user, token)
+    if is_new_contributor(author, owner, repo, user, token, config):
+        post_comment(welcome_msg(reviewer, config), owner, repo, issue, user, token)
     elif post_msg:
         post_comment(review_msg(reviewer, author), owner, repo, issue, user, token)
 

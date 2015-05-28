@@ -13,8 +13,11 @@ class TestNewPR(base.BaseTest):
 
     def test_choose_reviewer(self):
         normal_diff = self._load_fake('normal.diff')
+        fake_config = { "groups": {"all":["@pnkfelix", "@nrc"]}, 
+                        "dirs":   {} }
         reviewer = newpr.choose_reviewer('rust',
                                          'rust-lang',
                                          normal_diff,
-                                         'nikomatsakis')
+                                         'nikomatsakis',
+                                         fake_config)
         self.assertNotEqual('nikomatsakis', reviewer)

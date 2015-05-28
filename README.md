@@ -26,3 +26,38 @@ To run tests, make sure the test-requirements are installed by running:
 Once the dependencies are installed, you can run tests by executing:
 
     $ nosetests
+
+Adding a Project
+================
+
+To make rust-highfive interact with a new repo, add a configuration file in
+`highfive/configs`, with a filename of the form `reponame.json`. 
+
+It should look like:
+
+```
+{
+    "groups":{
+        "all": ["@username", "@otheruser"],
+        "subteamname": ["@subteammember", "@username"]
+    },
+    "dirs":{
+        "dirname":  ["subteamname", "@anotheruser"]
+    }
+    "contributing": "http://project.tld/contributing_guide.html"
+}   
+```
+
+The `groups` section allows you to alias lists of usernames. You should
+specify at least one user in the group "all"; others are optional.
+
+The `dirs` section is where you map directories of the repo to users or
+groups who're eligible to review PRs affecting it. This section can be left
+blank.
+
+`contributing` specifies the contribution guide link in the message which
+welcomes new contributors to the repository. If `contributing` is not
+present, the [Rust contributing.md][rustcontrib] will be linked instead. 
+
+[rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
+
