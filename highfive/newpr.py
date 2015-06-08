@@ -59,7 +59,7 @@ def review_msg(reviewer, submitter):
         text = review_with_reviewer % reviewer
     return text
 
-reviewer_re = re.compile("[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
+reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
 unsafe_re = re.compile("\\bunsafe\\b|#!?\\[unsafe_")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 
