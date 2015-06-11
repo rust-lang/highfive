@@ -291,8 +291,9 @@ def modifies_submodule(diff):
     return False
 
 def unexpected_branch(payload, config):
-    # Does the target branch of the PR (from payload) differ from the expected
-    # branch in the config? If unspecified, assume master. 
+    """ returns (expected_branch, actual_branch) if they differ, else None 
+    """
+    # If unspecified, assume master. 
     expected_target = config["expected_branch"]
     if not expected_target: 
         expected_target = "master"

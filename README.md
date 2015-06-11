@@ -6,7 +6,9 @@ Github hooks to provide an encouraging atmosphere for new contributors
 Install
 =======
 
-To install `highfive` you just need to execute the `setup.py` script or use `pip` directly. Both commands have to be executed from the directory where the `setup.py` script is located.
+To install `highfive` you just need to execute the `setup.py` script or use
+`pip` directly. Both commands have to be executed from the directory where the
+`setup.py` script is located.
 
     $ python setup.py install
 
@@ -62,8 +64,8 @@ present, the [Rust contributing.md][rustcontrib] will be linked instead.
 
 If PRs should be filed against a branch other than `master`, specify the
 correct destination in the `expected_branch` field. If `expected_branch` is
-left out, highfive will assume that PRs should be filed against `master` and
-post a warning if they're against some other branch.
+left out, highfive will assume that PRs should be filed against `master`. 
+The bot posts a warning on any PR that targets an unexpected branch.
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
