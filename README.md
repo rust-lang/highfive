@@ -43,8 +43,9 @@ It should look like:
     },
     "dirs":{
         "dirname":  ["subteamname", "@anotheruser"]
-    }
-    "contributing": "http://project.tld/contributing_guide.html"
+    },
+    "contributing": "http://project.tld/contributing_guide.html",
+    "expected_branch": "develop"
 }   
 ```
 
@@ -58,6 +59,11 @@ blank.
 `contributing` specifies the contribution guide link in the message which
 welcomes new contributors to the repository. If `contributing` is not
 present, the [Rust contributing.md][rustcontrib] will be linked instead. 
+
+If PRs should be filed against a branch other than `master`, specify the
+correct destination in the `expected_branch` field. If `expected_branch` is
+left out, highfive will assume that PRs should be filed against `master` and
+post a warning if they're against some other branch.
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
