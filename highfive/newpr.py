@@ -48,6 +48,8 @@ def welcome_msg(reviewer, config):
 warning_summary = '<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>\n\n%s'
 unsafe_warning_msg = 'These commits modify **unsafe code**. Please review it carefully!'
 submodule_warning_msg = 'These commits modify **submodules**.'
+surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
+
 
 review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
@@ -288,6 +290,21 @@ def modifies_submodule(diff):
         return True
     return False
 
+def unexpected_branch(payload, config):
+    """ returns (expected_branch, actual_branch) if they differ, else None 
+    """
+    # If unspecified, assume master. 
+    expected_target = config["expected_branch"]
+    if not expected_target: 
+        expected_target = "master"
+
+    # ie we want "stable" in this: "base": { "label": "rust-lang:stable"...
+    actual_target = payload['pull_request']['base']['label'].split(':')[1]
+
+    if expected_target != actual_target:
+        return (expected_target, actual_target)
+    return False
+
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -330,6 +347,10 @@ def new_pr(payload, user, token):
     # Lets not check for unsafe code for now, it doesn't seem to be very useful and gets a lot of false positives.
     #if modifies_unsafe(diff):
     #    warnings += [unsafe_warning_msg]
+
+    surprise = unexpected_branch(payload, config)
+    if surprise:
+        warnings.append(surprise_branch_warning % surprise)
 
     if modifies_submodule(diff):
         warnings.append(submodule_warning_msgs)
