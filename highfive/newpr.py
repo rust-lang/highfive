@@ -293,8 +293,11 @@ def modifies_submodule(diff):
 def unexpected_branch(payload, config):
     """ returns (expected_branch, actual_branch) if they differ, else None 
     """
+
     # If unspecified, assume master. 
-    expected_target = config["expected_branch"]
+    expected_target = None
+    if "expected_branch" in config:
+        expected_target = config["expected_branch"]
     if not expected_target: 
         expected_target = "master"
 
@@ -344,6 +347,7 @@ def new_pr(payload, user, token):
         post_comment(review_msg(reviewer, author), owner, repo, issue, user, token)
 
     warnings = []
+
     # Lets not check for unsafe code for now, it doesn't seem to be very useful and gets a lot of false positives.
     #if modifies_unsafe(diff):
     #    warnings += [unsafe_warning_msg]
