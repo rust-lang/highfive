@@ -1,7 +1,7 @@
 Highfive
 ========
 
-Github hooks to provide an encouraging atmosphere for new contributors
+GitHub hooks to provide an encouraging atmosphere for new contributors
 
 Install
 =======
