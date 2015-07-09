@@ -3,5 +3,6 @@
         "all": ["core"]
     },
     "dirs": {
-    }
+    },
+    "expected_branch": "gh-pages"
 }
