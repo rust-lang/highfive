@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["@nrc", "@rust-highfive"]
+        "all": ["@nrc"]
     },
     "dirs": {
     }
