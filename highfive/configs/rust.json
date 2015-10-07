@@ -6,7 +6,7 @@
         "libs": ["@aturon"]
     },
     "dirs": {
-        "doc":              ["doc"],
+        "doc":              ["doc", "@manishearth"],
         "liballoc":         ["libs"],
         "libarena":         ["libs"],
         "libbacktrace":     [],
