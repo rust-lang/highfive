@@ -329,7 +329,15 @@ def new_pr(payload, user, token):
     diff = api_req("GET", payload["pull_request"]["diff_url"])['body']
 
     msg = payload["pull_request"]['body']
+    title = payload["pull_request"]['title']
+
+    
+
+    if re.search("rollup", title, re.IGNORECASE) and owner is "rust-lang":
+        return
+
     reviewer = find_reviewer(msg)
+        
     post_msg = False
     
     config = _load_json_file(repo + '.json')
