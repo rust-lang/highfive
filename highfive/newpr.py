@@ -186,7 +186,10 @@ def find_reviewer(commit_msg):
 
 # Choose a reviewer for the PR
 def choose_reviewer(repo, owner, diff, exclude, config):
-    if not (owner == 'rust-lang' or (owner == 'nrc' and repo == 'highfive')):
+    if not (owner == 'rust-lang' or \
+            owner == 'rust-lang-nursery' or \
+            owner == 'rust-lang-deprecated' or \
+            (owner == 'nrc' and repo == 'highfive')):
         return 'test_user_selection_ignore_this'
 
     # Get JSON data on reviewers.
