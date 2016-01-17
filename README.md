@@ -67,5 +67,19 @@ correct destination in the `expected_branch` field. If `expected_branch` is
 left out, highfive will assume that PRs should be filed against `master`. 
 The bot posts a warning on any PR that targets an unexpected branch.
 
+Enabling a Repo
+---------------
+
+Once the hooks for a repository are set up, visit the repo's webhook settings
+page at `https://github.com/org/repo/settings/hooks`. 
+
+Create a new webhook, pointing at your highfive instance's location:
+
+Payload URL: `http://99.88.777.666/highfive/newpr.py`
+Content type: `application/x-www-form-urlencoded`
+Leave the 'secret' field blank.
+Let me select individual events: Issue comment, pull request
+Check the box by 'Active'
+
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
