@@ -247,6 +247,8 @@ def choose_reviewer(repo, owner, diff, exclude, config):
     potential = groups['all']
     if most_changed and most_changed in dirs:
         potential.extend(dirs[most_changed])
+    if not potential:
+        potential = groups['core']
 
 
     # expand the reviewers list by group

@@ -1,9 +1,9 @@
 {
     "groups": {
-        "all": ["core"],
-        "compiler": ["@pnkfelix", "@nrc", "@Aatch", "@jroesch", "@arielb1"],
-        "syntax": ["@pnkfelix", "@nrc", "@sfackler"],
-        "libs": ["@aturon"]
+        "all": [],
+        "compiler": ["@nikomatsakis", "@pnkfelix", "@nrc", "@Aatch", "@jroesch", "@arielb1"],
+        "syntax": ["@nikomatsakis", "@pnkfelix", "@nrc", "@sfackler"],
+        "libs": ["@aturon", "@alexcrichton", "@brson"]
     },
     "dirs": {
         "doc":              ["doc", "@manishearth"],
