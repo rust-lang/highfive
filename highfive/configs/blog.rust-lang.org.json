@@ -2,6 +2,7 @@
     "groups": {
         "all": ["core"]
     },
+    "expected_branch": "gh-pages",
     "dirs": {
     }
 }
