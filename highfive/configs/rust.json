@@ -23,7 +23,7 @@
         "librbml":          ["libs", "@erickt"],
         "libregex":         ["libs", "@burntsushi"],
         "librustc":         ["compiler"],
-        "librustdoc":       ["@cmr", "doc"],
+        "librustdoc":       ["doc"],
         "libserialize":     ["libs", "@erickt"],
         "libstd":           ["libs"],
         "libsyntax":        ["syntax"],
