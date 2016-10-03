@@ -2,8 +2,8 @@
     "groups": {
         "all": [],
         "compiler": ["@nikomatsakis", "@pnkfelix", "@nrc", "@Aatch", "@eddyb", "@arielb1"],
-        "syntax": ["@nikomatsakis", "@pnkfelix", "@nrc", "@sfackler"],
-        "libs": ["@aturon", "@alexcrichton", "@brson"]
+        "syntax": ["@nikomatsakis", "@pnkfelix", "@nrc"],
+        "libs": ["@aturon", "@alexcrichton", "@brson", "@sfackler"]
     },
     "dirs": {
         "doc":              ["doc", "@manishearth"],
