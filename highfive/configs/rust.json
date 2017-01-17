@@ -3,7 +3,7 @@
         "all": [],
         "compiler": ["@nikomatsakis", "@pnkfelix", "@nrc", "@eddyb", "@arielb1"],
         "syntax": ["@nikomatsakis", "@pnkfelix", "@nrc"],
-        "libs": ["@aturon", "@alexcrichton", "@brson", "@sfackler"]
+        "libs": ["@aturon", "@alexcrichton", "@brson", "@sfackler", "@BurntSushi"]
     },
     "dirs": {
         "doc":              ["doc"],
