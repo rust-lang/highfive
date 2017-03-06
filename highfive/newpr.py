@@ -103,7 +103,7 @@ def post_comment(body, owner, repo, issue, user, token):
         else:
             raise e
 
-def set_assignee(assignee, owner, repo, issue, user, token, author):
+def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
     global issue_url
     try:
         result = api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, user, token)['body']
@@ -119,6 +119,13 @@ def set_assignee(assignee, owner, repo, issue, user, token, author):
             client = irc.IrcClient(target="#rust-bots")
             client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
                 .format(irc_name_of_reviewer, owner, repo, issue, author))
+    if to_mention and len(to_mention) > 0:
+        message = ''
+        for mention in to_mention:
+            if len(message) > 0:
+                message += '\n\n'
+            message += "%s\n\ncc %s" % (mention['message'], ','.join(mention['reviewers']))
+        post_comment(message, owner, repo, issue, user, token)
 
 
 def get_collaborators(owner, repo, user, token):
@@ -190,11 +197,12 @@ def choose_reviewer(repo, owner, diff, exclude, config):
             owner == 'rust-lang-nursery' or \
             owner == 'rust-lang-deprecated' or \
             (owner == 'nrc' and repo == 'highfive')):
-        return 'test_user_selection_ignore_this'
+        return ('test_user_selection_ignore_this', None)
 
     # Get JSON data on reviewers.
     dirs = config.get('dirs', {})
     groups = config['groups']
+    mentions = config.get('mentions', {})
 
     # fill in the default groups, ensuring that overwriting is an
     # error.
@@ -211,6 +219,7 @@ def choose_reviewer(repo, owner, diff, exclude, config):
     if dirs:
         counts = {}
         cur_dir = None
+        to_mention = []
         for line in diff.split('\n'):
             if line.startswith("diff --git "):
                 # update cur_dir
@@ -221,14 +230,20 @@ def choose_reviewer(repo, owner, diff, exclude, config):
                 end = line.find("/", start)
                 if end == -1:
                     continue
+                full_end = line.rfind("/", start)
 
                 cur_dir = line[start:end]
+                full_dir = line[start:full_end] if full_end != -1 else ""
 
                 # A few heuristics to get better reviewers
                 if cur_dir.startswith('librustc'):
                     cur_dir = 'librustc'
                 if cur_dir == 'test':
                     cur_dir = None
+                if len(full_dir) > 0:
+                    for entry in mentions:
+                        if full_dir.startswith(entry) and entry not in to_mention:
+                            to_mention.append(entry)
                 if cur_dir and cur_dir not in counts:
                     counts[cur_dir] = 0
                 continue
@@ -271,10 +286,12 @@ def choose_reviewer(repo, owner, diff, exclude, config):
 
     if reviewers:
         random.seed()
-        return random.choice(reviewers)
-    else:
-        # no eligible reviewer found
-        return None
+        mention_list = []
+        for mention in to_mention:
+            mention_list.append(mentions[mention])
+        return (random.choice(reviewers), mention_list)
+    # no eligible reviewer found
+    return None
 
 #def modifies_unsafe(diff):
 #    in_rust_code = False
@@ -342,9 +359,9 @@ def new_pr(payload, user, token):
     if not reviewer:
         post_msg = True
         diff = api_req("GET", payload["pull_request"]["diff_url"])['body']
-        reviewer = choose_reviewer(repo, owner, diff, author, config)
+        reviewer, to_mention = choose_reviewer(repo, owner, diff, author, config)
 
-    set_assignee(reviewer, owner, repo, issue, user, token, author)
+    set_assignee(reviewer, owner, repo, issue, user, token, author, to_mention)
 
     if is_new_contributor(author, owner, repo, user, token, config):
         post_comment(welcome_msg(reviewer, config), owner, repo, issue, user, token)
@@ -393,7 +410,7 @@ def new_comment(payload, user, token):
     reviewer = find_reviewer(msg)
     if reviewer:
         issue = str(payload['issue']['number'])
-        set_assignee(reviewer, owner, repo, issue, user, token, author)
+        set_assignee(reviewer, owner, repo, issue, user, token, author, None)
 
 
 if __name__ == "__main__":
