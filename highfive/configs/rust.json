@@ -32,6 +32,12 @@
         "libunicode":       ["libs"],
         "rustbook":         ["doc"]
     },
+    "mentions": {
+        "librustdoc/html/static": {
+            "message": "Some changes occurred in HTML/CSS.",
+            "reviewers": ["@GuillaumeGomez"]
+        }
+    },
     "contributors": [
         "Aatch",
         "lifthrasiir"
