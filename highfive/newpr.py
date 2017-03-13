@@ -119,6 +119,7 @@ def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
             client = irc.IrcClient(target="#rust-bots")
             client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
                 .format(irc_name_of_reviewer, owner, repo, issue, author))
+
     if to_mention and len(to_mention) > 0:
         message = ''
         for mention in to_mention:
@@ -291,7 +292,7 @@ def choose_reviewer(repo, owner, diff, exclude, config):
             mention_list.append(mentions[mention])
         return (random.choice(reviewers), mention_list)
     # no eligible reviewer found
-    return None
+    return (None, None)
 
 #def modifies_unsafe(diff):
 #    in_rust_code = False
@@ -353,12 +354,12 @@ def new_pr(payload, user, token):
     msg = payload["pull_request"]['body']
     reviewer = find_reviewer(msg)
     post_msg = False
+    to_mention = None
 
     config = _load_json_file(repo + '.json')
 
     if not reviewer:
         post_msg = True
-        diff = api_req("GET", payload["pull_request"]["diff_url"])['body']
         reviewer, to_mention = choose_reviewer(repo, owner, diff, author, config)
 
     set_assignee(reviewer, owner, repo, issue, user, token, author, to_mention)
