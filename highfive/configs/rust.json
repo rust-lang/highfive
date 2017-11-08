@@ -1,9 +1,10 @@
 {
     "groups": {
         "all": [],
-        "compiler": ["@nikomatsakis", "@pnkfelix", "@eddyb", "@arielb1"],
-        "syntax": ["@nikomatsakis", "@pnkfelix"],
-        "libs": ["@aturon", "@alexcrichton", "@sfackler", "@BurntSushi", "@dtolnay"]
+        "compiler": ["@nikomatsakis", "@pnkfelix", "@eddyb", "@arielb1", "@petrochenkov", "@estebank", "@michaelwoerister"],
+        "syntax": ["@nikomatsakis", "@pnkfelix", "@petrochenkov", "@michaelwoerister", "@eddyb", "@arielb1"],
+        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@BurntSushi", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"],
+        "doc": ["@steveklabnik", "@QuietMisdreavus"],
     },
     "dirs": {
         "doc":              ["doc"],
@@ -29,7 +30,7 @@
         "libsyntax":        ["syntax"],
         "libterm":          ["libs"],
         "libtest":          ["libs"],
-        "libunicode":       ["libs"],
+        "libunicode":       ["libs", "@SimonSapin"],
         "rustbook":         ["doc"]
     },
     "mentions": {
