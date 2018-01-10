@@ -125,7 +125,8 @@ def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
         for mention in to_mention:
             if len(message) > 0:
                 message += '\n\n'
-            message += "%s\n\ncc %s" % (mention['message'], ','.join(mention['reviewers']))
+            message += "%s\n\ncc %s" % (mention['message'],
+                                        ','.join([x for x in mention['reviewers'] if x != user]))
         post_comment(message, owner, repo, issue, user, token)
 
 
