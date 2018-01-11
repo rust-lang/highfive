@@ -37,6 +37,10 @@
             "message": "Some changes occurred in HTML/CSS.",
             "reviewers": ["@GuillaumeGomez"]
         }
+        "src/doc": {
+            "message": "Some changes occurred in HTML/CSS.",
+            "reviewers": ["@GuillaumeGomez"]
+        }
     },
     "contributors": [
         "Aatch",
