@@ -215,13 +215,13 @@ def choose_reviewer(repo, owner, diff, exclude, config):
 
 
     most_changed = None
+    to_mention = []
     # If there's directories with specially assigned groups/users
     # inspect the diff to find the directory (under src) with the most
     # additions
     if dirs:
         counts = {}
         cur_dir = None
-        to_mention = []
         for line in diff.split('\n'):
             if line.startswith("diff --git "):
                 # update cur_dir
