@@ -23,6 +23,7 @@ contributors_url = "https://api.github.com/repos/%s/%s/contributors?per_page=100
 post_comment_url = "https://api.github.com/repos/%s/%s/issues/%s/comments"
 collabo_url = "https://api.github.com/repos/%s/%s/collaborators"
 issue_url = "https://api.github.com/repos/%s/%s/issues/%s"
+issue_labels_url = "https://api.github.com/repos/%s/%s/issues/%s/labels"
 
 welcome_with_reviewer = '@%s (or someone else)'
 welcome_without_reviewer = "@nrc (NB. this repo may be misconfigured)"
@@ -139,6 +140,17 @@ def get_collaborators(owner, repo, user, token):
         else:
             raise e
     return [c['login'] for c in json.loads(result)]
+
+
+def add_labels(labels, owner, repo, issue, user, token):
+    try:
+        result = api_req("POST", issue_labels_url % (owner, repo, issue), labels, user, token)
+    except urllib2.HTTPError, e:
+        if e.code == 201:
+            pass
+        else:
+            raise e
+
 
 # This function is adapted from https://github.com/kennethreitz/requests/blob/209a871b638f85e2c61966f82e547377ed4260d9/requests/utils.py#L562
 # Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
@@ -385,6 +397,9 @@ def new_pr(payload, user, token):
 
     if warnings:
         post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, user, token)
+
+    if "new_pr_labels" in config and config["new_pr_labels"]:
+        add_labels(config["new_pr_labels"], owner, repo, issue, user, token)
 
 
 def new_comment(payload, user, token):

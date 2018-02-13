@@ -47,8 +47,9 @@ It should look like:
         "dirname":  ["subteamname", "@anotheruser"]
     },
     "contributing": "http://project.tld/contributing_guide.html",
-    "expected_branch": "develop"
-}   
+    "expected_branch": "develop",
+    "new_pr_labels": ["S-waiting-for-review"]
+}
 ```
 
 The `groups` section allows you to alias lists of usernames. You should
@@ -66,6 +67,9 @@ If PRs should be filed against a branch other than `master`, specify the
 correct destination in the `expected_branch` field. If `expected_branch` is
 left out, highfive will assume that PRs should be filed against `master`. 
 The bot posts a warning on any PR that targets an unexpected branch.
+
+`new_pr_labels` contains a list of labels to apply to each new PR. If it's left
+out or empty, no new labels will be applied.
 
 Enabling a Repo
 ---------------
