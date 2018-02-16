@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["core"]
+        "all": ["@ashleygwilliams", "@steveklabnik"]
     },
     "dirs": {
     }
