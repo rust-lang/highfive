@@ -1,6 +1,7 @@
 from copy import deepcopy
 from highfive import newpr
 from highfive.tests import base
+import mock
 
 class TestNewPR(base.BaseTest):
     pass
@@ -26,6 +27,14 @@ class TestChooseReviewer(TestNewPR):
             }
         }
 
+    @mock.patch('highfive.newpr._load_json_file')
+    def choose_reviewer(
+        self, repo, owner, diff, exclude, config, mock_load_json
+    ):
+        return newpr.choose_reviewer(
+            repo, owner, diff, exclude, deepcopy(config)
+        )
+
     def test_choose_reviewer_unsupported_repo(self):
         """The choose_reviewer function has an escape hatch for calls that
         are not in specific GitHub organizations or owners. This tests
@@ -37,32 +46,32 @@ class TestChooseReviewer(TestNewPR):
 
         self.assertNotEqual(
             test_return,
-            newpr.choose_reviewer(
+            self.choose_reviewer(
                 'whatever', 'rust-lang', diff, 'foo', deepcopy(config)
             )
         )
         self.assertNotEqual(
             test_return,
-            newpr.choose_reviewer(
+            self.choose_reviewer(
                 'whatever', 'rust-lang-nursery', diff, 'foo', deepcopy(config)
             )
         )
         self.assertNotEqual(
             test_return,
-            newpr.choose_reviewer(
+            self.choose_reviewer(
                 'whatever', 'rust-lang-deprecated', diff, 'foo',
                 deepcopy(config)
             )
         )
         self.assertNotEqual(
             test_return,
-            newpr.choose_reviewer(
+            self.choose_reviewer(
                 'highfive', 'nrc', diff, 'foo', deepcopy(config)
             )
         )
         self.assertEqual(
             test_return,
-            newpr.choose_reviewer(
+            self.choose_reviewer(
                 'anything', 'else', diff, 'foo', deepcopy(config)
             )
         )
@@ -75,7 +84,7 @@ class TestChooseReviewer(TestNewPR):
         chosen_reviewers = set()
         mentions = set()
         for _ in xrange(40):
-            reviewer = newpr.choose_reviewer(
+            reviewer = self.choose_reviewer(
                 'rust', 'rust-lang', diff, author, deepcopy(config)
             )
             chosen_reviewers.add(reviewer[0])
