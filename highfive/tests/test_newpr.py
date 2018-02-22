@@ -30,6 +30,13 @@ class TestChooseReviewer(TestNewPR):
                 "dirs": {},
             },
         }
+        cls.global_ = {
+            'base': {
+                "groups": {
+                    "core": ["@alexcrichton"],
+                }
+            }
+        }
 
     def choose_reviewer(
         self, repo, owner, diff, exclude, config, global_ = None
@@ -128,14 +135,9 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer from the core group in the global
         configuration.
         """
-        global_ = {
-            "groups": {
-                "core": ["@alexcrichton"],
-            }
-        }
-
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['empty'], 'fooauthor', global_
+            self.diff['normal'], self.config['empty'], 'fooauthor',
+            self.global_['base']
         )
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -143,14 +145,9 @@ class TestChooseReviewer(TestNewPR):
     def test_choose_reviewer_no_potential(self):
         """Test choosing a reviewer when nobody qualifies.
         """
-        global_ = {
-            "groups": {
-                "core": ["@alexcrichton"],
-            }
-        }
-
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['empty'], 'alexcrichton', global_
+            self.diff['normal'], self.config['empty'], 'alexcrichton',
+            self.global_['base']
         )
         self.assertEqual(set([None]), chosen_reviewers)
         self.assertEqual(set([None]), mentions)
