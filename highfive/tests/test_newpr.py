@@ -62,7 +62,7 @@ class TestChooseReviewer(TestNewPR):
             repo, owner, diff, exclude, deepcopy(config)
         )
 
-    def test_choose_reviewer_unsupported_repo(self):
+    def test_unsupported_repo(self):
         """The choose_reviewer function has an escape hatch for calls that
         are not in specific GitHub organizations or owners. This tests
         that logic.
@@ -118,7 +118,7 @@ class TestChooseReviewer(TestNewPR):
             mention_list.add(None if mentions is None else tuple(mentions))
         return chosen_reviewers, mention_list
 
-    def test_choose_reviewer_individuals_no_dirs_1(self):
+    def test_individuals_no_dirs_1(self):
         """Test choosing a reviewer from a list of individual reviewers, no
         directories, and an author who is not a potential reviewer.
         """
@@ -129,7 +129,7 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
-    def test_choose_reviewer_individuals_no_dirs_2(self):
+    def test_individuals_no_dirs_2(self):
         """Test choosing a reviewer from a list of individual reviewers, no
         directories, and an author who is a potential reviewer.
         """
@@ -139,7 +139,7 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set(["pnkfelix"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
-    def test_choose_reviewer_global_core(self):
+    def test_global_core(self):
         """Test choosing a reviewer from the core group in the global
         configuration.
         """
@@ -150,7 +150,7 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
-    def test_choose_reviewer_no_potential(self):
+    def test_no_potential_reviewers(self):
         """Test choosing a reviewer when nobody qualifies.
         """
         (chosen_reviewers, mentions) = self.choose_reviewers(
@@ -160,7 +160,7 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set([None]), chosen_reviewers)
         self.assertEqual(set([None]), mentions)
 
-    def test_choose_reviewer_with_dirs(self):
+    def test_with_dirs(self):
         """Test choosing a reviewer when directory reviewers are defined that
         intersect with the diff.
         """
@@ -171,7 +171,7 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set(["pnkfelix", "nrc", "aturon"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
-    def test_choose_reviewer_with_dirs_no_intersection(self):
+    def test_with_dirs_no_intersection(self):
         """Test choosing a reviewer when directory reviewers are defined that
         do not intersect with the diff.
         """
