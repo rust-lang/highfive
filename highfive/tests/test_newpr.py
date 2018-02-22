@@ -25,6 +25,14 @@ class TestChooseReviewer(TestNewPR):
                 "groups": { "all": ["@pnkfelix", "@nrc"] },
                 "dirs": {},
             },
+            'individuals_dirs' :{
+                "groups": { "all": ["@pnkfelix", "@nrc"] },
+                "dirs": { "librustc": ["@aturon"] },
+            },
+            'individuals_dirs_2' :{
+                "groups": { "all": ["@pnkfelix", "@nrc"] },
+                "dirs": { "foobazdir": ["@aturon"] },
+            },
             'empty' :{
                 "groups": { "all": [] },
                 "dirs": {},
@@ -151,3 +159,25 @@ class TestChooseReviewer(TestNewPR):
         )
         self.assertEqual(set([None]), chosen_reviewers)
         self.assertEqual(set([None]), mentions)
+
+    def test_choose_reviewer_with_dirs(self):
+        """Test choosing a reviewer when directory reviewers are defined that
+        intersect with the diff.
+        """
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.diff['normal'], self.config['individuals_dirs'],
+            "nikomatsakis"
+        )
+        self.assertEqual(set(["pnkfelix", "nrc", "aturon"]), chosen_reviewers)
+        self.assertEqual(set([()]), mentions)
+
+    def test_choose_reviewer_with_dirs_no_intersection(self):
+        """Test choosing a reviewer when directory reviewers are defined that
+        do not intersect with the diff.
+        """
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.diff['normal'], self.config['individuals_dirs_2'],
+            "nikomatsakis"
+        )
+        self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
+        self.assertEqual(set([()]), mentions)
