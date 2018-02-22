@@ -24,13 +24,25 @@ class TestChooseReviewer(TestNewPR):
             'individuals_no_dirs' :{
                 "groups": { "all": ["@pnkfelix", "@nrc"] },
                 "dirs": {},
-            }
+            },
+            'empty' :{
+                "groups": { "all": [] },
+                "dirs": {},
+            },
         }
 
-    @mock.patch('highfive.newpr._load_json_file')
     def choose_reviewer(
-        self, repo, owner, diff, exclude, config, mock_load_json
+        self, repo, owner, diff, exclude, config, global_ = None
     ):
+        return self.choose_reviewer_inner(
+            repo, owner, diff, exclude, config, global_
+        )
+
+    @mock.patch('highfive.newpr._load_json_file')
+    def choose_reviewer_inner(
+        self, repo, owner, diff, exclude, config, global_, mock_load_json
+    ):
+        mock_load_json.return_value = deepcopy(global_ or { "groups": {} })
         return newpr.choose_reviewer(
             repo, owner, diff, exclude, deepcopy(config)
         )
@@ -76,7 +88,7 @@ class TestChooseReviewer(TestNewPR):
             )
         )
 
-    def choose_reviewers(self, diff, config, author):
+    def choose_reviewers(self, diff, config, author, global_ = None):
         """Helper function that repeatedly calls choose_reviewer to build sets
         of reviewers and mentions for a given diff, configuration, and
         author.
@@ -85,7 +97,7 @@ class TestChooseReviewer(TestNewPR):
         mentions = set()
         for _ in xrange(40):
             reviewer = self.choose_reviewer(
-                'rust', 'rust-lang', diff, author, deepcopy(config)
+                'rust', 'rust-lang', diff, author, deepcopy(config), global_
             )
             chosen_reviewers.add(reviewer[0])
             mentions.add(tuple(reviewer[1]))
@@ -110,4 +122,20 @@ class TestChooseReviewer(TestNewPR):
             self.diff['normal'], self.config['individuals_no_dirs'], "nrc"
         )
         self.assertEqual(set(["pnkfelix"]), chosen_reviewers)
+        self.assertEqual(set([()]), mentions)
+
+    def test_choose_reviewer_global_core(self):
+        """Test choosing a reviewer from the core group in the global
+        configuration.
+        """
+        global_ = {
+            "groups": {
+                "core": ["@alexcrichton"],
+            }
+        }
+
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.diff['normal'], self.config['empty'], 'fooauthor', global_
+        )
+        self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
