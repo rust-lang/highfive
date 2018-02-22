@@ -94,14 +94,14 @@ class TestChooseReviewer(TestNewPR):
         author.
         """
         chosen_reviewers = set()
-        mentions = set()
+        mention_list = set()
         for _ in xrange(40):
-            reviewer = self.choose_reviewer(
+            (reviewer, mentions) = self.choose_reviewer(
                 'rust', 'rust-lang', diff, author, deepcopy(config), global_
             )
-            chosen_reviewers.add(reviewer[0])
-            mentions.add(tuple(reviewer[1]))
-        return chosen_reviewers, mentions
+            chosen_reviewers.add(reviewer)
+            mention_list.add(None if mentions is None else tuple(mentions))
+        return chosen_reviewers, mention_list
 
     def test_choose_reviewer_individuals_no_dirs_1(self):
         """Test choosing a reviewer from a list of individual reviewers, no
@@ -139,3 +139,18 @@ class TestChooseReviewer(TestNewPR):
         )
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
+
+    def test_choose_reviewer_no_potential(self):
+        """Test choosing a reviewer when nobody qualifies.
+        """
+        global_ = {
+            "groups": {
+                "core": ["@alexcrichton"],
+            }
+        }
+
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.diff['normal'], self.config['empty'], 'alexcrichton', global_
+        )
+        self.assertEqual(set([None]), chosen_reviewers)
+        self.assertEqual(set([None]), mentions)
