@@ -33,6 +33,12 @@ class TestChooseReviewer(TestNewPR):
                 "groups": { "all": ["@pnkfelix", "@nrc"] },
                 "dirs": { "foobazdir": ["@aturon"] },
             },
+            'circular_groups': {
+                "groups": {
+                    "all": ["some"],
+                    "some": ["all"],
+                },
+            },
             'empty' :{
                 "groups": { "all": [] },
                 "dirs": {},
@@ -138,6 +144,15 @@ class TestChooseReviewer(TestNewPR):
         )
         self.assertEqual(set(["pnkfelix"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
+
+    def test_circular_groups(self):
+        """Test choosing a reviewer from groups that have circular references.
+        """
+        self.assertRaises(
+            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor',
+            self.config['circular_groups']
+        )
 
     def test_global_core(self):
         """Test choosing a reviewer from the core group in the global
