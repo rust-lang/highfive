@@ -6,13 +6,44 @@ import mock
 class TestNewPR(base.BaseTest):
     pass
 
-class TestSubmodule(TestNewPR):
+class TestNewPRGeneral(TestNewPR):
     def test_submodule(self):
         submodule_diff = self._load_fake('submodule.diff')
         self.assertTrue(newpr.modifies_submodule(submodule_diff))
 
         normal_diff = self._load_fake('normal.diff')
         self.assertFalse(newpr.modifies_submodule(normal_diff))
+
+    def test_find_reviewer(self):
+        found_cases = (
+            ('r? @foo', 'foo'),
+            ('R? @foo', 'foo'),
+            ('....@!##$@#%r? @foo', 'foo'),
+            ('r?:-:-:- @foo', 'foo'),
+            ('Lorem ipsum dolor sit amet, r?@foo consectetur', 'foo'),
+            ('r? @8iAke', '8iAke'),
+            ('r? @D--a--s-h', 'D--a--s-h'),
+            ('r? @foo$', 'foo'),
+        )
+        not_found_cases = (
+            'rr? @foo',
+            'r @foo',
+            'r?! @foo',
+            'r? foo',
+            'r? @',
+        )
+
+        for (msg, reviewer) in found_cases:
+            self.assertEqual(
+                newpr.find_reviewer(msg), reviewer,
+                "expected '%s' from '%s'" % (reviewer, msg)
+            )
+
+        for msg in not_found_cases:
+            self.assertIsNone(
+                newpr.find_reviewer(msg),
+                "expected '%s' to have no reviewer extracted" % msg
+            )
 
 class TestChooseReviewer(TestNewPR):
     @classmethod

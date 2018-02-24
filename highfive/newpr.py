@@ -199,11 +199,9 @@ def is_new_contributor(username, owner, repo, user, token, config):
         url = links['next']
 
 # If the user specified a reviewer, return the username, otherwise returns None.
-def find_reviewer(commit_msg):
-    match = reviewer_re.search(commit_msg)
-    if not match:
-        return None
-    return match.group(1)
+def find_reviewer(msg):
+    match = reviewer_re.search(msg)
+    return match.group(1) if match else None
 
 # Choose a reviewer for the PR
 def choose_reviewer(repo, owner, diff, exclude, config):
