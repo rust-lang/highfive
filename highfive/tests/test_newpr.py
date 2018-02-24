@@ -33,6 +33,12 @@ class TestChooseReviewer(TestNewPR):
                 "groups": { "all": ["@pnkfelix", "@nrc"] },
                 "dirs": { "foobazdir": ["@aturon"] },
             },
+            'circular_groups': {
+                "groups": {
+                    "all": ["some"],
+                    "some": ["all"],
+                },
+            },
             'empty' :{
                 "groups": { "all": [] },
                 "dirs": {},
@@ -43,7 +49,10 @@ class TestChooseReviewer(TestNewPR):
                 "groups": {
                     "core": ["@alexcrichton"],
                 }
-            }
+            },
+            'has_all': {
+                "groups": { "all": ["@alexcrichton"] }
+            },
         }
 
     def choose_reviewer(
@@ -139,6 +148,15 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set(["pnkfelix"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
+    def test_circular_groups(self):
+        """Test choosing a reviewer from groups that have circular references.
+        """
+        self.assertRaises(
+            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor',
+            self.config['circular_groups']
+        )
+
     def test_global_core(self):
         """Test choosing a reviewer from the core group in the global
         configuration.
@@ -149,6 +167,18 @@ class TestChooseReviewer(TestNewPR):
         )
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
+
+    @mock.patch('highfive.newpr._load_json_file')
+    def test_global_group_overlap(self, mock_load_json):
+        """Test for an AssertionError when the global config contains a group
+        already defined in the config.
+        """
+        mock_load_json.return_value = self.global_['has_all']
+        self.assertRaises(
+            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor',
+            self.config['individuals_no_dirs']
+        )
 
     def test_no_potential_reviewers(self):
         """Test choosing a reviewer when nobody qualifies.
