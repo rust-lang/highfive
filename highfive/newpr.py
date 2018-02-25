@@ -62,7 +62,26 @@ def review_msg(reviewer, submitter):
         text = review_with_reviewer % reviewer
     return text
 
-reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
+# This regular expression has a lot going on. Here are explanations to go along
+# with the numbers below.
+#
+# 1. The expression is either at the beginning of a string or is preceded by
+#    whitespace.
+# 2. The target string begins with 'r' or 'R' followed by a '?'.
+# 3. The '?' is followed by up to one ':' or '-'.
+# 4. At least one whitespace character separates the first pattern from the
+#    username pattern.
+# 5. The username is preceded by an '@' character.
+# 6. The username begins with a letter or digit.
+# 7. The username continues with up to thirty-eight letters or digits or single
+#    instances of '-' characters.
+# 8. The end of the username is either the end of the string or is followed by
+#    a character that is not a letter or digit or '-' character.
+reviewer_re = re.compile(
+    # |   1   |  2   | 3  | 4|5|    6     |                  7                   |         8         |
+    r"(?:^|\s+)[rR]\?[:\-]?\s+@([a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38})(?:$|[^a-zA-Z0-9\-])"
+)
+
 unsafe_re = re.compile("\\bunsafe\\b|#!?\\[unsafe_")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 
