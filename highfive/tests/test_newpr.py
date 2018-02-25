@@ -29,19 +29,35 @@ class TestNewPRGeneral(TestNewPR):
         found_cases = (
             ('r? @foo', 'foo'),
             ('R? @foo', 'foo'),
-            ('....@!##$@#%r? @foo', 'foo'),
-            ('r?:-:-:- @foo', 'foo'),
-            ('Lorem ipsum dolor sit amet, r?@foo consectetur', 'foo'),
+            ('r?: @foo', 'foo'),
+            ('r?- @foo', 'foo'),
+            ('Lorem ipsum dolor sit amet, r? @foo consectetur', 'foo'),
             ('r? @8iAke', '8iAke'),
-            ('r? @D--a--s-h', 'D--a--s-h'),
+            ('r? @D-a-s-h', 'D-a-s-h'),
             ('r? @foo$', 'foo'),
+            (
+                'r? @012345678901234567890123456789012345678',
+                '012345678901234567890123456789012345678'
+            ),
+            (
+                'r? @0-2-4-6-8-0-2-4-6-8-0-2-4-6-8-0-2-4-6-8',
+                '0-2-4-6-8-0-2-4-6-8-0-2-4-6-8-0-2-4-6-8'
+            ),
         )
         not_found_cases = (
             'rr? @foo',
             'r @foo',
             'r?! @foo',
+            'r?@foo',
             'r? foo',
             'r? @',
+            '....@r? @foo',
+            'r?:- @foo',
+            'r? @D--a', # consecutive dashes are forbidden
+            'r? @-foo', # usernames cannot begin with a dash
+            'r? @foo-', # usernames cannot end with a dash
+            'r? @0123456789012345678901234567890123456789', # too long
+            'r? @0-2-4-6-8-0-2-4-6-8-0-2-4-6-8-0-2-4-6-89', # also too long
         )
 
         for (msg, reviewer) in found_cases:
