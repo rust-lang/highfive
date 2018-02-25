@@ -366,7 +366,15 @@ def new_pr(payload, user, token):
     )['body']
 
     msg = payload["pull_request"]['body']
+    title = payload["pull_request"]['title']
+
+    
+
+    if re.search("rollup", title, re.IGNORECASE) and owner is "rust-lang":
+        return
+
     reviewer = find_reviewer(msg)
+        
     post_msg = False
     to_mention = None
 
