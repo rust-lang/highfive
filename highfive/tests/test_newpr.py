@@ -1,12 +1,23 @@
 from copy import deepcopy
 from highfive import newpr
 from highfive.tests import base
+import json
 import mock
 
 class TestNewPR(base.BaseTest):
     pass
 
 class TestNewPRGeneral(TestNewPR):
+    @mock.patch('os.path.dirname')
+    def test_load_json_file(self, mock_dirname):
+        mock_dirname.return_value = '/the/path'
+        contents = ['some json']
+        with mock.patch(
+            '__builtin__.open', mock.mock_open(read_data=json.dumps(contents))
+        ) as mock_file:
+            self.assertEqual(newpr._load_json_file('a-config.json'), contents)
+            mock_file.assert_called_with('/the/path/configs/a-config.json')
+
     def test_submodule(self):
         submodule_diff = self._load_fake('submodule.diff')
         self.assertTrue(newpr.modifies_submodule(submodule_diff))
