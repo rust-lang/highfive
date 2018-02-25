@@ -73,7 +73,7 @@ def _load_json_file(name):
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
 
     with open(os.path.join(configs_dir, name)) as config:
-        return json.loads(config.read())
+        return json.load(config)
 
 def api_req(method, url, data=None, username=None, token=None, media_type=None):
     data = None if not data else json.dumps(data)
