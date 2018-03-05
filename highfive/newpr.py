@@ -320,9 +320,7 @@ def choose_reviewer(repo, owner, diff, exclude, config):
 #    return False
 
 def modifies_submodule(diff):
-    if submodule_re.match(diff):
-        return True
-    return False
+    return submodule_re.match(diff)
 
 def unexpected_branch(payload, config):
     """ returns (expected_branch, actual_branch) if they differ, else None
