@@ -25,6 +25,32 @@ class TestNewPRGeneral(TestNewPR):
         normal_diff = self._load_fake('normal.diff')
         self.assertFalse(newpr.modifies_submodule(normal_diff))
 
+    def test_expected_branch_default_expected_no_match(self):
+        payload = {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
+        config = {}
+        self.assertEqual(
+            newpr.unexpected_branch(payload, config),
+            ('master', 'dev')
+        )
+
+    def test_expected_branch_default_expected_match(self):
+        payload = {'pull_request': {'base': {'label': 'repo-owner:master'}}}
+        config = {}
+        self.assertFalse(newpr.unexpected_branch(payload, config))
+
+    def test_expected_branch_custom_expected_no_match(self):
+        payload = {'pull_request': {'base': {'label': 'repo-owner:master'}}}
+        config = {'expected_branch': 'dev' }
+        self.assertEqual(
+            newpr.unexpected_branch(payload, config),
+            ('dev', 'master')
+        )
+
+    def test_expected_branch_custom_expected_match(self):
+        payload = {'pull_request': {'base': {'label':'repo-owner:dev'}}}
+        config = {'expected_branch': 'dev' }
+        self.assertFalse(newpr.unexpected_branch(payload, config))
+
     def test_find_reviewer(self):
         found_cases = (
             ('r? @foo', 'foo'),

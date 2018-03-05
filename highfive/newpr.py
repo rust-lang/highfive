@@ -323,22 +323,17 @@ def modifies_submodule(diff):
     return submodule_re.match(diff)
 
 def unexpected_branch(payload, config):
-    """ returns (expected_branch, actual_branch) if they differ, else None
+    """ returns (expected_branch, actual_branch) if they differ, else False
     """
 
     # If unspecified, assume master.
-    expected_target = None
-    if "expected_branch" in config:
-        expected_target = config["expected_branch"]
-    if not expected_target:
-        expected_target = "master"
+    expected_target = config.get('expected_branch', 'master')
 
     # ie we want "stable" in this: "base": { "label": "rust-lang:stable"...
     actual_target = payload['pull_request']['base']['label'].split(':')[1]
 
-    if expected_target != actual_target:
-        return (expected_target, actual_target)
-    return False
+    return (expected_target, actual_target) \
+        if expected_target != actual_target else False
 
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
