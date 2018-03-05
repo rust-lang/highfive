@@ -56,6 +56,166 @@ class TestNewPRGeneral(TestNewPR):
                 "expected '%s' to have no reviewer extracted" % msg
             )
 
+class TestNewComment(TestNewPR):
+    mock_args = {
+        'get_collaborators': mock.DEFAULT,
+        'find_reviewer': mock.DEFAULT,
+        'set_assignee': mock.DEFAULT,
+    }
+
+    @staticmethod
+    def make_payload(
+        state='open', is_pull_request=True, commenter='userA',
+        repo='repo-name', owner='repo-owner', author='userB',
+        comment='comment!', issue_number=7, assignee=None
+    ):
+        payload = {
+            'issue': {
+                'state': state,
+                'number': issue_number,
+                'assignee': None,
+                'user': {
+                    'login': author,
+                },
+            },
+            'comment': {
+                'user': {
+                    'login': commenter,
+                },
+                'body': comment,
+            },
+            'repository': {
+                'name': repo,
+                'owner': {
+                    'login': owner,
+                },
+            },
+        }
+
+        if is_pull_request:
+            payload['issue']['pull_request'] = {}
+        if assignee is not None:
+            payload['issue']['assignee'] = {'login': assignee}
+
+        return payload
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_not_open(self, get_collaborators, find_reviewer, set_assignee):
+        payload = self.make_payload(state='closed')
+
+        self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_not_called()
+        set_assignee.assert_not_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_not_pr(self, get_collaborators, find_reviewer, set_assignee):
+        payload = self.make_payload(is_pull_request=False)
+
+        self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_not_called()
+        set_assignee.assert_not_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_commenter_is_integration_user(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(commenter='integrationUser')
+
+        self.assertIsNone(
+            newpr.new_comment(payload, 'integrationUser', 'credential')
+        )
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_not_called()
+        set_assignee.assert_not_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_unauthorized_assigner(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(
+            author='userA', commenter='userB', assignee='userC'
+        )
+
+        get_collaborators.return_value = ['userD', 'userE']
+        self.assertIsNone(
+            newpr.new_comment(payload, 'integrationUser', 'credential')
+        )
+        get_collaborators.assert_called_with(
+            'repo-owner', 'repo-name', 'integrationUser', 'credential'
+        )
+        find_reviewer.assert_not_called()
+        set_assignee.assert_not_called()
+
+    # There are three ways to make it past the authorized assigner
+    # check. The next three methods excercise those paths.
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_authorized_assigner_author_is_commenter(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(
+            author='userA', commenter='userA', assignee='userC'
+        )
+
+        newpr.new_comment(payload, 'integrationUser', 'credential')
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_authorized_assigner_commenter_is_assignee(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(
+            author='userA', commenter='userB', assignee='userB'
+        )
+
+        newpr.new_comment(payload, 'integrationUser', 'credential')
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_authorized_assigner_commenter_is_collaborator(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(
+            author='userA', commenter='userB', assignee='userC'
+        )
+
+        get_collaborators.return_value = ['userB']
+        newpr.new_comment(payload, 'integrationUser', 'credential')
+        get_collaborators.assert_called_with(
+            'repo-owner', 'repo-name', 'integrationUser', 'credential'
+        )
+        find_reviewer.assert_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_no_reviewer(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(author='userA', commenter='userA')
+
+        find_reviewer.return_value = None
+        newpr.new_comment(payload, 'integrationUser', 'credential')
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_called_with('comment!')
+        set_assignee.assert_not_called()
+
+    @mock.patch.multiple('highfive.newpr', **mock_args)
+    def test_has_reviewer(
+        self, get_collaborators, find_reviewer, set_assignee
+    ):
+        payload = self.make_payload(author='userA', commenter='userA')
+
+        find_reviewer.return_value = 'userD'
+        newpr.new_comment(payload, 'integrationUser', 'credential')
+        get_collaborators.assert_not_called()
+        find_reviewer.assert_called_with('comment!')
+        set_assignee.assert_called_with(
+            'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
+            'credential', 'userA', None
+        )
+
 class TestChooseReviewer(TestNewPR):
     @classmethod
     def setUpClass(cls):
