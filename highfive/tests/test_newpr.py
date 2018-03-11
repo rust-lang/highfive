@@ -86,6 +86,49 @@ class TestNewPRGeneral(TestNewPR):
                 "expected '%s' to have no reviewer extracted" % msg
             )
 
+    def setup_get_irc_nick_mocks(self, mock_urllib2, status_code, data=None):
+        mock_data = mock.Mock()
+        mock_data.getcode.return_value = status_code
+        mock_data.read.return_value = data
+        mock_urllib2.urlopen.return_value = mock_data
+        return mock_data
+
+    @mock.patch('highfive.newpr.urllib2')
+    def test_get_irc_nick_non_200(self, mock_urllib2):
+        mock_data = self.setup_get_irc_nick_mocks(mock_urllib2, 300)
+        self.assertIsNone(newpr.get_irc_nick('foo'))
+
+        mock_urllib2.urlopen.assert_called_with(
+            'http://www.ncameron.org/rustaceans/user?username=foo'
+        )
+        mock_data.getcode.assert_called()
+        mock_data.read.assert_not_called()
+
+    @mock.patch('highfive.newpr.urllib2')
+    def test_get_irc_nick_no_data(self, mock_urllib2):
+        mock_data = self.setup_get_irc_nick_mocks(mock_urllib2, 200, '[]')
+        self.assertIsNone(newpr.get_irc_nick('foo'))
+
+        mock_urllib2.urlopen.assert_called_with(
+            'http://www.ncameron.org/rustaceans/user?username=foo'
+        )
+        mock_data.getcode.assert_called()
+        mock_data.read.assert_called()
+
+    @mock.patch('highfive.newpr.urllib2')
+    def test_get_irc_nick_has_data(self, mock_urllib2):
+        mock_data = self.setup_get_irc_nick_mocks(
+            mock_urllib2, 200,
+            '[{"username":"nrc","name":"Nick Cameron","irc":"nrc","email":"nrc@ncameron.org","discourse":"nrc","reddit":"nick29581","twitter":"@nick_r_cameron","blog":"https://www.ncameron.org/blog","website":"https://www.ncameron.org","notes":"<p>I work on the Rust compiler, language design, and tooling. I lead the dev tools team and am part of the core team. I&#39;m part of the research team at Mozilla.</p>\\n","avatar":"https://avatars.githubusercontent.com/nrc","irc_channels":["rust-dev-tools","rust","rust-internals","rust-lang","rustc","servo"]}]'
+        )
+        self.assertEqual(newpr.get_irc_nick('nrc'), 'nrc')
+
+        mock_urllib2.urlopen.assert_called_with(
+            'http://www.ncameron.org/rustaceans/user?username=nrc'
+        )
+        mock_data.getcode.assert_called()
+        mock_data.read.assert_called()
+
 class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp()
