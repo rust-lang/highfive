@@ -87,13 +87,6 @@ class TestNewPRGeneral(TestNewPR):
             )
 
 class TestNewComment(TestNewPR):
-    mock_args = {
-        'get_collaborators': mock.DEFAULT,
-        'find_reviewer': mock.DEFAULT,
-        'set_assignee': mock.DEFAULT,
-    }
-
-class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp()
 
