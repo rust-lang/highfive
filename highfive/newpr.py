@@ -387,7 +387,7 @@ def new_pr(payload, user, token):
         warnings.append(surprise_branch_warning % surprise)
 
     if modifies_submodule(diff):
-        warnings.append(submodule_warning_msgs)
+        warnings.append(submodule_warning_msg)
 
     if warnings:
         post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, user, token)
