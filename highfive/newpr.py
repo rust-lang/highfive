@@ -347,6 +347,23 @@ def get_irc_nick(gh_name):
             return rustacean_data[0].get("irc")
     return None
 
+def post_warnings(payload, config, diff, owner, repo, issue, user, token):
+    warnings = []
+
+    # Lets not check for unsafe code for now, it doesn't seem to be very useful and gets a lot of false positives.
+    #if modifies_unsafe(diff):
+    #    warnings += [unsafe_warning_msg]
+
+    surprise = unexpected_branch(payload, config)
+    if surprise:
+        warnings.append(surprise_branch_warning % surprise)
+
+    if modifies_submodule(diff):
+        warnings.append(submodule_warning_msg)
+
+    if warnings:
+        post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, user, token)
+
 def new_pr(payload, user, token):
     owner = payload['pull_request']['base']['repo']['owner']['login']
     repo = payload['pull_request']['base']['repo']['name']
@@ -376,21 +393,7 @@ def new_pr(payload, user, token):
     elif post_msg:
         post_comment(review_msg(reviewer, author), owner, repo, issue, user, token)
 
-    warnings = []
-
-    # Lets not check for unsafe code for now, it doesn't seem to be very useful and gets a lot of false positives.
-    #if modifies_unsafe(diff):
-    #    warnings += [unsafe_warning_msg]
-
-    surprise = unexpected_branch(payload, config)
-    if surprise:
-        warnings.append(surprise_branch_warning % surprise)
-
-    if modifies_submodule(diff):
-        warnings.append(submodule_warning_msg)
-
-    if warnings:
-        post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, user, token)
+    post_warnings(payload, config, diff, owner, repo, issue, user, token)
 
     if "new_pr_labels" in config and config["new_pr_labels"]:
         add_labels(config["new_pr_labels"], owner, repo, issue, user, token)

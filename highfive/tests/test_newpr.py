@@ -129,6 +129,114 @@ class TestNewPRGeneral(TestNewPR):
         mock_data.getcode.assert_called()
         mock_data.read.assert_called()
 
+class TestPostWarnings(TestNewPR):
+    @classmethod
+    def setUpClass(cls):
+        cls.payload = {'the': 'payload'}
+        cls.config = {'the': 'config'}
+        cls.diff = 'the diff'
+        cls.owner = 'repo-owner'
+        cls.repo = 'repo-name'
+        cls.issue = 7
+        cls.user = 'integrationUser'
+        cls.token = 'credential'
+
+    def setUp(self):
+        super(TestPostWarnings, self).setUp()
+
+        self.patchers = {
+            'unexpected_branch': mock.patch('highfive.newpr.unexpected_branch'),
+            'modifies_submodule': mock.patch('highfive.newpr.modifies_submodule'),
+            'post_comment': mock.patch('highfive.newpr.post_comment'),
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+
+    def tearDown(self):
+        super(TestPostWarnings, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def post_warnings(self):
+        newpr.post_warnings(
+            self.payload, self.config, self.diff, self.owner, self.repo,
+            self.issue, self.user, self.token
+        )
+
+    def test_no_warnings(self):
+        self.mocks['unexpected_branch'].return_value = False
+        self.mocks['modifies_submodule'].return_value = False
+
+        self.post_warnings()
+
+        self.mocks['unexpected_branch'].assert_called_with(
+            self.payload, self.config
+        )
+        self.mocks['modifies_submodule'].assert_called_with(self.diff)
+        self.mocks['post_comment'].assert_not_called()
+
+    def test_unexpected_branch(self):
+        self.mocks['unexpected_branch'].return_value = (
+            'master', 'something-else'
+        )
+        self.mocks['modifies_submodule'].return_value = False
+
+        self.post_warnings()
+
+        self.mocks['unexpected_branch'].assert_called_with(
+            self.payload, self.config
+        )
+        self.mocks['modifies_submodule'].assert_called_with(self.diff)
+
+        expected_warning = """<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>
+
+* Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!"""
+        self.mocks['post_comment'].assert_called_with(
+            expected_warning, self.owner, self.repo, self.issue, self.user,
+            self.token
+        )
+
+    def test_modifies_submodule(self):
+        self.mocks['unexpected_branch'].return_value = False
+        self.mocks['modifies_submodule'].return_value = True
+
+        self.post_warnings()
+
+        self.mocks['unexpected_branch'].assert_called_with(
+            self.payload, self.config
+        )
+        self.mocks['modifies_submodule'].assert_called_with(self.diff)
+
+        expected_warning = """<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>
+
+* These commits modify **submodules**."""
+        self.mocks['post_comment'].assert_called_with(
+            expected_warning, self.owner, self.repo, self.issue, self.user,
+            self.token
+        )
+
+    def test_unexpected_branch_modifies_submodule(self):
+        self.mocks['unexpected_branch'].return_value = (
+            'master', 'something-else'
+        )
+        self.mocks['modifies_submodule'].return_value = True
+
+        self.post_warnings()
+
+        self.mocks['unexpected_branch'].assert_called_with(
+            self.payload, self.config
+        )
+        self.mocks['modifies_submodule'].assert_called_with(self.diff)
+
+        expected_warning = """<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>
+
+* Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
+* These commits modify **submodules**."""
+        self.mocks['post_comment'].assert_called_with(
+            expected_warning, self.owner, self.repo, self.issue, self.user,
+            self.token
+        )
+
 class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp()
