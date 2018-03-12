@@ -56,6 +56,19 @@ Please see [the contribution instructions](%s) for more information.
             )
         )
 
+    def test_review_msg(self):
+        # No reviewer.
+        self.assertEqual(
+            newpr.review_msg(None, 'userB'),
+            '@userB: no appropriate reviewer found, use r? to override'
+        )
+
+        # Has reviewer.
+        self.assertEqual(
+            newpr.review_msg('userA', 'userB'),
+            'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
+        )
+
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
         mock_dirname.return_value = '/the/path'
