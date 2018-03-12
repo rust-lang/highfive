@@ -56,11 +56,8 @@ review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, 
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
 def review_msg(reviewer, submitter):
-    if reviewer is None:
-        text = review_without_reviewer % submitter
-    else:
-        text = review_with_reviewer % reviewer
-    return text
+    return review_without_reviewer % submitter if reviewer is None \
+        else review_with_reviewer % reviewer
 
 reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
 unsafe_re = re.compile("\\bunsafe\\b|#!?\\[unsafe_")
