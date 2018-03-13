@@ -12,6 +12,63 @@ class TestNewPR(base.BaseTest):
         super(TestNewPR, self).tearDown()
 
 class TestNewPRGeneral(TestNewPR):
+    def test_welcome_msg(self):
+        base_msg = """Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from %s soon.
+
+If any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.
+
+Please see [the contribution instructions](%s) for more information.
+"""
+
+        # No reviewer, no config contributing link.
+        self.assertEqual(
+            newpr.welcome_msg(None, {}),
+            base_msg % (
+                '@nrc (NB. this repo may be misconfigured)',
+                'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
+            )
+        )
+
+        # Has reviewer, no config contributing link.
+        self.assertEqual(
+            newpr.welcome_msg('userA', {}),
+            base_msg % (
+                '@userA (or someone else)',
+                'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
+            )
+        )
+
+        # No reviewer, has config contributing link.
+        self.assertEqual(
+            newpr.welcome_msg(None, {'contributing': 'https://something'}),
+            base_msg % (
+                '@nrc (NB. this repo may be misconfigured)',
+                'https://something'
+            )
+        )
+
+        # Has reviewer, has config contributing link.
+        self.assertEqual(
+            newpr.welcome_msg('userA', {'contributing': 'https://something'}),
+            base_msg % (
+                '@userA (or someone else)',
+                'https://something'
+            )
+        )
+
+    def test_review_msg(self):
+        # No reviewer.
+        self.assertEqual(
+            newpr.review_msg(None, 'userB'),
+            '@userB: no appropriate reviewer found, use r? to override'
+        )
+
+        # Has reviewer.
+        self.assertEqual(
+            newpr.review_msg('userA', 'userB'),
+            'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
+        )
+
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
         mock_dirname.return_value = '/the/path'
