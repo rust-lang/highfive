@@ -92,7 +92,6 @@ def api_req(method, url, data=None, username=None, token=None, media_type=None):
     return { "header": header, "body": body }
 
 def post_comment(body, owner, repo, issue, user, token):
-    global post_comment_url
     try:
         result = api_req("POST", post_comment_url % (owner, repo, issue), {"body": body}, user, token)['body']
     except urllib2.HTTPError, e:
