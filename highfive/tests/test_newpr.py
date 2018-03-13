@@ -3,6 +3,7 @@ from highfive import newpr
 from highfive.tests import base
 import json
 import mock
+from urllib2 import HTTPError
 
 class TestNewPR(base.BaseTest):
     def setUp(self):
@@ -78,6 +79,48 @@ Please see [the contribution instructions](%s) for more information.
         ) as mock_file:
             self.assertEqual(newpr._load_json_file('a-config.json'), contents)
             mock_file.assert_called_with('/the/path/configs/a-config.json')
+
+    @mock.patch('highfive.newpr.api_req')
+    def test_post_comment_success(self, mock_api_req):
+        mock_api_req.return_value = {'body': 'response body!'}
+        self.assertIsNone(
+            newpr.post_comment(
+                'Request body!', 'repo-owner', 'repo-name', 7,
+                'integrationUser', 'credential'
+            )
+        )
+        mock_api_req.assert_called_with(
+            'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
+            {'body': 'Request body!'}, 'integrationUser', 'credential'
+        )
+
+    @mock.patch('highfive.newpr.api_req')
+    def test_post_comment_error_201(self, mock_api_req):
+        mock_api_req.return_value = {}
+        mock_api_req.side_effect = HTTPError(None, 201, None, None, None)
+        self.assertIsNone(
+            newpr.post_comment(
+                'Request body!', 'repo-owner', 'repo-name', 7,
+                'integrationUser', 'credential'
+            )
+        )
+        mock_api_req.assert_called_with(
+            'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
+            {'body': 'Request body!'}, 'integrationUser', 'credential'
+        )
+
+    @mock.patch('highfive.newpr.api_req')
+    def test_post_comment_error(self, mock_api_req):
+        mock_api_req.return_value = {}
+        mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
+        self.assertRaises(
+            HTTPError, newpr.post_comment, 'Request body!', 'repo-owner',
+            'repo-name', 7, 'integrationUser', 'credential'
+        )
+        mock_api_req.assert_called_with(
+            'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
+            {'body': 'Request body!'}, 'integrationUser', 'credential'
+        )
 
     def test_submodule(self):
         submodule_diff = self._load_fake('submodule.diff')
