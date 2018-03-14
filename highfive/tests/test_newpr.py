@@ -122,6 +122,35 @@ Please see [the contribution instructions](%s) for more information.
             {'body': 'Request body!'}, 'integrationUser', 'credential'
         )
 
+    @mock.patch('highfive.newpr.api_req')
+    def test_is_collaborator_true(self, mock_api_req):
+        self.assertTrue(
+            newpr.is_collaborator(
+                'commentUser', 'repo-owner', 'repo-name', 'integrationUser',
+                'credential'
+            )
+        )
+        mock_api_req.assert_called_with(
+            'GET',
+            'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
+            None, 'integrationUser', 'credential'
+        )
+
+    @mock.patch('highfive.newpr.api_req')
+    def test_is_collaborator_false(self, mock_api_req):
+        mock_api_req.side_effect = HTTPError(None, 404, None, None, None)
+        self.assertFalse(
+            newpr.is_collaborator(
+                'commentUser', 'repo-owner', 'repo-name', 'integrationUser',
+                'credential'
+            )
+        )
+        mock_api_req.assert_called_with(
+            'GET',
+            'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
+            None, 'integrationUser', 'credential'
+        )
+
     def test_submodule(self):
         submodule_diff = self._load_fake('submodule.diff')
         self.assertTrue(newpr.modifies_submodule(submodule_diff))
