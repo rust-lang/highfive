@@ -22,7 +22,6 @@ from highfive import irc
 contributors_url = "https://api.github.com/repos/%s/%s/contributors?per_page=100"
 post_comment_url = "https://api.github.com/repos/%s/%s/issues/%s/comments"
 user_collabo_url = "https://api.github.com/repos/%s/%s/collaborators/%s"
-collabo_url = "https://api.github.com/repos/%s/%s/collaborators"
 issue_url = "https://api.github.com/repos/%s/%s/issues/%s"
 issue_labels_url = "https://api.github.com/repos/%s/%s/issues/%s/labels"
 
@@ -134,17 +133,6 @@ def is_collaborator(commenter, owner, repo, user, token):
         return True
     except urllib2.HTTPError:
         return False
-
-def get_collaborators(owner, repo, user, token):
-    try:
-        result = api_req("GET", collabo_url % (owner, repo), None, user, token)['body']
-    except urllib2.HTTPError, e:
-        if e.code == 201:
-            pass
-        else:
-            raise e
-    return [c['login'] for c in json.loads(result)]
-
 
 def add_labels(labels, owner, repo, issue, user, token):
     try:
@@ -419,8 +407,8 @@ def new_comment(payload, user, token):
     # Check the commenter is the submitter of the PR or the previous assignee.
     author = payload["issue"]['user']['login']
     if not (author == commenter or (payload['issue']['assignee'] and commenter == payload['issue']['assignee']['login'])):
-        # Get collaborators for this repo and check if the commenter is one of them
-        if commenter not in get_collaborators(owner, repo, user, token):
+        # Check if commenter is a collaborator.
+        if not is_collaborator(commenter, owner, repo, user, token):
             return
 
     # Check for r? and set the assignee.

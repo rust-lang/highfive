@@ -371,7 +371,7 @@ class TestNewComment(TestNewPR):
         super(TestNewComment, self).setUp()
 
         self.patchers = {
-            'get_collaborators': mock.patch('highfive.newpr.get_collaborators'),
+            'is_collaborator': mock.patch('highfive.newpr.is_collaborator'),
             'find_reviewer': mock.patch('highfive.newpr.find_reviewer'),
             'set_assignee': mock.patch('highfive.newpr.set_assignee'),
         }
@@ -423,7 +423,7 @@ class TestNewComment(TestNewPR):
         payload = self.make_payload(state='closed')
 
         self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
@@ -431,7 +431,7 @@ class TestNewComment(TestNewPR):
         payload = self.make_payload(is_pull_request=False)
 
         self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
@@ -441,7 +441,7 @@ class TestNewComment(TestNewPR):
         self.assertIsNone(
             newpr.new_comment(payload, 'integrationUser', 'credential')
         )
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
@@ -450,12 +450,12 @@ class TestNewComment(TestNewPR):
             author='userA', commenter='userB', assignee='userC'
         )
 
-        self.mocks['get_collaborators'].return_value = ['userD', 'userE']
+        self.mocks['is_collaborator'].return_value = False
         self.assertIsNone(
             newpr.new_comment(payload, 'integrationUser', 'credential')
         )
-        self.mocks['get_collaborators'].assert_called_with(
-            'repo-owner', 'repo-name', 'integrationUser', 'credential'
+        self.mocks['is_collaborator'].assert_called_with(
+            'userB', 'repo-owner', 'repo-name', 'integrationUser', 'credential'
         )
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
@@ -468,7 +468,7 @@ class TestNewComment(TestNewPR):
         )
 
         newpr.new_comment(payload, 'integrationUser', 'credential')
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called()
 
     def test_authorized_assigner_commenter_is_assignee(self):
@@ -477,7 +477,7 @@ class TestNewComment(TestNewPR):
         )
 
         newpr.new_comment(payload, 'integrationUser', 'credential')
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called()
 
     def test_authorized_assigner_commenter_is_collaborator(self):
@@ -485,10 +485,10 @@ class TestNewComment(TestNewPR):
             author='userA', commenter='userB', assignee='userC'
         )
 
-        self.mocks['get_collaborators'].return_value = ['userB']
+        self.mocks['is_collaborator'].return_value = True
         newpr.new_comment(payload, 'integrationUser', 'credential')
-        self.mocks['get_collaborators'].assert_called_with(
-            'repo-owner', 'repo-name', 'integrationUser', 'credential'
+        self.mocks['is_collaborator'].assert_called_with(
+            'userB', 'repo-owner', 'repo-name', 'integrationUser', 'credential'
         )
         self.mocks['find_reviewer'].assert_called()
 
@@ -497,7 +497,7 @@ class TestNewComment(TestNewPR):
 
         self.mocks['find_reviewer'].return_value = None
         newpr.new_comment(payload, 'integrationUser', 'credential')
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_not_called()
 
@@ -506,7 +506,7 @@ class TestNewComment(TestNewPR):
 
         self.mocks['find_reviewer'].return_value = 'userD'
         newpr.new_comment(payload, 'integrationUser', 'credential')
-        self.mocks['get_collaborators'].assert_not_called()
+        self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_called_with(
             'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
