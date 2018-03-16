@@ -131,8 +131,11 @@ def is_collaborator(commenter, owner, repo, user, token):
     try:
         api_req("GET", user_collabo_url % (owner, repo, commenter), None, user, token)
         return True
-    except urllib2.HTTPError:
-        return False
+    except urllib2.HTTPError, e:
+        if e.code == 404:
+            return False
+        else:
+            raise e
 
 def add_labels(labels, owner, repo, issue, user, token):
     try:
