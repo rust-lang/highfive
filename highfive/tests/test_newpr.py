@@ -180,22 +180,6 @@ Please see [the contribution instructions](%s) for more information.
         )
 
     @mock.patch('highfive.newpr.api_req')
-    def test_add_labels_error_201(self, mock_api_req):
-        mock_api_req.return_value = {}
-        mock_api_req.side_effect = HTTPError(None, 201, None, None, None)
-        labels = ['label1', 'label2']
-        self.assertIsNone(
-            newpr.add_labels(
-                labels, 'repo-owner', 'repo-name', 7, 'integrationUser',
-                'credential'
-            )
-        )
-        mock_api_req.assert_called_with(
-            'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
-            labels, 'integrationUser', 'credential'
-        )
-
-    @mock.patch('highfive.newpr.api_req')
     def test_add_labels_error(self, mock_api_req):
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
