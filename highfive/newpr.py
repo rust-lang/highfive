@@ -138,13 +138,7 @@ def is_collaborator(commenter, owner, repo, user, token):
             raise e
 
 def add_labels(labels, owner, repo, issue, user, token):
-    try:
-        result = api_req("POST", issue_labels_url % (owner, repo, issue), labels, user, token)
-    except urllib2.HTTPError, e:
-        if e.code == 201:
-            pass
-        else:
-            raise e
+    api_req("POST", issue_labels_url % (owner, repo, issue), labels, user, token)
 
 
 # This function is adapted from https://github.com/kennethreitz/requests/blob/209a871b638f85e2c61966f82e547377ed4260d9/requests/utils.py#L562
