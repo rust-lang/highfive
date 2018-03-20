@@ -1,7 +1,11 @@
 Highfive [![Build Status](https://travis-ci.org/rust-lang-nursery/highfive.svg?branch=master)](https://travis-ci.org/rust-lang-nursery/highfive)
 ========
 
-GitHub hooks to provide an encouraging atmosphere for new contributors
+GitHub hooks to provide an encouraging atmosphere for new
+contributors. Highfive assigns pull requests to users based on rules
+in configuration files. You can see Highfive in action in several Rust
+repositories. See the [rust-lang/rust pull
+requests](https://github.com/rust-lang/rust/pulls), for example.
 
 Install
 =======
