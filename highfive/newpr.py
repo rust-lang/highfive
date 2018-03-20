@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import base64
 import urllib, urllib2
 import cgi
 import cgitb
@@ -78,8 +77,7 @@ def api_req(method, url, data=None, username=None, token=None, media_type=None):
     req = urllib2.Request(url, data, headers)
     req.get_method = lambda: method
     if token:
-        base64string = base64.standard_b64encode('%s:x-oauth-basic' % (token)).replace('\n', '')
-        req.add_header("Authorization", "Basic %s" % base64string)
+        req.add_header("Authorization", "token %s" % token)
 
     if media_type:
         req.add_header("Accept", media_type)
