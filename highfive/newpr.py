@@ -91,7 +91,7 @@ def api_req(method, url, data=None, username=None, token=None, media_type=None):
 
 def post_comment(body, owner, repo, issue, user, token):
     try:
-        result = api_req("POST", post_comment_url % (owner, repo, issue), {"body": body}, user, token)['body']
+        api_req("POST", post_comment_url % (owner, repo, issue), {"body": body}, user, token)['body']
     except urllib2.HTTPError, e:
         if e.code == 201:
             pass
