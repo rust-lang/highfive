@@ -300,6 +300,156 @@ Please see [the contribution instructions](%s) for more information.
         mock_data.getcode.assert_called()
         mock_data.read.assert_called()
 
+class TestApiReq(TestNewPR):
+    @classmethod
+    def setUpClass(cls):
+        cls.method = 'METHOD'
+        cls.url = 'https://foo.bar'
+
+    def setUp(self):
+        super(TestApiReq, self).setUp()
+
+        self.patchers = {
+            'urlopen': mock.patch('urllib2.urlopen'),
+            'Request': mock.patch('urllib2.Request'),
+            'StringIO': mock.patch('highfive.newpr.StringIO'),
+            'GzipFile': mock.patch('gzip.GzipFile'),
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+
+        self.req = self.mocks['Request'].return_value
+
+        self.res = self.mocks['urlopen'].return_value
+        self.res.info.return_value = {'Content-Encoding': 'gzip'}
+
+        self.body = self.res.read.return_value = 'body1'
+
+        self.gzipped_body = self.mocks['GzipFile'].return_value.read
+        self.gzipped_body.return_value = 'body2'
+
+    def tearDown(self):
+        super(TestApiReq, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def verify_mock_calls(self, header_calls, gzipped):
+        self.mocks['Request'].assert_called_with(
+            self.url, json.dumps(self.data) if self.data else self.data,
+            {'Content-Type': 'application/json'} if self.data else {}
+        )
+        self.assertEqual(self.req.get_method(), 'METHOD')
+
+        self.assertEqual(len(self.req.add_header.mock_calls), len(header_calls))
+        self.req.add_header.assert_has_calls(header_calls)
+
+        self.mocks['urlopen'].assert_called_with(self.req)
+        self.res.info.assert_called_once()
+        self.res.read.assert_called_once()
+
+        if gzipped:
+            self.mocks['StringIO'].assert_called_with(self.body)
+            self.mocks['GzipFile'].assert_called_with(
+                fileobj=self.mocks['StringIO'].return_value
+            )
+            self.gzipped_body.assert_called_once()
+        else:
+            self.mocks['StringIO'].assert_not_called()
+            self.mocks['GzipFile'].assert_not_called()
+            self.gzipped_body.assert_not_called()
+
+    def call_api_req(self):
+        return newpr.api_req(
+            self.method, self.url, self.data, token=self.token,
+            media_type=self.media_type
+        )
+
+    def test1(self):
+        """No data, no token, no media_type, header (gzip/no gzip)"""
+        (self.data, self.token, self.media_type) = (None, None, None)
+
+        self.assertEqual(
+            self.call_api_req(),
+            {'header': {'Content-Encoding': 'gzip'}, 'body': 'body2'}
+        )
+        self.verify_mock_calls([], True)
+
+    def test2(self):
+        """Has data, no token, no media_type, response gzipped"""
+        (self.data, self.token, self.media_type) = (
+            {'some': 'data'}, None, None
+        )
+
+        self.assertEqual(
+            self.call_api_req(),
+            {'header': {'Content-Encoding': 'gzip'}, 'body': 'body2'}
+        )
+        self.verify_mock_calls([], True)
+
+    def test3(self):
+        """Has data, has token, no media_type, response gzipped"""
+        (self.data, self.token, self.media_type) = (
+            {'some': 'data'}, 'credential', None
+        )
+
+        self.assertEqual(
+            self.call_api_req(),
+            {'header': {'Content-Encoding': 'gzip'}, 'body': 'body2'}
+        )
+        calls = [
+            mock.call('Authorization', 'token %s' % self.token),
+        ]
+        self.verify_mock_calls(calls, True)
+
+    def test4(self):
+        """Has data, no token, has media_type, response gzipped"""
+        (self.data, self.token, self.media_type) = (
+            {'some': 'data'}, None, 'this.media.type'
+        )
+
+        self.assertEqual(
+            self.call_api_req(),
+            {'header': {'Content-Encoding': 'gzip'}, 'body': 'body2'}
+        )
+        calls = [
+            mock.call('Accept', self.media_type),
+        ]
+        self.verify_mock_calls(calls, True)
+
+    def test5(self):
+        """Has data, has token, has media_type, response gzipped"""
+        (self.data, self.token, self.media_type) = (
+            {'some': 'data'}, 'credential', 'the.media.type'
+        )
+
+        self.assertEqual(
+            self.call_api_req(),
+            {'header': {'Content-Encoding': 'gzip'}, 'body': 'body2'}
+        )
+        calls = [
+            mock.call('Authorization', 'token %s' % self.token),
+            mock.call('Accept', self.media_type),
+        ]
+        self.verify_mock_calls(calls, True)
+
+    def test6(self):
+        """Has data, has token, has media_type, response not gzipped"""
+        (self.data, self.token, self.media_type) = (
+            {'some': 'data'}, 'credential', 'the.media.type'
+        )
+
+        self.res.info.return_value = {}
+
+        self.assertEqual(
+            self.call_api_req(),
+            {'header': {}, 'body': 'body1'}
+        )
+        calls = [
+            mock.call('Authorization', 'token %s' % self.token),
+            mock.call('Accept', self.media_type),
+        ]
+        self.verify_mock_calls(calls, False)
+
 class TestPostWarnings(TestNewPR):
     @classmethod
     def setUpClass(cls):
