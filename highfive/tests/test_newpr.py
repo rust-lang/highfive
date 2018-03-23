@@ -450,6 +450,132 @@ class TestApiReq(TestNewPR):
         ]
         self.verify_mock_calls(calls, False)
 
+class TestSetAssignee(TestNewPR):
+    @classmethod
+    def setUpClass(cls):
+        cls.assignee = 'assigneeUser'
+        cls.author = 'authorUser'
+        cls.owner = 'repo-owner'
+        cls.repo = 'repo-name'
+        cls.issue = 7
+        cls.user = 'integrationUser'
+        cls.token = 'credential'
+
+    def setUp(self):
+        super(TestSetAssignee, self).setUp()
+
+        self.patchers = {
+            'api_req': mock.patch('highfive.newpr.api_req'),
+            'get_irc_nick': mock.patch('highfive.newpr.get_irc_nick'),
+            'post_comment': mock.patch('highfive.newpr.post_comment'),
+            'IrcClient': mock.patch('highfive.irc.IrcClient'),
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+        self.mocks['client'] = self.mocks['IrcClient'].return_value
+
+    def tearDown(self):
+        super(TestSetAssignee, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def set_assignee(self, assignee='', to_mention=None):
+        assignee = self.assignee if assignee == '' else assignee
+        return newpr.set_assignee(
+            assignee, self.owner, self.repo, self.issue, self.user, self.token,
+            self.author, to_mention or []
+        )
+
+    def assert_api_req_call(self, assignee=''):
+        assignee = self.assignee if assignee == '' else assignee
+        self.mocks['api_req'].assert_called_once_with(
+            'PATCH',
+            'https://api.github.com/repos/%s/%s/issues/%s' % (
+                self.owner, self.repo, self.issue
+            ),
+            {"assignee": assignee}, self.user, self.token
+        )
+
+    def test_api_req_good(self):
+        self.mocks['get_irc_nick'].return_value = None
+        self.set_assignee()
+
+        self.assert_api_req_call()
+        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
+        self.mocks['IrcClient'].assert_not_called()
+        self.mocks['client'].send_then_quit.assert_not_called()
+        self.mocks['post_comment'].assert_not_called()
+
+    def test_api_req_201(self):
+        self.mocks['api_req'].side_effect = HTTPError(None, 201, None, None, None)
+        self.mocks['get_irc_nick'].return_value = None
+        self.set_assignee()
+
+        self.assert_api_req_call()
+        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
+        self.mocks['IrcClient'].assert_not_called()
+        self.mocks['client'].send_then_quit.assert_not_called()
+        self.mocks['post_comment'].assert_not_called()
+
+    def test_api_req_error(self):
+        self.mocks['api_req'].side_effect = HTTPError(None, 403, None, None, None)
+        self.assertRaises(HTTPError, self.set_assignee)
+
+        self.assert_api_req_call()
+        self.mocks['get_irc_nick'].assert_not_called()
+        self.mocks['IrcClient'].assert_not_called()
+        self.mocks['client'].send_then_quit.assert_not_called()
+        self.mocks['post_comment'].assert_not_called()
+
+    def test_has_nick(self):
+        irc_nick = 'nick'
+        self.mocks['get_irc_nick'].return_value = irc_nick
+
+        self.set_assignee()
+
+        self.assert_api_req_call()
+        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
+        self.mocks['IrcClient'].assert_called_once_with(target='#rust-bots')
+        self.mocks['client'].send_then_quit.assert_called_once_with(
+            "{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}.".format(
+                irc_nick, self.owner, self.repo, self.issue, self.author
+            )
+        )
+        self.mocks['post_comment'].assert_not_called()
+
+    def test_has_to_mention(self):
+        self.mocks['get_irc_nick'].return_value = None
+
+        to_mention = [
+            {
+                'message': 'This is important',
+                'reviewers': ['@userA', '@userB', 'integrationUser', '@userC'],
+            },
+            {
+                'message': 'Also important',
+                'reviewers': ['@userD'],
+            },
+        ]
+        self.set_assignee(to_mention=to_mention)
+
+        self.assert_api_req_call()
+        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
+        self.mocks['IrcClient'].assert_not_called()
+        self.mocks['client'].send_then_quit.assert_not_called()
+        self.mocks['post_comment'].assert_called_once_with(
+            'This is important\n\ncc @userA,@userB,@userC\n\nAlso important\n\ncc @userD',
+            self.owner, self.repo, self.issue, self.user, self.token
+        )
+
+    def test_no_assignee(self):
+        self.set_assignee(None)
+
+        self.assert_api_req_call(None)
+        self.mocks['get_irc_nick'].assert_not_called()
+        self.mocks['IrcClient'].assert_not_called()
+        self.mocks['client'].send_then_quit.assert_not_called()
+        self.mocks['post_comment'].assert_not_called()
+
 class TestPostWarnings(TestNewPR):
     @classmethod
     def setUpClass(cls):
