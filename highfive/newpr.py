@@ -99,7 +99,6 @@ def post_comment(body, owner, repo, issue, user, token):
             raise e
 
 def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
-    global issue_url
     try:
         result = api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, user, token)['body']
     except urllib2.HTTPError, e:
