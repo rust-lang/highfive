@@ -576,6 +576,75 @@ class TestSetAssignee(TestNewPR):
         self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_not_called()
 
+class TestIsNewContributor(TestNewPR):
+    @classmethod
+    def setUpClass(cls):
+        cls.username = 'commitUser'
+        cls.owner = 'repo-owner'
+        cls.repo = 'repo-name'
+        cls.user = 'integrationUser'
+        cls.token = 'credential'
+
+    def setUp(self):
+        super(TestIsNewContributor, self).setUp()
+        self.payload = {'repository': {'fork': False}}
+        self.patchers = {
+            'api_req': mock.patch('highfive.newpr.api_req'),
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+
+    def tearDown(self):
+        super(TestIsNewContributor, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def is_new_contributor(self):
+        return newpr.is_new_contributor(
+            self.username, self.owner, self.repo, self.user, self.token,
+            self.payload
+        )
+
+    def api_return(self, total_count):
+        return {
+            'body': json.dumps({'total_count': total_count}),
+            'header': {},
+        }
+
+    def assert_api_req_call(self):
+        self.mocks['api_req'].assert_called_once_with(
+            'GET',
+            'https://api.github.com/search/commits?q=repo:%s/%s+author:%s' % (
+                self.owner, self.repo, self.username
+            ), None, self.user, self.token,
+            'application/vnd.github.cloak-preview'
+        )
+
+    def test_is_new_contributor_fork(self):
+        self.payload['repository']['fork'] = True
+        self.assertFalse(self.is_new_contributor())
+        self.mocks['api_req'].assert_not_called()
+
+    def test_is_new_contributor_has_commits(self):
+        self.mocks['api_req'].return_value = self.api_return(5)
+        self.assertTrue(self.is_new_contributor())
+        self.assert_api_req_call()
+
+    def test_is_new_contributor_no_commits(self):
+        self.mocks['api_req'].return_value = self.api_return(0)
+        self.assertFalse(self.is_new_contributor())
+        self.assert_api_req_call()
+
+    def test_is_new_contributor_nonexistent_user(self):
+        self.mocks['api_req'].side_effect = HTTPError(None, 422, None, None, None)
+        self.assertFalse(self.is_new_contributor())
+        self.assert_api_req_call()
+
+    def test_is_new_contributor_error(self):
+        self.mocks['api_req'].side_effect = HTTPError(None, 403, None, None, None)
+        self.assertRaises(HTTPError, self.is_new_contributor)
+        self.assert_api_req_call()
+
 class TestPostWarnings(TestNewPR):
     @classmethod
     def setUpClass(cls):
