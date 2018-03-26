@@ -23,6 +23,7 @@ post_comment_url = "https://api.github.com/repos/%s/%s/issues/%s/comments"
 user_collabo_url = "https://api.github.com/repos/%s/%s/collaborators/%s"
 issue_url = "https://api.github.com/repos/%s/%s/issues/%s"
 issue_labels_url = "https://api.github.com/repos/%s/%s/issues/%s/labels"
+commit_search_url = "https://api.github.com/search/commits?q=repo:%s/%s+author:%s"
 
 welcome_with_reviewer = '@%s (or someone else)'
 welcome_without_reviewer = "@nrc (NB. this repo may be misconfigured)"
@@ -165,24 +166,24 @@ def parse_header_links(value):
 
     return links
 
-def is_new_contributor(username, owner, repo, user, token, config):
-    if 'contributors' in config and username in config['contributors']:
+def is_new_contributor(username, owner, repo, user, token, payload):
+    # If this is a fork, we do not treat anyone as a new user. This is
+    # because the API endpoint called in this function indicates all
+    # users in repository forks have zero commits.
+    if payload['repository']['fork']:
         return False
 
-    # iterate through the pages to try and find the contributor
-    url = contributors_url % (owner, repo)
-    while True:
-        stats_raw = api_req("GET", url, None, user, token)
-        stats = json.loads(stats_raw['body'])
-        links = parse_header_links(stats_raw['header'].get('Link'))
-
-        for contributor in stats:
-            if contributor['login'] == username:
-                return False
-
-        if not links or 'next' not in links:
-            return True
-        url = links['next']
+    try:
+        result = api_req(
+            'GET', commit_search_url % (owner, repo, username), None, user, token,
+            'application/vnd.github.cloak-preview'
+        )
+        return json.loads(result['body'])['total_count'] > 0
+    except urllib2.HTTPError, e:
+        if e.code == 422:
+            return False
+        else:
+            raise e
 
 # If the user specified a reviewer, return the username, otherwise returns None.
 def find_reviewer(msg):
@@ -374,7 +375,7 @@ def new_pr(payload, user, token):
 
     set_assignee(reviewer, owner, repo, issue, user, token, author, to_mention)
 
-    if is_new_contributor(author, owner, repo, user, token, config):
+    if is_new_contributor(author, owner, repo, user, token, payload):
         post_comment(welcome_msg(reviewer, config), owner, repo, issue, user, token)
     elif post_msg:
         post_comment(review_msg(reviewer, author), owner, repo, issue, user, token)
