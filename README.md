@@ -113,8 +113,22 @@ your local instance. Here is one approach for running a local server:
 - Set up the web hook following the instructions in [Enabling a
   Repo](#enabling-a-repo), substituting your local Highfive IP address
   or domain name and port (if necessary).
+- Obtain an OAuth token. In the account you are creating the token in,
+  go to https://github.com/settings/tokens. Grant access to the repo
+  scope.
+- Put the authorization information obtained in the previous step into
+  a file named config in the top of the repository (i.e., the
+  directory containing this file). Here's a template of what it should
+  look like:
+  ```
+  [github]
+  user: OAUTH_TOKEN_USER
+  token: OAUTH_TOKEN
+  ```
+  _Do not check in this file or commit your OAuth token to a
+  repository in any other way. It is a secret._
 
-Here are couple things to watch out for:
+Here are some details to be aware of:
 
 - The beginning of `choose_reviewer` in
   [highfive/newpr.py](/highfive/newpr.py) contains logic that causes
@@ -124,6 +138,8 @@ Here are couple things to watch out for:
 - For Highfive to know how to select reviewers for your repository,
   you need a configuration file in
   [highfive/configs](/highfive/configs).
+- Highfive ignores comments from the integration user near the top of
+  `new_commment` in [highfive/newpr.py](/highfive/newpr.py).
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
