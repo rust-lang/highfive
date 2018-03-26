@@ -89,5 +89,41 @@ Leave the 'secret' field blank.
 Let me select individual events: Issue comment, pull request
 Check the box by 'Active'
 
+Local Development
+-----------------
+
+You can run Highfive on your machine and configure a repository to use
+your local instance. Here is one approach for running a local server:
+
+- Use [serve.py](/serve.py) to run the Highfive service. From the
+  repository root, do:
+  ```
+  $ PYTHONPATH=$PYTHONPATH:$PWD python serve.py
+  ```
+  Now you have Highfive listening on port 8000 of your machine.
+- Your Highfive instance will need to be reachable from outside your
+  machine. If that's possible without further work, skip to the next
+  item. Otherwise, something needs to be figured out.
+
+  An easy way to handle this for development is to use
+  [ngrok](https://ngrok.com/). If you go that route, you will get a
+  temporary domain name that proxies to your Highfive
+  instance. Additionally, you will be able to use ngrok's inspector to
+  easily examine and replay the requests.
+- Set up the web hook following the instructions in [Enabling a
+  Repo](#enabling-a-repo), substituting your local Highfive IP address
+  or domain name and port (if necessary).
+
+Here are couple things to watch out for:
+
+- The beginning of `choose_reviewer` in
+  [highfive/newpr.py](/highfive/newpr.py) contains logic that causes
+  Highfive to ignore requests from unqualified repositories. You will
+  likely need to modify this logic in order for your local Highfive to
+  take action on new PRs.
+- For Highfive to know how to select reviewers for your repository,
+  you need a configuration file in
+  [highfive/configs](/highfive/configs).
+
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
