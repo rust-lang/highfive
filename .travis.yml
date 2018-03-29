@@ -7,4 +7,10 @@ install:
   - "pip install -r test-requirements.txt"
 
 # command to run tests
-script: nosetests
+script:
+  - |
+    if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
+      nosetests
+    else
+      nosetests -a type=unit
+    fi
