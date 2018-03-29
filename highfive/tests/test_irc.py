@@ -2,7 +2,9 @@ import mock
 
 from highfive import irc
 from highfive.tests import base
+from nose.plugins.attrib import attr
 
+@attr(type='unit')
 class TestIrc(base.BaseTest):
 
     def test_send_and_join(self):

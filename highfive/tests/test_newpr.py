@@ -3,8 +3,10 @@ from highfive import newpr
 from highfive.tests import base
 import json
 import mock
+from nose.plugins.attrib import attr
 from urllib2 import HTTPError
 
+@attr(type='unit')
 class TestNewPR(base.BaseTest):
     def setUp(self):
         super(TestNewPR, self).setUp()
