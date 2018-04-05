@@ -12,20 +12,20 @@ class TestIsNewContributor(base.BaseTest):
     def test_real_contributor_true(self):
         self.assertTrue(
             newpr.is_new_contributor(
-                'nrc', 'rust-lang', 'rust', '', None, self.payload
+                'nrc', 'rust-lang', 'rust', '', self.payload
             )
         )
 
     def test_real_contributor_false(self):
         self.assertFalse(
             newpr.is_new_contributor(
-                'octocat', 'rust-lang', 'rust', '', None, self.payload
+                'octocat', 'rust-lang', 'rust', '', self.payload
             )
         )
 
     def test_fake_user(self):
         self.assertFalse(
             newpr.is_new_contributor(
-                'fjkesfgojsrgljsdgla', 'rust-lang', 'rust', '', None, self.payload
+                'fjkesfgojsrgljsdgla', 'rust-lang', 'rust', '', self.payload
             )
         )
