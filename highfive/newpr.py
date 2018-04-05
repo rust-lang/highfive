@@ -72,7 +72,7 @@ def _load_json_file(name):
     with open(os.path.join(configs_dir, name)) as config:
         return json.load(config)
 
-def api_req(method, url, data=None, username=None, token=None, media_type=None):
+def api_req(method, url, data=None, token=None, media_type=None):
     data = None if not data else json.dumps(data)
     headers = {} if not data else {'Content-Type': 'application/json'}
     req = urllib2.Request(url, data, headers)
@@ -90,9 +90,9 @@ def api_req(method, url, data=None, username=None, token=None, media_type=None):
     body = f.read()
     return { "header": header, "body": body }
 
-def post_comment(body, owner, repo, issue, user, token):
+def post_comment(body, owner, repo, issue, token):
     try:
-        api_req("POST", post_comment_url % (owner, repo, issue), {"body": body}, user, token)['body']
+        api_req("POST", post_comment_url % (owner, repo, issue), {"body": body}, token)['body']
     except urllib2.HTTPError, e:
         if e.code == 201:
             pass
@@ -101,7 +101,7 @@ def post_comment(body, owner, repo, issue, user, token):
 
 def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
     try:
-        result = api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, user, token)['body']
+        result = api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, token)['body']
     except urllib2.HTTPError, e:
         if e.code == 201:
             pass
@@ -122,12 +122,12 @@ def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
                 message += '\n\n'
             message += "%s\n\ncc %s" % (mention['message'],
                                         ','.join([x for x in mention['reviewers'] if x != user]))
-        post_comment(message, owner, repo, issue, user, token)
+        post_comment(message, owner, repo, issue, token)
 
-def is_collaborator(commenter, owner, repo, user, token):
+def is_collaborator(commenter, owner, repo, token):
     """Returns True if `commenter` is a collaborator in the repo."""
     try:
-        api_req("GET", user_collabo_url % (owner, repo, commenter), None, user, token)
+        api_req("GET", user_collabo_url % (owner, repo, commenter), None, token)
         return True
     except urllib2.HTTPError, e:
         if e.code == 404:
@@ -135,8 +135,8 @@ def is_collaborator(commenter, owner, repo, user, token):
         else:
             raise e
 
-def add_labels(labels, owner, repo, issue, user, token):
-    api_req("POST", issue_labels_url % (owner, repo, issue), labels, user, token)
+def add_labels(labels, owner, repo, issue, token):
+    api_req("POST", issue_labels_url % (owner, repo, issue), labels, token)
 
 
 # This function is adapted from https://github.com/kennethreitz/requests/blob/209a871b638f85e2c61966f82e547377ed4260d9/requests/utils.py#L562
@@ -166,7 +166,7 @@ def parse_header_links(value):
 
     return links
 
-def is_new_contributor(username, owner, repo, user, token, payload):
+def is_new_contributor(username, owner, repo, token, payload):
     # If this is a fork, we do not treat anyone as a new user. This is
     # because the API endpoint called in this function indicates all
     # users in repository forks have zero commits.
@@ -175,7 +175,7 @@ def is_new_contributor(username, owner, repo, user, token, payload):
 
     try:
         result = api_req(
-            'GET', commit_search_url % (owner, repo, username), None, user, token,
+            'GET', commit_search_url % (owner, repo, username), None, token,
             'application/vnd.github.cloak-preview'
         )
         return json.loads(result['body'])['total_count'] > 0
@@ -334,7 +334,7 @@ def get_irc_nick(gh_name):
             return rustacean_data[0].get("irc")
     return None
 
-def post_warnings(payload, config, diff, owner, repo, issue, user, token):
+def post_warnings(payload, config, diff, owner, repo, issue, token):
     warnings = []
 
     # Lets not check for unsafe code for now, it doesn't seem to be very useful and gets a lot of false positives.
@@ -349,7 +349,7 @@ def post_warnings(payload, config, diff, owner, repo, issue, user, token):
         warnings.append(submodule_warning_msg)
 
     if warnings:
-        post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, user, token)
+        post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, token)
 
 def new_pr(payload, user, token):
     owner = payload['pull_request']['base']['repo']['owner']['login']
@@ -358,7 +358,7 @@ def new_pr(payload, user, token):
     author = payload["pull_request"]['user']['login']
     issue = str(payload["number"])
     diff = api_req(
-        "GET", payload["pull_request"]["url"], None, user, token,
+        "GET", payload["pull_request"]["url"], None, token,
         "application/vnd.github.v3.diff",
     )['body']
 
@@ -375,15 +375,15 @@ def new_pr(payload, user, token):
 
     set_assignee(reviewer, owner, repo, issue, user, token, author, to_mention)
 
-    if is_new_contributor(author, owner, repo, user, token, payload):
-        post_comment(welcome_msg(reviewer, config), owner, repo, issue, user, token)
+    if is_new_contributor(author, owner, repo, token, payload):
+        post_comment(welcome_msg(reviewer, config), owner, repo, issue, token)
     elif post_msg:
-        post_comment(review_msg(reviewer, author), owner, repo, issue, user, token)
+        post_comment(review_msg(reviewer, author), owner, repo, issue, token)
 
-    post_warnings(payload, config, diff, owner, repo, issue, user, token)
+    post_warnings(payload, config, diff, owner, repo, issue, token)
 
     if "new_pr_labels" in config and config["new_pr_labels"]:
-        add_labels(config["new_pr_labels"], owner, repo, issue, user, token)
+        add_labels(config["new_pr_labels"], owner, repo, issue, token)
 
 
 def new_comment(payload, user, token):
@@ -403,7 +403,7 @@ def new_comment(payload, user, token):
     author = payload["issue"]['user']['login']
     if not (author == commenter or (payload['issue']['assignee'] and commenter == payload['issue']['assignee']['login'])):
         # Check if commenter is a collaborator.
-        if not is_collaborator(commenter, owner, repo, user, token):
+        if not is_collaborator(commenter, owner, repo, token):
             return
 
     # Check for r? and set the assignee.
