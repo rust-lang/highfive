@@ -29,9 +29,19 @@ To run tests, make sure the test-requirements are installed by running:
     $ pip install -r test-requirements.txt
 
 
-Once the dependencies are installed, you can run tests by executing:
+Once the dependencies are installed, you can run all tests by
+executing:
 
     $ nosetests
+
+Tests are labeled using the nosetests [Attribute Selector
+Plugin](http://nose.readthedocs.io/en/latest/plugins/attrib.html) with
+types of "unit" or "integration". To run only unit tests do:
+
+    $ nosetests -a type=unit
+
+Only unit tests are run in PR builds. All tests are run in daily cron
+builds.
 
 Adding a Project
 ================
