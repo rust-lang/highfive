@@ -823,6 +823,10 @@ class TestNewPrFunction(TestNewPR):
             reviewer, 'repo-owner', 'repo-name', '7', self.user, self.token,
             'prAuthor', to_mention
         )
+        self.mocks['is_new_contributor'].assert_called_once_with(
+            'prAuthor', 'repo-owner', 'repo-name', self.user, self.token,
+            self.payload
+        )
         self.mocks['post_warnings'].assert_called_once_with(
             self.payload, self.config, 'diff', 'repo-owner', 'repo-name', '7',
             self.user, self.token
