@@ -755,6 +755,191 @@ class TestPostWarnings(TestNewPR):
             self.token
         )
 
+class TestNewPrFunction(TestNewPR):
+    @classmethod
+    def setUpClass(cls):
+        cls.config = {'the': 'config', 'new_pr_labels': ['foo-label']}
+
+        cls.payload = {
+            'number': 7,
+            'pull_request': {
+                'body': 'The PR comment.',
+                'url': 'https://the.url/',
+                'base': {
+                    'repo': {
+                        'name': 'repo-name',
+                        'owner': {
+                            'login': 'repo-owner',
+                        },
+                    },
+                },
+                'user': {
+                    'login': 'prAuthor',
+                },
+            },
+        }
+
+        cls.user = 'integrationUser'
+        cls.token = 'credential'
+
+    def setUp(self):
+        super(TestNewPrFunction, self).setUp()
+
+        self.patchers = {
+            'api_req': mock.patch('highfive.newpr.api_req'),
+            'find_reviewer': mock.patch('highfive.newpr.find_reviewer'),
+            'load_json_file': mock.patch('highfive.newpr._load_json_file'),
+            'choose_reviewer': mock.patch('highfive.newpr.choose_reviewer'),
+            'set_assignee': mock.patch('highfive.newpr.set_assignee'),
+            'is_new_contributor': mock.patch('highfive.newpr.is_new_contributor'),
+            'post_comment': mock.patch('highfive.newpr.post_comment'),
+            'welcome_msg': mock.patch('highfive.newpr.welcome_msg'),
+            'review_msg': mock.patch('highfive.newpr.review_msg'),
+            'post_warnings': mock.patch('highfive.newpr.post_warnings'),
+            'add_labels': mock.patch('highfive.newpr.add_labels'),
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+
+        self.mocks['api_req'].return_value = {'body': 'diff'}
+        self.mocks['load_json_file'].return_value = self.config
+
+    def tearDown(self):
+        super(TestNewPrFunction, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def call_new_pr(self):
+        return newpr.new_pr(self.payload, self.user, self.token)
+
+    def assert_fixed_calls(self, reviewer, to_mention):
+        self.mocks['api_req'].assert_called_once_with(
+            'GET', 'https://the.url/', None, self.user, self.token,
+            'application/vnd.github.v3.diff'
+        )
+        self.mocks['find_reviewer'].assert_called_once_with('The PR comment.')
+        self.mocks['load_json_file'].assert_called_once_with('repo-name.json')
+        self.mocks['set_assignee'].assert_called_once_with(
+            reviewer, 'repo-owner', 'repo-name', '7', self.user, self.token,
+            'prAuthor', to_mention
+        )
+        self.mocks['post_warnings'].assert_called_once_with(
+            self.payload, self.config, 'diff', 'repo-owner', 'repo-name', '7',
+            self.user, self.token
+        )
+
+    def test_no_msg_reviewer_new_contributor(self):
+        self.mocks['find_reviewer'].return_value = None
+        self.mocks['choose_reviewer'].return_value = (
+            'reviewUser', ['to', 'mention']
+        )
+        self.mocks['is_new_contributor'].return_value = True
+        self.mocks['welcome_msg'].return_value = 'Welcome!'
+
+        self.call_new_pr()
+
+        self.assert_fixed_calls('reviewUser', ['to', 'mention'])
+        self.mocks['choose_reviewer'].assert_called_once_with(
+            'repo-name', 'repo-owner', 'diff', 'prAuthor', self.config
+        )
+        self.mocks['welcome_msg'].assert_called_once_with(
+            'reviewUser', self.config
+        )
+        self.mocks['review_msg'].assert_not_called()
+        self.mocks['post_comment'].assert_called_once_with(
+            'Welcome!', 'repo-owner', 'repo-name', '7', self.user, self.token
+        )
+        self.mocks['add_labels'].assert_called_once_with(
+            ['foo-label'], 'repo-owner', 'repo-name', '7', self.user,
+            self.token
+        )
+
+    def test_no_msg_reviewer_repeat_contributor(self):
+        self.mocks['find_reviewer'].return_value = None
+        self.mocks['choose_reviewer'].return_value = (
+            'reviewUser', ['to', 'mention']
+        )
+        self.mocks['is_new_contributor'].return_value = False
+        self.mocks['review_msg'].return_value = 'Review message!'
+
+        self.call_new_pr()
+
+        self.assert_fixed_calls('reviewUser', ['to', 'mention'])
+        self.mocks['choose_reviewer'].assert_called_once_with(
+            'repo-name', 'repo-owner', 'diff', 'prAuthor', self.config
+        )
+        self.mocks['welcome_msg'].assert_not_called()
+        self.mocks['review_msg'].assert_called_once_with(
+            'reviewUser', 'prAuthor'
+        )
+        self.mocks['post_comment'].assert_called_once_with(
+            'Review message!', 'repo-owner', 'repo-name', '7', self.user,
+            self.token
+        )
+        self.mocks['add_labels'].assert_called_once_with(
+            ['foo-label'], 'repo-owner', 'repo-name', '7', self.user,
+            self.token
+        )
+
+    def test_msg_reviewer_repeat_contributor(self):
+        self.mocks['find_reviewer'].return_value = 'foundReviewer'
+        self.mocks['is_new_contributor'].return_value = False
+        self.mocks['welcome_msg'].return_value = 'Welcome!'
+
+        self.call_new_pr()
+
+        self.assert_fixed_calls('foundReviewer', None)
+        self.mocks['choose_reviewer'].assert_not_called()
+        self.mocks['welcome_msg'].assert_not_called()
+        self.mocks['review_msg'].assert_not_called()
+        self.mocks['post_comment'].assert_not_called()
+        self.mocks['add_labels'].assert_called_once_with(
+            ['foo-label'], 'repo-owner', 'repo-name', '7', self.user,
+            self.token
+        )
+
+    def test_no_pr_labels_specified(self):
+        self.config = {'the': 'config'}
+        self.mocks['load_json_file'].return_value = self.config
+        self.mocks['find_reviewer'].return_value = 'foundReviewer'
+        self.mocks['is_new_contributor'].return_value = True
+        self.mocks['welcome_msg'].return_value = 'Welcome!'
+
+        self.call_new_pr()
+
+        self.assert_fixed_calls('foundReviewer', None)
+        self.mocks['choose_reviewer'].assert_not_called()
+        self.mocks['welcome_msg'].assert_called_once_with(
+            'foundReviewer', self.config
+        )
+        self.mocks['review_msg'].assert_not_called()
+        self.mocks['post_comment'].assert_called_once_with(
+            'Welcome!', 'repo-owner', 'repo-name', '7', self.user, self.token
+        )
+        self.mocks['add_labels'].assert_not_called()
+
+    def test_empty_pr_labels(self):
+        self.config = {
+            'the': 'config', 'new_pr_labels': []
+        }
+        self.mocks['load_json_file'].return_value = self.config
+        self.mocks['find_reviewer'].return_value = 'foundReviewer'
+        self.mocks['is_new_contributor'].return_value = True
+        self.mocks['welcome_msg'].return_value = 'Welcome!'
+
+        self.call_new_pr()
+
+        self.assert_fixed_calls('foundReviewer', None)
+        self.mocks['choose_reviewer'].assert_not_called()
+        self.mocks['welcome_msg'].assert_called_once_with(
+            'foundReviewer', self.config
+        )
+        self.mocks['review_msg'].assert_not_called()
+        self.mocks['post_comment'].assert_called_once_with(
+            'Welcome!', 'repo-owner', 'repo-name', '7', self.user, self.token
+        )
+        self.mocks['add_labels'].assert_not_called()
+
 class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp()
