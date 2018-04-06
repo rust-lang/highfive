@@ -255,6 +255,12 @@ Please see [the contribution instructions](%s) for more information.
             )
 
     def setup_get_irc_nick_mocks(self, mock_urllib2, status_code, data=None):
+        if status_code != 200:
+            mock_urllib2.side_effect = HTTPError(
+                None, status_code, None, None, None
+            )
+            return
+
         mock_data = mock.Mock()
         mock_data.getcode.return_value = status_code
         mock_data.read.return_value = data
@@ -263,14 +269,12 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_non_200(self, mock_urllib2):
-        mock_data = self.setup_get_irc_nick_mocks(mock_urllib2, 300)
+        self.setup_get_irc_nick_mocks(mock_urllib2, 503)
         self.assertIsNone(newpr.get_irc_nick('foo'))
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
         )
-        mock_data.getcode.assert_called()
-        mock_data.read.assert_not_called()
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_no_data(self, mock_urllib2):
