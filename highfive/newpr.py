@@ -327,11 +327,15 @@ def get_irc_nick(gh_name):
      if the user does not exist on the rustacean database,
      or if the user has no `irc` field associated with their username
     """
-    data = urllib2.urlopen(rustaceans_api_url.format(username=gh_name))
-    if data.getcode() == 200:
-        rustacean_data = json.loads(data.read())
-        if rustacean_data:
-            return rustacean_data[0].get("irc")
+    try:
+        data = urllib2.urlopen(rustaceans_api_url.format(username=gh_name))
+        if data.getcode() == 200:
+            rustacean_data = json.loads(data.read())
+            if rustacean_data:
+                return rustacean_data[0].get("irc")
+    except urllib2.HTTPError:
+        pass
+
     return None
 
 def post_warnings(payload, config, diff, owner, repo, issue, token):
