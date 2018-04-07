@@ -382,7 +382,7 @@ def new_pr(payload, user, token):
 
     post_warnings(payload, config, diff, owner, repo, issue, token)
 
-    if "new_pr_labels" in config and config["new_pr_labels"]:
+    if config.get("new_pr_labels"):
         add_labels(config["new_pr_labels"], owner, repo, issue, token)
 
 
