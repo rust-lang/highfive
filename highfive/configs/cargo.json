@@ -4,5 +4,6 @@
     },
     "dirs": {
         "doc": ["doc"]
-    }
+    },
+    "contributing": "https://github.com/rust-lang/cargo/blob/master/CONTRIBUTING.md"
 }
