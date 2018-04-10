@@ -10,21 +10,21 @@ class TestIsNewContributor(base.BaseTest):
         self.payload = {'repository': {'fork': False}}        
 
     def test_real_contributor_true(self):
-        self.assertTrue(
+        self.assertFalse(
             newpr.is_new_contributor(
                 'nrc', 'rust-lang', 'rust', '', self.payload
             )
         )
 
     def test_real_contributor_false(self):
-        self.assertFalse(
+        self.assertTrue(
             newpr.is_new_contributor(
                 'octocat', 'rust-lang', 'rust', '', self.payload
             )
         )
 
     def test_fake_user(self):
-        self.assertFalse(
+        self.assertTrue(
             newpr.is_new_contributor(
                 'fjkesfgojsrgljsdgla', 'rust-lang', 'rust', '', self.payload
             )

@@ -178,10 +178,10 @@ def is_new_contributor(username, owner, repo, token, payload):
             'GET', commit_search_url % (owner, repo, username), None, token,
             'application/vnd.github.cloak-preview'
         )
-        return json.loads(result['body'])['total_count'] > 0
+        return json.loads(result['body'])['total_count'] == 0
     except urllib2.HTTPError, e:
         if e.code == 422:
-            return False
+            return True
         else:
             raise e
 

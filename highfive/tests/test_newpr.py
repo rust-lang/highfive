@@ -626,17 +626,17 @@ class TestIsNewContributor(TestNewPR):
 
     def test_is_new_contributor_has_commits(self):
         self.mocks['api_req'].return_value = self.api_return(5)
-        self.assertTrue(self.is_new_contributor())
+        self.assertFalse(self.is_new_contributor())
         self.assert_api_req_call()
 
     def test_is_new_contributor_no_commits(self):
         self.mocks['api_req'].return_value = self.api_return(0)
-        self.assertFalse(self.is_new_contributor())
+        self.assertTrue(self.is_new_contributor())
         self.assert_api_req_call()
 
     def test_is_new_contributor_nonexistent_user(self):
         self.mocks['api_req'].side_effect = HTTPError(None, 422, None, None, None)
-        self.assertFalse(self.is_new_contributor())
+        self.assertTrue(self.is_new_contributor())
         self.assert_api_req_call()
 
     def test_is_new_contributor_error(self):
