@@ -7,6 +7,15 @@ in configuration files. You can see Highfive in action in several Rust
 repositories. See the [rust-lang/rust pull
 requests](https://github.com/rust-lang/rust/pulls), for example.
 
+This project drives the [@rust-highfive][] bot and was originally a fork of
+[servo/highfive][], used by Servo and Servo's [@highfive][] bot.  For more
+history see the comments in [#35][].
+
+[@rust-highfive]: https://github.com/rust-highfive
+[servo/highfive]: https://github.com/servo/highfive
+[@highfive]: https://github.com/highfive
+[#35]: https://github.com/rust-lang-nursery/highfive/issues/35
+
 Install
 =======
 
