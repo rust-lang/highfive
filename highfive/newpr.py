@@ -14,7 +14,7 @@ import time
 import socket
 import os
 
-from highfive import irc
+from highfive import irc, payload
 
 # Maximum per page is 100. Sorted by number of commits, so most of the time the
 # contributor will happen early,
@@ -170,7 +170,7 @@ def is_new_contributor(username, owner, repo, token, payload):
     # If this is a fork, we do not treat anyone as a new user. This is
     # because the API endpoint called in this function indicates all
     # users in repository forks have zero commits.
-    if payload['repository']['fork']:
+    if payload['repository', 'fork']:
         return False
 
     try:
@@ -317,7 +317,7 @@ def unexpected_branch(payload, config):
     expected_target = config.get('expected_branch', 'master')
 
     # ie we want "stable" in this: "base": { "label": "rust-lang:stable"...
-    actual_target = payload['pull_request']['base']['label'].split(':')[1]
+    actual_target = payload['pull_request', 'base', 'label'].split(':')[1]
 
     return (expected_target, actual_target) \
         if expected_target != actual_target else False
@@ -356,17 +356,17 @@ def post_warnings(payload, config, diff, owner, repo, issue, token):
         post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, token)
 
 def new_pr(payload, user, token):
-    owner = payload['pull_request']['base']['repo']['owner']['login']
-    repo = payload['pull_request']['base']['repo']['name']
+    owner = payload['pull_request', 'base', 'repo', 'owner', 'login']
+    repo = payload['pull_request', 'base', 'repo', 'name']
 
-    author = payload["pull_request"]['user']['login']
+    author = payload['pull_request', 'user', 'login']
     issue = str(payload["number"])
     diff = api_req(
-        "GET", payload["pull_request"]["url"], None, token,
+        "GET", payload["pull_request", "url"], None, token,
         "application/vnd.github.v3.diff",
     )['body']
 
-    msg = payload["pull_request"]['body']
+    msg = payload['pull_request', 'body']
     reviewer = find_reviewer(msg)
     post_msg = False
     to_mention = None
@@ -392,29 +392,29 @@ def new_pr(payload, user, token):
 
 def new_comment(payload, user, token):
     # Check the issue is a PR and is open.
-    if payload['issue']['state'] != 'open' or 'pull_request' not in payload['issue']:
+    if payload['issue', 'state'] != 'open' or 'pull_request' not in payload['issue']:
         return
 
-    commenter = payload['comment']['user']['login']
+    commenter = payload['comment', 'user', 'login']
     # Ignore our own comments.
     if commenter == user:
         return
 
-    owner = payload['repository']['owner']['login']
-    repo = payload['repository']['name']
+    owner = payload['repository', 'owner', 'login']
+    repo = payload['repository', 'name']
 
     # Check the commenter is the submitter of the PR or the previous assignee.
-    author = payload["issue"]['user']['login']
-    if not (author == commenter or (payload['issue']['assignee'] and commenter == payload['issue']['assignee']['login'])):
+    author = payload['issue', 'user', 'login']
+    if not (author == commenter or (payload['issue', 'assignee'] and commenter == payload['issue', 'assignee', 'login'])):
         # Check if commenter is a collaborator.
         if not is_collaborator(commenter, owner, repo, token):
             return
 
     # Check for r? and set the assignee.
-    msg = payload["comment"]['body']
+    msg = payload['comment', 'body']
     reviewer = find_reviewer(msg)
     if reviewer:
-        issue = str(payload['issue']['number'])
+        issue = str(payload['issue', 'number'])
         set_assignee(reviewer, owner, repo, issue, user, token, author, None)
 
 
@@ -431,7 +431,7 @@ if __name__ == "__main__":
 
     post = cgi.FieldStorage()
     payload_raw = post.getfirst("payload",'')
-    payload = json.loads(payload_raw)
+    payload = payload.Payload(json.loads(payload_raw))
     if payload["action"] == "opened":
         new_pr(payload, user, token)
     elif payload["action"] == "created":
