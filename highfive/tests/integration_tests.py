@@ -1,4 +1,4 @@
-from highfive import newpr
+from highfive import newpr, payload
 from highfive.tests import base
 from nose.plugins.attrib import attr
 
@@ -7,7 +7,7 @@ class TestIsNewContributor(base.BaseTest):
     def setUp(self):
         super(TestIsNewContributor, self).setUp()
 
-        self.payload = {'repository': {'fork': False}}        
+        self.payload = payload.Payload({'repository': {'fork': False}})
 
     def test_real_contributor_true(self):
         self.assertFalse(

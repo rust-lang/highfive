@@ -1,5 +1,6 @@
 from copy import deepcopy
 from highfive import newpr
+from highfive.payload import Payload
 from highfive.tests import base
 import json
 import mock
@@ -198,7 +199,9 @@ Please see [the contribution instructions](%s) for more information.
         self.assertFalse(newpr.modifies_submodule(normal_diff))
 
     def test_expected_branch_default_expected_no_match(self):
-        payload = {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
+        payload = Payload(
+            {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
+        )
         config = {}
         self.assertEqual(
             newpr.unexpected_branch(payload, config),
@@ -206,12 +209,16 @@ Please see [the contribution instructions](%s) for more information.
         )
 
     def test_expected_branch_default_expected_match(self):
-        payload = {'pull_request': {'base': {'label': 'repo-owner:master'}}}
+        payload = Payload(
+            {'pull_request': {'base': {'label': 'repo-owner:master'}}}
+        )
         config = {}
         self.assertFalse(newpr.unexpected_branch(payload, config))
 
     def test_expected_branch_custom_expected_no_match(self):
-        payload = {'pull_request': {'base': {'label': 'repo-owner:master'}}}
+        payload = Payload(
+            {'pull_request': {'base': {'label': 'repo-owner:master'}}}
+        )
         config = {'expected_branch': 'dev' }
         self.assertEqual(
             newpr.unexpected_branch(payload, config),
@@ -219,7 +226,9 @@ Please see [the contribution instructions](%s) for more information.
         )
 
     def test_expected_branch_custom_expected_match(self):
-        payload = {'pull_request': {'base': {'label':'repo-owner:dev'}}}
+        payload = Payload(
+            {'pull_request': {'base': {'label':'repo-owner:dev'}}}
+        )
         config = {'expected_branch': 'dev' }
         self.assertFalse(newpr.unexpected_branch(payload, config))
 
@@ -587,7 +596,7 @@ class TestIsNewContributor(TestNewPR):
 
     def setUp(self):
         super(TestIsNewContributor, self).setUp()
-        self.payload = {'repository': {'fork': False}}
+        self.payload = Payload({'repository': {'fork': False}})
         self.patchers = {
             'api_req': mock.patch('highfive.newpr.api_req'),
         }
@@ -620,7 +629,7 @@ class TestIsNewContributor(TestNewPR):
         )
 
     def test_is_new_contributor_fork(self):
-        self.payload['repository']['fork'] = True
+        self.payload._payload['repository']['fork'] = True
         self.assertFalse(self.is_new_contributor())
         self.mocks['api_req'].assert_not_called()
 
@@ -647,7 +656,7 @@ class TestIsNewContributor(TestNewPR):
 class TestPostWarnings(TestNewPR):
     @classmethod
     def setUpClass(cls):
-        cls.payload = {'the': 'payload'}
+        cls.payload = Payload({'the': 'payload'})
         cls.config = {'the': 'config'}
         cls.diff = 'the diff'
         cls.owner = 'repo-owner'
@@ -753,7 +762,7 @@ class TestNewPrFunction(TestNewPR):
     def setUpClass(cls):
         cls.config = {'the': 'config', 'new_pr_labels': ['foo-label']}
 
-        cls.payload = {
+        cls.payload = Payload({
             'number': 7,
             'pull_request': {
                 'body': 'The PR comment.',
@@ -770,7 +779,7 @@ class TestNewPrFunction(TestNewPR):
                     'login': 'prAuthor',
                 },
             },
-        }
+        })
 
         cls.user = 'integrationUser'
         cls.token = 'credential'
@@ -955,7 +964,7 @@ class TestNewComment(TestNewPR):
         repo='repo-name', owner='repo-owner', author='userB',
         comment='comment!', issue_number=7, assignee=None
     ):
-        payload = {
+        payload = Payload({
             'issue': {
                 'state': state,
                 'number': issue_number,
@@ -976,12 +985,12 @@ class TestNewComment(TestNewPR):
                     'login': owner,
                 },
             },
-        }
+        })
 
         if is_pull_request:
-            payload['issue']['pull_request'] = {}
+            payload._payload['issue']['pull_request'] = {}
         if assignee is not None:
-            payload['issue']['assignee'] = {'login': assignee}
+            payload._payload['issue']['assignee'] = {'login': assignee}
 
         return payload
 
