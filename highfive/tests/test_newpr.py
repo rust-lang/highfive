@@ -8,6 +8,7 @@ from nose.plugins.attrib import attr
 from urllib2 import HTTPError
 
 @attr(type='unit')
+@attr('hermetic')
 class TestNewPR(base.BaseTest):
     def setUp(self):
         super(TestNewPR, self).setUp()
