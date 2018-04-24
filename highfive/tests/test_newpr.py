@@ -1,7 +1,7 @@
 from copy import deepcopy
 from highfive import newpr
 from highfive.payload import Payload
-from highfive.tests import base
+from highfive.tests import base, fakes
 import json
 import mock
 from nose.plugins.attrib import attr
@@ -763,7 +763,7 @@ class TestNewPrFunction(TestNewPR):
     def setUpClass(cls):
         cls.config = {'the': 'config', 'new_pr_labels': ['foo-label']}
 
-        cls.payload = Payload({
+        cls.payload = fakes.Payload.new_pr({
             'number': 7,
             'pull_request': {
                 'body': 'The PR comment.',
