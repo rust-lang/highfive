@@ -101,7 +101,7 @@ def post_comment(body, owner, repo, issue, token):
 
 def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
     try:
-        result = api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, token)['body']
+        api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, token)['body']
     except urllib2.HTTPError, e:
         if e.code == 201:
             pass
