@@ -763,24 +763,7 @@ class TestNewPrFunction(TestNewPR):
     def setUpClass(cls):
         cls.config = {'the': 'config', 'new_pr_labels': ['foo-label']}
 
-        cls.payload = fakes.Payload.new_pr({
-            'number': 7,
-            'pull_request': {
-                'body': 'The PR comment.',
-                'url': 'https://the.url/',
-                'base': {
-                    'repo': {
-                        'name': 'repo-name',
-                        'owner': {
-                            'login': 'repo-owner',
-                        },
-                    },
-                },
-                'user': {
-                    'login': 'prAuthor',
-                },
-            },
-        })
+        cls.payload = fakes.Payload.new_pr()
 
         cls.user = 'integrationUser'
         cls.token = 'credential'
@@ -1095,40 +1078,8 @@ class TestChooseReviewer(TestNewPR):
         cls.diff = {
             'normal': cls._load_fake('normal.diff'),
         }
-        cls.config = {
-            'individuals_no_dirs' :{
-                "groups": { "all": ["@pnkfelix", "@nrc"] },
-                "dirs": {},
-            },
-            'individuals_dirs' :{
-                "groups": { "all": ["@pnkfelix", "@nrc"] },
-                "dirs": { "librustc": ["@aturon"] },
-            },
-            'individuals_dirs_2' :{
-                "groups": { "all": ["@pnkfelix", "@nrc"] },
-                "dirs": { "foobazdir": ["@aturon"] },
-            },
-            'circular_groups': {
-                "groups": {
-                    "all": ["some"],
-                    "some": ["all"],
-                },
-            },
-            'empty' :{
-                "groups": { "all": [] },
-                "dirs": {},
-            },
-        }
-        cls.global_ = {
-            'base': {
-                "groups": {
-                    "core": ["@alexcrichton"],
-                }
-            },
-            'has_all': {
-                "groups": { "all": ["@alexcrichton"] }
-            },
-        }
+        cls.config = fakes.get_repo_configs()
+        cls.global_ = fakes.get_global_configs()
 
     def choose_reviewer(
         self, repo, owner, diff, exclude, config, global_ = None
