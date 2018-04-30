@@ -418,20 +418,12 @@ def new_comment(payload, user, token):
         set_assignee(reviewer, owner, repo, issue, user, token, author, None)
 
 
-if __name__ == "__main__":
-    print "Content-Type: text/html;charset=utf-8"
-    print
-
-    cgitb.enable()
-
+def run(payload):
     config = ConfigParser.RawConfigParser()
     config.read('./config')
     user = config.get('github', 'user')
     token = config.get('github', 'token')
 
-    post = cgi.FieldStorage()
-    payload_raw = post.getfirst("payload",'')
-    payload = payload.Payload(json.loads(payload_raw))
     if payload["action"] == "opened":
         new_pr(payload, user, token)
     elif payload["action"] == "created":
@@ -439,3 +431,14 @@ if __name__ == "__main__":
     else:
         print payload["action"]
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    print "Content-Type: text/html;charset=utf-8"
+    print
+
+    cgitb.enable()
+
+    post = cgi.FieldStorage()
+    payload_raw = post.getfirst("payload",'')
+    run(payload.Payload(json.loads(payload_raw)))

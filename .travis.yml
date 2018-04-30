@@ -12,5 +12,5 @@ script:
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
       nosetests
     else
-      nosetests -a type=unit
+      nosetests -a hermetic
     fi

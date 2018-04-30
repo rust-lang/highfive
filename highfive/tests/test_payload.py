@@ -7,6 +7,7 @@ from nose.plugins.attrib import attr
 import unittest
 
 @attr(type='unit')
+@attr('hermetic')
 class TestPayload(base.BaseTest):
     @classmethod
     def setUpClass(cls):

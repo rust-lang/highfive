@@ -5,6 +5,7 @@ from highfive.tests import base
 from nose.plugins.attrib import attr
 
 @attr(type='unit')
+@attr('hermetic')
 class TestIrc(base.BaseTest):
 
     def test_send_and_join(self):
