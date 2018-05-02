@@ -3,7 +3,7 @@
         "all": [],
         "compiler": ["@nikomatsakis", "@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@michaelwoerister"],
         "syntax": ["@nikomatsakis", "@pnkfelix", "@petrochenkov", "@michaelwoerister", "@eddyb"],
-        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@BurntSushi", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"]
+        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"]
     },
     "dirs": {
         "doc":              ["doc"],
@@ -21,7 +21,6 @@
         "liblog":           ["libs"],
         "librand":          ["libs"],
         "librbml":          ["libs", "@erickt"],
-        "libregex":         ["libs", "@burntsushi"],
         "librustc":         ["compiler"],
         "librustdoc":       ["doc"],
         "libserialize":     ["libs", "@erickt"],
