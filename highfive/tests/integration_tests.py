@@ -157,3 +157,35 @@ class TestNewPr(base.BaseTest):
         newpr.run(payload)
 
         api_req_mock.verify_calls()
+
+@attr(type='integration')
+@attr('hermetic')
+class TestNewComment(base.BaseTest):
+    def setUp(self):
+        super(TestNewComment, self).setUp()
+
+        self.patchers = {
+            'get_irc_nick': mock.patch('highfive.newpr.get_irc_nick'),
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+        self.mocks['get_irc_nick'].return_value = None
+
+    def tearDown(self):
+        super(TestNewComment, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def test_author_is_commenter(self):
+        payload = fakes.Payload.new_comment()
+        api_req_mock = ApiReqMocker([
+            (
+                (
+                    'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
+                    {'assignee': 'davidalber'}, 'integration-token'
+                ),
+                {'body': {}},
+            ),
+        ])
+        newpr.new_comment(payload, 'integration-user', 'integration-token')
+        api_req_mock.verify_calls()

@@ -45,6 +45,12 @@ def get_global_configs():
 
 class Payload(object):
     @staticmethod
+    def new_comment():
+        with open(get_fake_filename('create-comment.payload'), 'r') as fin:
+            p = json.load(fin)
+        return payload.Payload(p)
+
+    @staticmethod
     def new_pr(
         number=7, pr_body='The PR comment.', pr_url='https://the.url/',
         repo_name='repo-name', repo_owner='repo-owner', pr_author='prAuthor'
