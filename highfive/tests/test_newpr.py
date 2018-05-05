@@ -1237,3 +1237,55 @@ class TestChooseReviewer(TestNewPR):
         )
         self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
+
+class TestRun(TestNewPR):
+    def setUp(self):
+        super(TestRun, self).setUp()
+
+        self.patchers = {
+            'ConfigParser': mock.patch('highfive.newpr.ConfigParser'),
+            'new_pr': mock.patch('highfive.newpr.new_pr'),
+            'new_comment': mock.patch('highfive.newpr.new_comment'),
+            'sys': mock.patch('highfive.newpr.sys')
+        }
+        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+
+        self.config_mock = mock.Mock()
+        self.config_mock.get.side_effect = (
+            'integration-user', 'integration-token'
+        )
+        self.mocks['ConfigParser'].RawConfigParser.return_value = self.config_mock
+
+    def tearDown(self):
+        super(TestRun, self).tearDown()
+
+        for patcher in self.patchers.itervalues():
+            patcher.stop()
+
+    def test_newpr(self):
+        payload = {'action': 'opened'}
+        newpr.run(payload)
+        self.assertEqual(self.config_mock.get.call_count, 2)
+        self.mocks['new_pr'].assert_called_once_with(
+            payload, 'integration-user', 'integration-token'
+        )
+        self.mocks['new_comment'].assert_not_called()
+        self.mocks['sys'].exit.assert_not_called()
+
+    def test_new_comment(self):
+        payload = {'action': 'created'}
+        newpr.run(payload)
+        self.assertEqual(self.config_mock.get.call_count, 2)
+        self.mocks['new_pr'].assert_not_called()
+        self.mocks['new_comment'].assert_called_once_with(
+            payload, 'integration-user', 'integration-token'
+        )
+        self.mocks['sys'].exit.assert_not_called()
+
+    def test_unsupported_payload(self):
+        payload = {'action': 'something-not-supported'}
+        newpr.run(payload)
+        self.assertEqual(self.config_mock.get.call_count, 2)
+        self.mocks['new_pr'].assert_not_called()
+        self.mocks['new_comment'].assert_not_called()
+        self.mocks['sys'].exit.assert_called_once_with(0)
