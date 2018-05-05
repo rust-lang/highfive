@@ -52,14 +52,12 @@ class ApiReqMocker(object):
 @attr('hermetic')
 class TestNewPr(base.BaseTest):
     def setUp(self):
-        super(TestNewPr, self).setUp()
+        super(TestNewPr, self).setUp((
+            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+            ('ConfigParser', 'highfive.newpr.ConfigParser'),
+            ('load_json_file', 'highfive.newpr._load_json_file'),
+        ))
 
-        self.patchers = {
-            'get_irc_nick': mock.patch('highfive.newpr.get_irc_nick'),
-            'ConfigParser': mock.patch('highfive.newpr.ConfigParser'),
-            'load_json_file': mock.patch('highfive.newpr._load_json_file'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
         self.mocks['get_irc_nick'].return_value = None
 
         config_mock = mock.Mock()
@@ -70,12 +68,6 @@ class TestNewPr(base.BaseTest):
             fakes.get_repo_configs()['individuals_no_dirs'],
             fakes.get_global_configs()['base'],
         )
-
-    def tearDown(self):
-        super(TestNewPr, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def test_new_pr_non_contributor(self):
         payload = fakes.Payload.new_pr(
@@ -162,19 +154,11 @@ class TestNewPr(base.BaseTest):
 @attr('hermetic')
 class TestNewComment(base.BaseTest):
     def setUp(self):
-        super(TestNewComment, self).setUp()
+        super(TestNewComment, self).setUp((
+            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+        ))
 
-        self.patchers = {
-            'get_irc_nick': mock.patch('highfive.newpr.get_irc_nick'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
         self.mocks['get_irc_nick'].return_value = None
-
-    def tearDown(self):
-        super(TestNewComment, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def test_author_is_commenter(self):
         payload = fakes.Payload.new_comment()

@@ -10,11 +10,7 @@ from urllib2 import HTTPError
 @attr(type='unit')
 @attr('hermetic')
 class TestNewPR(base.BaseTest):
-    def setUp(self):
-        super(TestNewPR, self).setUp()
-
-    def tearDown(self):
-        super(TestNewPR, self).tearDown()
+    pass
 
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):
@@ -318,15 +314,12 @@ class TestApiReq(TestNewPR):
         cls.url = 'https://foo.bar'
 
     def setUp(self):
-        super(TestApiReq, self).setUp()
-
-        self.patchers = {
-            'urlopen': mock.patch('urllib2.urlopen'),
-            'Request': mock.patch('urllib2.Request'),
-            'StringIO': mock.patch('highfive.newpr.StringIO'),
-            'GzipFile': mock.patch('gzip.GzipFile'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+        super(TestApiReq, self).setUp((
+            ('urlopen', 'urllib2.urlopen'),
+            ('Request', 'urllib2.Request'),
+            ('StringIO', 'highfive.newpr.StringIO'),
+            ('GzipFile', 'gzip.GzipFile'),
+        ))
 
         self.req = self.mocks['Request'].return_value
 
@@ -337,12 +330,6 @@ class TestApiReq(TestNewPR):
 
         self.gzipped_body = self.mocks['GzipFile'].return_value.read
         self.gzipped_body.return_value = 'body2'
-
-    def tearDown(self):
-        super(TestApiReq, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def verify_mock_calls(self, header_calls, gzipped):
         self.mocks['Request'].assert_called_with(
@@ -473,22 +460,14 @@ class TestSetAssignee(TestNewPR):
         cls.token = 'credential'
 
     def setUp(self):
-        super(TestSetAssignee, self).setUp()
+        super(TestSetAssignee, self).setUp((
+            ('api_req', 'highfive.newpr.api_req'),
+            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+            ('post_comment', 'highfive.newpr.post_comment'),
+            ('IrcClient', 'highfive.irc.IrcClient'),
+        ))
 
-        self.patchers = {
-            'api_req': mock.patch('highfive.newpr.api_req'),
-            'get_irc_nick': mock.patch('highfive.newpr.get_irc_nick'),
-            'post_comment': mock.patch('highfive.newpr.post_comment'),
-            'IrcClient': mock.patch('highfive.irc.IrcClient'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
         self.mocks['client'] = self.mocks['IrcClient'].return_value
-
-    def tearDown(self):
-        super(TestSetAssignee, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def set_assignee(self, assignee='', to_mention=None):
         assignee = self.assignee if assignee == '' else assignee
@@ -596,18 +575,10 @@ class TestIsNewContributor(TestNewPR):
         cls.token = 'credential'
 
     def setUp(self):
-        super(TestIsNewContributor, self).setUp()
+        super(TestIsNewContributor, self).setUp((
+            ('api_req', 'highfive.newpr.api_req'),
+        ))
         self.payload = Payload({'repository': {'fork': False}})
-        self.patchers = {
-            'api_req': mock.patch('highfive.newpr.api_req'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
-
-    def tearDown(self):
-        super(TestIsNewContributor, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def is_new_contributor(self):
         return newpr.is_new_contributor(
@@ -666,20 +637,11 @@ class TestPostWarnings(TestNewPR):
         cls.token = 'credential'
 
     def setUp(self):
-        super(TestPostWarnings, self).setUp()
-
-        self.patchers = {
-            'unexpected_branch': mock.patch('highfive.newpr.unexpected_branch'),
-            'modifies_submodule': mock.patch('highfive.newpr.modifies_submodule'),
-            'post_comment': mock.patch('highfive.newpr.post_comment'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
-
-    def tearDown(self):
-        super(TestPostWarnings, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
+        super(TestPostWarnings, self).setUp((
+            ('unexpected_branch', 'highfive.newpr.unexpected_branch'),
+            ('modifies_submodule', 'highfive.newpr.modifies_submodule'),
+            ('post_comment', 'highfive.newpr.post_comment'),
+        ))
 
     def post_warnings(self):
         newpr.post_warnings(
@@ -769,31 +731,22 @@ class TestNewPrFunction(TestNewPR):
         cls.token = 'credential'
 
     def setUp(self):
-        super(TestNewPrFunction, self).setUp()
-
-        self.patchers = {
-            'api_req': mock.patch('highfive.newpr.api_req'),
-            'find_reviewer': mock.patch('highfive.newpr.find_reviewer'),
-            'load_json_file': mock.patch('highfive.newpr._load_json_file'),
-            'choose_reviewer': mock.patch('highfive.newpr.choose_reviewer'),
-            'set_assignee': mock.patch('highfive.newpr.set_assignee'),
-            'is_new_contributor': mock.patch('highfive.newpr.is_new_contributor'),
-            'post_comment': mock.patch('highfive.newpr.post_comment'),
-            'welcome_msg': mock.patch('highfive.newpr.welcome_msg'),
-            'review_msg': mock.patch('highfive.newpr.review_msg'),
-            'post_warnings': mock.patch('highfive.newpr.post_warnings'),
-            'add_labels': mock.patch('highfive.newpr.add_labels'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+        super(TestNewPrFunction, self).setUp((
+            ('api_req', 'highfive.newpr.api_req'),
+            ('find_reviewer', 'highfive.newpr.find_reviewer'),
+            ('load_json_file', 'highfive.newpr._load_json_file'),
+            ('choose_reviewer', 'highfive.newpr.choose_reviewer'),
+            ('set_assignee', 'highfive.newpr.set_assignee'),
+            ('is_new_contributor', 'highfive.newpr.is_new_contributor'),
+            ('post_comment', 'highfive.newpr.post_comment'),
+            ('welcome_msg', 'highfive.newpr.welcome_msg'),
+            ('review_msg', 'highfive.newpr.review_msg'),
+            ('post_warnings', 'highfive.newpr.post_warnings'),
+            ('add_labels', 'highfive.newpr.add_labels'),
+        ))
 
         self.mocks['api_req'].return_value = {'body': 'diff'}
         self.mocks['load_json_file'].return_value = self.config
-
-    def tearDown(self):
-        super(TestNewPrFunction, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def call_new_pr(self):
         return newpr.new_pr(self.payload, self.user, self.token)
@@ -927,20 +880,11 @@ class TestNewPrFunction(TestNewPR):
 
 class TestNewComment(TestNewPR):
     def setUp(self):
-        super(TestNewComment, self).setUp()
-
-        self.patchers = {
-            'is_collaborator': mock.patch('highfive.newpr.is_collaborator'),
-            'find_reviewer': mock.patch('highfive.newpr.find_reviewer'),
-            'set_assignee': mock.patch('highfive.newpr.set_assignee'),
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
-
-    def tearDown(self):
-        super(TestNewComment, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
+        super(TestNewComment, self).setUp((
+            ('is_collaborator', 'highfive.newpr.is_collaborator'),
+            ('find_reviewer', 'highfive.newpr.find_reviewer'),
+            ('set_assignee', 'highfive.newpr.set_assignee'),
+        ))
 
     @staticmethod
     def make_payload(
@@ -1240,27 +1184,18 @@ class TestChooseReviewer(TestNewPR):
 
 class TestRun(TestNewPR):
     def setUp(self):
-        super(TestRun, self).setUp()
-
-        self.patchers = {
-            'ConfigParser': mock.patch('highfive.newpr.ConfigParser'),
-            'new_pr': mock.patch('highfive.newpr.new_pr'),
-            'new_comment': mock.patch('highfive.newpr.new_comment'),
-            'sys': mock.patch('highfive.newpr.sys')
-        }
-        self.mocks = {k: v.start() for k,v in self.patchers.iteritems()}
+        super(TestRun, self).setUp((
+            ('ConfigParser', 'highfive.newpr.ConfigParser'),
+            ('new_pr', 'highfive.newpr.new_pr'),
+            ('new_comment', 'highfive.newpr.new_comment'),
+            ('sys', 'highfive.newpr.sys'),
+        ))
 
         self.config_mock = mock.Mock()
         self.config_mock.get.side_effect = (
             'integration-user', 'integration-token'
         )
         self.mocks['ConfigParser'].RawConfigParser.return_value = self.config_mock
-
-    def tearDown(self):
-        super(TestRun, self).tearDown()
-
-        for patcher in self.patchers.itervalues():
-            patcher.stop()
 
     def test_newpr(self):
         payload = {'action': 'opened'}
