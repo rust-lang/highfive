@@ -138,34 +138,6 @@ def is_collaborator(commenter, owner, repo, token):
 def add_labels(labels, owner, repo, issue, token):
     api_req("POST", issue_labels_url % (owner, repo, issue), labels, token)
 
-
-# This function is adapted from https://github.com/kennethreitz/requests/blob/209a871b638f85e2c61966f82e547377ed4260d9/requests/utils.py#L562
-# Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
-def parse_header_links(value):
-    if not value:
-        return None
-
-    links = {}
-    replace_chars = " '\""
-    for val in value.split(","):
-        try:
-            url, params = val.split(";", 1)
-        except ValueError:
-            url, params = val, ''
-
-        url = url.strip("<> '\"")
-
-        for param in params.split(";"):
-            try:
-                key, value = param.split("=")
-            except ValueError:
-                break
-            key = key.strip(replace_chars)
-            if key == 'rel':
-                links[value.strip(replace_chars)] = url
-
-    return links
-
 def is_new_contributor(username, owner, repo, token, payload):
     # If this is a fork, we do not treat anyone as a new user. This is
     # because the API endpoint called in this function indicates all
