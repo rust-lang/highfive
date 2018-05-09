@@ -162,3 +162,9 @@ Here are some details to be aware of:
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
+License
+=======
+Highfive is licensed under the terms of both the MIT License and the
+Apache License (Version 2.0).
+
+See [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) for details.
