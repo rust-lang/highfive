@@ -3,7 +3,8 @@
         "all": [],
         "compiler": ["@nikomatsakis", "@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@michaelwoerister"],
         "syntax": ["@nikomatsakis", "@pnkfelix", "@petrochenkov", "@michaelwoerister", "@eddyb"],
-        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"]
+        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"],
+        "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
     "dirs": {
         "doc":              ["doc"],
@@ -22,7 +23,7 @@
         "librand":          ["libs"],
         "librbml":          ["libs", "@erickt"],
         "librustc":         ["compiler"],
-        "librustdoc":       ["doc"],
+        "librustdoc":       ["rustdoc"],
         "libserialize":     ["libs", "@erickt"],
         "libstd":           ["libs"],
         "libsyntax":        ["syntax"],
