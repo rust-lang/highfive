@@ -46,7 +46,7 @@ def welcome_msg(reviewer, config):
         link = "https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md"
     return raw_welcome % (text, link)
 
-warning_summary = '<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>\n\n%s'
+warning_summary = ':warning: **Warning** :warning:\n\n%s'
 unsafe_warning_msg = 'These commits modify **unsafe code**. Please review it carefully!'
 submodule_warning_msg = 'These commits modify **submodules**.'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
