@@ -674,7 +674,7 @@ class TestPostWarnings(TestNewPR):
         )
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
-        expected_warning = """<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>
+        expected_warning = """:warning: **Warning** :warning:
 
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!"""
         self.mocks['post_comment'].assert_called_with(
@@ -692,7 +692,7 @@ class TestPostWarnings(TestNewPR):
         )
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
-        expected_warning = """<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>
+        expected_warning = """:warning: **Warning** :warning:
 
 * These commits modify **submodules**."""
         self.mocks['post_comment'].assert_called_with(
@@ -712,7 +712,7 @@ class TestPostWarnings(TestNewPR):
         )
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
-        expected_warning = """<img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20> **Warning** <img src="http://www.joshmatthews.net/warning.svg" alt="warning" height=20>
+        expected_warning = """:warning: **Warning** :warning:
 
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
 * These commits modify **submodules**."""
