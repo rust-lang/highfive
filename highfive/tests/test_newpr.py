@@ -47,6 +47,8 @@ class TestHighfiveHandler(TestNewPR):
         with HighfiveHandlerMock(payload) as m:
             self.assertEqual(m.handler.payload, payload)
             self.assertEqual(m.handler.config, m.mock_config)
+            self.assertEqual(m.handler.integration_user, 'integrationUser')
+            self.assertEqual(m.handler.integration_token, 'integrationToken')
             m.mock_config.read.assert_called_once_with('./config')
 
 class TestNewPRGeneral(TestNewPR):

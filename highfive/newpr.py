@@ -375,15 +375,16 @@ class HighfiveHandler(object):
 
         self.config = ConfigParser.RawConfigParser()
         self.config.read('./config')
+        self.integration_user = self.config.get('github', 'user')
+        self.integration_token = self.config.get('github', 'token')
 
     def run(self):
-        user = self.config.get('github', 'user')
-        token = self.config.get('github', 'token')
-
         if self.payload["action"] == "opened":
-            new_pr(self.payload, user, token)
+            new_pr(self.payload, self.integration_user, self.integration_token)
         elif self.payload["action"] == "created":
-            new_comment(self.payload, user, token)
+            new_comment(
+                self.payload, self.integration_user, self.integration_token
+            )
         else:
             print self.payload["action"]
             sys.exit(0)
