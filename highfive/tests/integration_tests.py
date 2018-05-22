@@ -1,5 +1,6 @@
 from highfive import newpr, payload
 from highfive.tests import base, fakes
+from highfive.tests.test_newpr import HighfiveHandlerMock
 import mock
 from nose.plugins.attrib import attr
 
@@ -105,7 +106,7 @@ class TestNewPr(base.BaseTest):
                 {'body': {}},
             ),
         ])
-        newpr.run(payload)
+        newpr.new_pr(payload, 'integration-user', 'integration-token')
 
         api_req_mock.verify_calls()
 
@@ -146,7 +147,7 @@ class TestNewPr(base.BaseTest):
                 {'body': {}},
             ),
         ])
-        newpr.run(payload)
+        newpr.new_pr(payload, 'integration-user', 'integration-token')
 
         api_req_mock.verify_calls()
 

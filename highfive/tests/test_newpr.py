@@ -12,6 +12,43 @@ from urllib2 import HTTPError
 class TestNewPR(base.BaseTest):
     pass
 
+class HighfiveHandlerMock(object):
+    def __init__(
+        self, payload, integration_user='integrationUser',
+        integration_token='integrationToken'
+    ):
+        self.integration_user = integration_user
+        self.integration_token = integration_token
+
+        def config_handler(section, key):
+            if section == 'github':
+                if key == 'user':
+                    return integration_user
+                if key == 'token':
+                    return integration_token
+
+        self.config_patcher = mock.patch('highfive.newpr.ConfigParser')
+        self.mock_config_parser = self.config_patcher.start()
+        self.mock_config = mock.Mock()
+        self.mock_config.get.side_effect = config_handler
+        self.mock_config_parser.RawConfigParser.return_value = self.mock_config
+
+        self.handler = newpr.HighfiveHandler(payload)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _, __, ___):
+        self.config_patcher.stop()
+
+class TestHighfiveHandler(TestNewPR):
+    def test_init(self):
+        payload = {'the': 'payload'}
+        with HighfiveHandlerMock(payload) as m:
+            self.assertEqual(m.handler.payload, payload)
+            self.assertEqual(m.handler.config, m.mock_config)
+            m.mock_config.read.assert_called_once_with('./config')
+
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):
         base_msg = """Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from %s soon.
@@ -1185,22 +1222,21 @@ class TestChooseReviewer(TestNewPR):
 class TestRun(TestNewPR):
     def setUp(self):
         super(TestRun, self).setUp((
-            ('ConfigParser', 'highfive.newpr.ConfigParser'),
             ('new_pr', 'highfive.newpr.new_pr'),
             ('new_comment', 'highfive.newpr.new_comment'),
             ('sys', 'highfive.newpr.sys'),
         ))
 
-        self.config_mock = mock.Mock()
-        self.config_mock.get.side_effect = (
-            'integration-user', 'integration-token'
+    def handler_mock(self, payload):
+        return HighfiveHandlerMock(
+            payload, 'integration-user', 'integration-token'
         )
-        self.mocks['ConfigParser'].RawConfigParser.return_value = self.config_mock
 
     def test_newpr(self):
         payload = {'action': 'opened'}
-        newpr.run(payload)
-        self.assertEqual(self.config_mock.get.call_count, 2)
+        m = self.handler_mock(payload)
+        m.handler.run()
+        self.assertEqual(m.mock_config.get.call_count, 2)
         self.mocks['new_pr'].assert_called_once_with(
             payload, 'integration-user', 'integration-token'
         )
@@ -1209,8 +1245,9 @@ class TestRun(TestNewPR):
 
     def test_new_comment(self):
         payload = {'action': 'created'}
-        newpr.run(payload)
-        self.assertEqual(self.config_mock.get.call_count, 2)
+        m = self.handler_mock(payload)
+        m.handler.run()
+        self.assertEqual(m.mock_config.get.call_count, 2)
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_called_once_with(
             payload, 'integration-user', 'integration-token'
@@ -1219,8 +1256,9 @@ class TestRun(TestNewPR):
 
     def test_unsupported_payload(self):
         payload = {'action': 'something-not-supported'}
-        newpr.run(payload)
-        self.assertEqual(self.config_mock.get.call_count, 2)
+        m = self.handler_mock(payload)
+        m.handler.run()
+        self.assertEqual(m.mock_config.get.call_count, 2)
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_not_called()
         self.mocks['sys'].exit.assert_called_once_with(0)

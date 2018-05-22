@@ -369,20 +369,24 @@ def new_comment(payload, user, token):
         issue = str(payload['issue', 'number'])
         set_assignee(reviewer, owner, repo, issue, user, token, author, None)
 
+class HighfiveHandler(object):
+    def __init__(self, payload):
+        self.payload = payload
 
-def run(payload):
-    config = ConfigParser.RawConfigParser()
-    config.read('./config')
-    user = config.get('github', 'user')
-    token = config.get('github', 'token')
+        self.config = ConfigParser.RawConfigParser()
+        self.config.read('./config')
 
-    if payload["action"] == "opened":
-        new_pr(payload, user, token)
-    elif payload["action"] == "created":
-        new_comment(payload, user, token)
-    else:
-        print payload["action"]
-        sys.exit(0)
+    def run(self):
+        user = self.config.get('github', 'user')
+        token = self.config.get('github', 'token')
+
+        if self.payload["action"] == "opened":
+            new_pr(self.payload, user, token)
+        elif self.payload["action"] == "created":
+            new_comment(self.payload, user, token)
+        else:
+            print self.payload["action"]
+            sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -393,4 +397,5 @@ if __name__ == "__main__":
 
     post = cgi.FieldStorage()
     payload_raw = post.getfirst("payload",'')
-    run(payload.Payload(json.loads(payload_raw)))
+    handler = HighfiveHandler(payload.Payload(json.loads(payload_raw)))
+    handler.run()
