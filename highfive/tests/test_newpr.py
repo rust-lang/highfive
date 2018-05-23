@@ -926,7 +926,7 @@ class TestNewComment(TestNewPR):
         ))
 
     @staticmethod
-    def make_payload(
+    def make_handler(
         state='open', is_pull_request=True, commenter='userA',
         repo='repo-name', owner='repo-owner', author='userB',
         comment='comment!', issue_number=7, assignee=None
@@ -959,45 +959,41 @@ class TestNewComment(TestNewPR):
         if assignee is not None:
             payload._payload['issue']['assignee'] = {'login': assignee}
 
-        return payload
+        return HighfiveHandlerMock(payload).handler
 
     def test_not_open(self):
-        payload = self.make_payload(state='closed')
+        handler = self.make_handler(state='closed')
 
-        self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
     def test_not_pr(self):
-        payload = self.make_payload(is_pull_request=False)
+        handler = self.make_handler(is_pull_request=False)
 
-        self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
     def test_commenter_is_integration_user(self):
-        payload = self.make_payload(commenter='integrationUser')
+        handler = self.make_handler(commenter='integrationUser')
 
-        self.assertIsNone(
-            newpr.new_comment(payload, 'integrationUser', 'credential')
-        )
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
     def test_unauthorized_assigner(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userB', assignee='userC'
         )
 
         self.mocks['is_collaborator'].return_value = False
-        self.assertIsNone(
-            newpr.new_comment(payload, 'integrationUser', 'credential')
-        )
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name', 'credential'
+            'userB', 'repo-owner', 'repo-name', 'integrationToken'
         )
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
@@ -1005,54 +1001,54 @@ class TestNewComment(TestNewPR):
     # There are three ways to make it past the authorized assigner
     # check. The next three methods excercise those paths.
     def test_authorized_assigner_author_is_commenter(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userA', assignee='userC'
         )
 
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called()
 
     def test_authorized_assigner_commenter_is_assignee(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userB', assignee='userB'
         )
 
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called()
 
     def test_authorized_assigner_commenter_is_collaborator(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userB', assignee='userC'
         )
 
         self.mocks['is_collaborator'].return_value = True
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name', 'credential'
+            'userB', 'repo-owner', 'repo-name', 'integrationToken'
         )
         self.mocks['find_reviewer'].assert_called()
 
     def test_no_reviewer(self):
-        payload = self.make_payload(author='userA', commenter='userA')
+        handler = self.make_handler(author='userA', commenter='userA')
 
         self.mocks['find_reviewer'].return_value = None
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_not_called()
 
     def test_has_reviewer(self):
-        payload = self.make_payload(author='userA', commenter='userA')
+        handler = self.make_handler(author='userA', commenter='userA')
 
         self.mocks['find_reviewer'].return_value = 'userD'
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_called_with(
             'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
-            'credential', 'userA', None
+            'integrationToken', 'userA', None
         )
 
 class TestChooseReviewer(TestNewPR):
@@ -1225,7 +1221,7 @@ class TestRun(TestNewPR):
     def setUp(self):
         super(TestRun, self).setUp((
             ('new_pr', 'highfive.newpr.new_pr'),
-            ('new_comment', 'highfive.newpr.new_comment'),
+            ('new_comment', 'highfive.newpr.HighfiveHandler.new_comment'),
             ('sys', 'highfive.newpr.sys'),
         ))
 
@@ -1251,9 +1247,7 @@ class TestRun(TestNewPR):
         m.handler.run()
         self.assertEqual(m.mock_config.get.call_count, 2)
         self.mocks['new_pr'].assert_not_called()
-        self.mocks['new_comment'].assert_called_once_with(
-            payload, 'integration-user', 'integration-token'
-        )
+        self.mocks['new_comment'].assert_called_once_with()
         self.mocks['sys'].exit.assert_not_called()
 
     def test_unsupported_payload(self):

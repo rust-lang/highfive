@@ -342,33 +342,6 @@ def new_pr(payload, user, token):
         add_labels(config["new_pr_labels"], owner, repo, issue, token)
 
 
-def new_comment(payload, user, token):
-    # Check the issue is a PR and is open.
-    if payload['issue', 'state'] != 'open' or 'pull_request' not in payload['issue']:
-        return
-
-    commenter = payload['comment', 'user', 'login']
-    # Ignore our own comments.
-    if commenter == user:
-        return
-
-    owner = payload['repository', 'owner', 'login']
-    repo = payload['repository', 'name']
-
-    # Check the commenter is the submitter of the PR or the previous assignee.
-    author = payload['issue', 'user', 'login']
-    if not (author == commenter or (payload['issue', 'assignee'] and commenter == payload['issue', 'assignee', 'login'])):
-        # Check if commenter is a collaborator.
-        if not is_collaborator(commenter, owner, repo, token):
-            return
-
-    # Check for r? and set the assignee.
-    msg = payload['comment', 'body']
-    reviewer = find_reviewer(msg)
-    if reviewer:
-        issue = str(payload['issue', 'number'])
-        set_assignee(reviewer, owner, repo, issue, user, token, author, None)
-
 class HighfiveHandler(object):
     def __init__(self, payload):
         self.payload = payload
@@ -382,12 +355,46 @@ class HighfiveHandler(object):
         if self.payload["action"] == "opened":
             new_pr(self.payload, self.integration_user, self.integration_token)
         elif self.payload["action"] == "created":
-            new_comment(
-                self.payload, self.integration_user, self.integration_token
-            )
+            self.new_comment()
         else:
             print self.payload["action"]
             sys.exit(0)
+
+    def new_comment(self):
+        # Check the issue is a PR and is open.
+        if self.payload['issue', 'state'] != 'open' \
+           or 'pull_request' not in self.payload['issue']:
+            return
+
+        commenter = self.payload['comment', 'user', 'login']
+        # Ignore our own comments.
+        if commenter == self.integration_user:
+            return
+
+        owner = self.payload['repository', 'owner', 'login']
+        repo = self.payload['repository', 'name']
+
+        # Check the commenter is the submitter of the PR or the previous assignee.
+        author = self.payload['issue', 'user', 'login']
+        if not (author == commenter or (
+                    self.payload['issue', 'assignee'] \
+                    and commenter == self.payload['issue', 'assignee', 'login']
+        )):
+            # Check if commenter is a collaborator.
+            if not is_collaborator(
+                commenter, owner, repo, self.integration_token
+            ):
+                return
+
+        # Check for r? and set the assignee.
+        msg = self.payload['comment', 'body']
+        reviewer = find_reviewer(msg)
+        if reviewer:
+            issue = str(self.payload['issue', 'number'])
+            set_assignee(
+                reviewer, owner, repo, issue, self.integration_user,
+                self.integration_token, author, None
+            )
 
 
 if __name__ == "__main__":

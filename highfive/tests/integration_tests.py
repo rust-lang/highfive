@@ -1,6 +1,5 @@
 from highfive import newpr, payload
 from highfive.tests import base, fakes
-from highfive.tests.test_newpr import HighfiveHandlerMock
 import mock
 from nose.plugins.attrib import attr
 
@@ -163,14 +162,15 @@ class TestNewComment(base.BaseTest):
 
     def test_author_is_commenter(self):
         payload = fakes.Payload.new_comment()
+        handler = newpr.HighfiveHandler(payload)
         api_req_mock = ApiReqMocker([
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
-                    {'assignee': 'davidalber'}, 'integration-token'
+                    {'assignee': 'davidalber'}, 'integrationToken'
                 ),
                 {'body': {}},
             ),
         ])
-        newpr.new_comment(payload, 'integration-user', 'integration-token')
+        handler.new_comment()
         api_req_mock.verify_calls()
