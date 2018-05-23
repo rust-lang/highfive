@@ -73,6 +73,7 @@ class TestNewPr(base.BaseTest):
         payload = fakes.Payload.new_pr(
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'
         )
+        handler = newpr.HighfiveHandler(payload)
 
         api_req_mock = ApiReqMocker([
             (
@@ -105,7 +106,7 @@ class TestNewPr(base.BaseTest):
                 {'body': {}},
             ),
         ])
-        newpr.new_pr(payload, 'integration-user', 'integration-token')
+        handler.new_pr()
 
         api_req_mock.verify_calls()
 
@@ -113,6 +114,7 @@ class TestNewPr(base.BaseTest):
         payload = fakes.Payload.new_pr(
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'
         )
+        handler = newpr.HighfiveHandler(payload)
 
         api_req_mock = ApiReqMocker([
             (
@@ -146,7 +148,7 @@ class TestNewPr(base.BaseTest):
                 {'body': {}},
             ),
         ])
-        newpr.new_pr(payload, 'integration-user', 'integration-token')
+        handler.new_pr()
 
         api_req_mock.verify_calls()
 

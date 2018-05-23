@@ -767,7 +767,8 @@ class TestNewPrFunction(TestNewPR):
         cls.payload = fakes.Payload.new_pr()
 
         cls.user = 'integrationUser'
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
+
 
     def setUp(self):
         super(TestNewPrFunction, self).setUp((
@@ -787,8 +788,10 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['api_req'].return_value = {'body': 'diff'}
         self.mocks['load_json_file'].return_value = self.config
 
+        self.handler = HighfiveHandlerMock(self.payload).handler
+
     def call_new_pr(self):
-        return newpr.new_pr(self.payload, self.user, self.token)
+        return self.handler.new_pr()
 
     def assert_fixed_calls(self, reviewer, to_mention):
         self.mocks['api_req'].assert_called_once_with(
@@ -1220,7 +1223,7 @@ class TestChooseReviewer(TestNewPR):
 class TestRun(TestNewPR):
     def setUp(self):
         super(TestRun, self).setUp((
-            ('new_pr', 'highfive.newpr.new_pr'),
+            ('new_pr', 'highfive.newpr.HighfiveHandler.new_pr'),
             ('new_comment', 'highfive.newpr.HighfiveHandler.new_comment'),
             ('sys', 'highfive.newpr.sys'),
         ))
@@ -1235,9 +1238,7 @@ class TestRun(TestNewPR):
         m = self.handler_mock(payload)
         m.handler.run()
         self.assertEqual(m.mock_config.get.call_count, 2)
-        self.mocks['new_pr'].assert_called_once_with(
-            payload, 'integration-user', 'integration-token'
-        )
+        self.mocks['new_pr'].assert_called_once_with()
         self.mocks['new_comment'].assert_not_called()
         self.mocks['sys'].exit.assert_not_called()
 

@@ -307,40 +307,6 @@ def post_warnings(payload, config, diff, owner, repo, issue, token):
     if warnings:
         post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, token)
 
-def new_pr(payload, user, token):
-    owner = payload['pull_request', 'base', 'repo', 'owner', 'login']
-    repo = payload['pull_request', 'base', 'repo', 'name']
-
-    author = payload['pull_request', 'user', 'login']
-    issue = str(payload["number"])
-    diff = api_req(
-        "GET", payload["pull_request", "url"], None, token,
-        "application/vnd.github.v3.diff",
-    )['body']
-
-    msg = payload['pull_request', 'body']
-    reviewer = find_reviewer(msg)
-    post_msg = False
-    to_mention = None
-
-    config = _load_json_file(repo + '.json')
-
-    if not reviewer:
-        post_msg = True
-        reviewer, to_mention = choose_reviewer(repo, owner, diff, author, config)
-
-    set_assignee(reviewer, owner, repo, issue, user, token, author, to_mention)
-
-    if is_new_contributor(author, owner, repo, token, payload):
-        post_comment(welcome_msg(reviewer, config), owner, repo, issue, token)
-    elif post_msg:
-        post_comment(review_msg(reviewer, author), owner, repo, issue, token)
-
-    post_warnings(payload, config, diff, owner, repo, issue, token)
-
-    if config.get("new_pr_labels"):
-        add_labels(config["new_pr_labels"], owner, repo, issue, token)
-
 
 class HighfiveHandler(object):
     def __init__(self, payload):
@@ -353,12 +319,65 @@ class HighfiveHandler(object):
 
     def run(self):
         if self.payload["action"] == "opened":
-            new_pr(self.payload, self.integration_user, self.integration_token)
+            self.new_pr()
         elif self.payload["action"] == "created":
             self.new_comment()
         else:
             print self.payload["action"]
             sys.exit(0)
+
+    def new_pr(self):
+        owner = self.payload['pull_request', 'base', 'repo', 'owner', 'login']
+        repo = self.payload['pull_request', 'base', 'repo', 'name']
+
+        author = self.payload['pull_request', 'user', 'login']
+        issue = str(self.payload["number"])
+        diff = api_req(
+            "GET", self.payload["pull_request", "url"], None,
+            self.integration_token, "application/vnd.github.v3.diff",
+        )['body']
+
+        msg = self.payload['pull_request', 'body']
+        reviewer = find_reviewer(msg)
+        post_msg = False
+        to_mention = None
+
+        config = _load_json_file(repo + '.json')
+
+        if not reviewer:
+            post_msg = True
+            reviewer, to_mention = choose_reviewer(
+                repo, owner, diff, author, config
+            )
+
+        set_assignee(
+            reviewer, owner, repo, issue, self.integration_user,
+            self.integration_token, author, to_mention
+        )
+
+        if is_new_contributor(
+            author, owner, repo, self.integration_token, self.payload
+        ):
+            post_comment(
+                welcome_msg(reviewer, config), owner, repo, issue,
+                self.integration_token
+            )
+        elif post_msg:
+            post_comment(
+                review_msg(reviewer, author), owner, repo, issue,
+                self.integration_token
+            )
+
+        post_warnings(
+            self.payload, config, diff, owner, repo, issue,
+            self.integration_token
+        )
+
+        if config.get("new_pr_labels"):
+            add_labels(
+                config["new_pr_labels"], owner, repo, issue,
+                self.integration_token
+            )
 
     def new_comment(self):
         # Check the issue is a PR and is open.
