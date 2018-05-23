@@ -156,9 +156,14 @@ class TestNewComment(base.BaseTest):
     def setUp(self):
         super(TestNewComment, self).setUp((
             ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+            ('ConfigParser', 'highfive.newpr.ConfigParser'),
         ))
 
         self.mocks['get_irc_nick'].return_value = None
+
+        config_mock = mock.Mock()
+        config_mock.get.side_effect = ('integration-user', 'integration-token')
+        self.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
 
     def test_author_is_commenter(self):
         payload = fakes.Payload.new_comment()
@@ -167,7 +172,7 @@ class TestNewComment(base.BaseTest):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
-                    {'assignee': 'davidalber'}, 'integrationToken'
+                    {'assignee': 'davidalber'}, 'integration-token'
                 ),
                 {'body': {}},
             ),
