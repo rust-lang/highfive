@@ -17,6 +17,7 @@ class HighfiveHandlerMock(object):
         self, payload, integration_user='integrationUser',
         integration_token='integrationToken', repo_config={}
     ):
+        assert(type(payload) == Payload)
         self.integration_user = integration_user
         self.integration_token = integration_token
 
@@ -1264,7 +1265,7 @@ class TestRun(TestNewPR):
         )
 
     def test_newpr(self):
-        payload = {'action': 'opened'}
+        payload = Payload({'action': 'opened'})
         m = self.handler_mock(payload)
         m.handler.run()
         self.assertEqual(m.mock_config.get.call_count, 2)
@@ -1273,7 +1274,7 @@ class TestRun(TestNewPR):
         self.mocks['sys'].exit.assert_not_called()
 
     def test_new_comment(self):
-        payload = {'action': 'created'}
+        payload = Payload({'action': 'created'})
         m = self.handler_mock(payload)
         m.handler.run()
         self.assertEqual(m.mock_config.get.call_count, 2)
@@ -1282,7 +1283,7 @@ class TestRun(TestNewPR):
         self.mocks['sys'].exit.assert_not_called()
 
     def test_unsupported_payload(self):
-        payload = {'action': 'something-not-supported'}
+        payload = Payload({'action': 'something-not-supported'})
         m = self.handler_mock(payload)
         m.handler.run()
         self.assertEqual(m.mock_config.get.call_count, 2)
