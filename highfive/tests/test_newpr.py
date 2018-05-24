@@ -271,35 +271,31 @@ Please see [the contribution instructions](%s) for more information.
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
         )
-        config = {}
-        self.assertEqual(
-            newpr.unexpected_branch(payload, config),
-            ('master', 'dev')
-        )
+        with HighfiveHandlerMock(payload, repo_config={}) as m:
+            self.assertEqual(m.handler.unexpected_branch(), ('master', 'dev'))
 
     def test_expected_branch_default_expected_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:master'}}}
         )
-        config = {}
-        self.assertFalse(newpr.unexpected_branch(payload, config))
+        with HighfiveHandlerMock(payload, repo_config={}) as m:
+            self.assertFalse(m.handler.unexpected_branch())
 
     def test_expected_branch_custom_expected_no_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:master'}}}
         )
         config = {'expected_branch': 'dev' }
-        self.assertEqual(
-            newpr.unexpected_branch(payload, config),
-            ('dev', 'master')
-        )
+        with HighfiveHandlerMock(payload, repo_config=config) as m:
+            self.assertEqual(m.handler.unexpected_branch(), ('dev', 'master'))
 
     def test_expected_branch_custom_expected_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label':'repo-owner:dev'}}}
         )
         config = {'expected_branch': 'dev' }
-        self.assertFalse(newpr.unexpected_branch(payload, config))
+        with HighfiveHandlerMock(payload, repo_config=config) as m:
+            self.assertFalse(m.handler.unexpected_branch())
 
     def test_find_reviewer(self):
         found_cases = (
@@ -710,7 +706,7 @@ class TestPostWarnings(TestNewPR):
 
     def setUp(self):
         super(TestPostWarnings, self).setUp((
-            ('unexpected_branch', 'highfive.newpr.unexpected_branch'),
+            ('unexpected_branch', 'highfive.newpr.HighfiveHandler.unexpected_branch'),
             ('modifies_submodule', 'highfive.newpr.modifies_submodule'),
             ('post_comment', 'highfive.newpr.post_comment'),
         ))
@@ -730,9 +726,7 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
         self.mocks['post_comment'].assert_not_called()
 
@@ -744,9 +738,7 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
@@ -762,9 +754,7 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
@@ -782,9 +772,7 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:

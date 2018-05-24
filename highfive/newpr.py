@@ -265,19 +265,6 @@ def choose_reviewer(repo, owner, diff, exclude, config):
 def modifies_submodule(diff):
     return submodule_re.match(diff)
 
-def unexpected_branch(payload, config):
-    """ returns (expected_branch, actual_branch) if they differ, else False
-    """
-
-    # If unspecified, assume master.
-    expected_target = config.get('expected_branch', 'master')
-
-    # ie we want "stable" in this: "base": { "label": "rust-lang:stable"...
-    actual_target = payload['pull_request', 'base', 'label'].split(':')[1]
-
-    return (expected_target, actual_target) \
-        if expected_target != actual_target else False
-
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -327,7 +314,7 @@ class HighfiveHandler(object):
     def post_warnings(self, diff, owner, repo, issue):
         warnings = []
 
-        surprise = unexpected_branch(self.payload, self.repo_config)
+        surprise = self.unexpected_branch()
         if surprise:
             warnings.append(surprise_branch_warning % surprise)
 
@@ -336,6 +323,19 @@ class HighfiveHandler(object):
 
         if warnings:
             post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, self.integration_token)
+
+    def unexpected_branch(self):
+        """ returns (expected_branch, actual_branch) if they differ, else False
+        """
+
+        # If unspecified, assume master.
+        expected_target = self.repo_config.get('expected_branch', 'master')
+
+        # ie we want "stable" in this: "base": { "label": "rust-lang:stable"...
+        actual_target = self.payload['pull_request', 'base', 'label'].split(':')[1]
+
+        return (expected_target, actual_target) \
+            if expected_target != actual_target else False
 
     def new_pr(self):
         owner = self.payload['pull_request', 'base', 'repo', 'owner', 'login']
