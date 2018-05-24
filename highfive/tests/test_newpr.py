@@ -15,7 +15,7 @@ class TestNewPR(base.BaseTest):
 class HighfiveHandlerMock(object):
     def __init__(
         self, payload, integration_user='integrationUser',
-        integration_token='integrationToken'
+        integration_token='integrationToken', repo_config={}
     ):
         self.integration_user = integration_user
         self.integration_token = integration_token
@@ -33,6 +33,12 @@ class HighfiveHandlerMock(object):
         self.mock_config.get.side_effect = config_handler
         self.mock_config_parser.RawConfigParser.return_value = self.mock_config
 
+        self.load_repo_config_patcher = mock.patch(
+            'highfive.newpr.HighfiveHandler.load_repo_config'
+        )
+        self.mock_load_repo_config = self.load_repo_config_patcher.start()
+        self.mock_load_repo_config.return_value = repo_config
+
         self.handler = newpr.HighfiveHandler(payload)
 
     def __enter__(self):
@@ -40,16 +46,42 @@ class HighfiveHandlerMock(object):
 
     def __exit__(self, _, __, ___):
         self.config_patcher.stop()
+        self.load_repo_config_patcher.stop()
 
 class TestHighfiveHandler(TestNewPR):
-    def test_init(self):
-        payload = {'the': 'payload'}
-        with HighfiveHandlerMock(payload) as m:
+    @mock.patch('highfive.newpr.HighfiveHandler.load_repo_config')
+    def test_init(self, mock_load_repo_config):
+        payload = Payload({'the': 'payload'})
+        with HighfiveHandlerMock(payload, repo_config={'a': 'config!'}) as m:
             self.assertEqual(m.handler.payload, payload)
             self.assertEqual(m.handler.config, m.mock_config)
             self.assertEqual(m.handler.integration_user, 'integrationUser')
             self.assertEqual(m.handler.integration_token, 'integrationToken')
+            self.assertEqual(m.handler.repo_config, {'a': 'config!'})
             m.mock_config.read.assert_called_once_with('./config')
+
+    @mock.patch('highfive.newpr._load_json_file')
+    def test_load_repo_config_new_pr(self, mock_load_json_file):
+        mock_load_json_file.return_value = {'a': 'config!'}
+        payload = Payload({
+            'action': 'opened',
+            'pull_request': {'base': {'repo': {'name': 'blah'}}}
+        })
+        m = HighfiveHandlerMock(payload)
+        m.load_repo_config_patcher.stop()
+        self.assertEqual(m.handler.load_repo_config(), {'a': 'config!'})
+        mock_load_json_file.assert_called_once_with('blah.json')
+
+    @mock.patch('highfive.newpr._load_json_file')
+    def test_load_repo_config_not_new_pr(self, mock_load_json_file):
+        payload = Payload({
+            'action': 'created',
+            'pull_request': {'base': {'repo': {'name': 'blah'}}}
+        })
+        m = HighfiveHandlerMock(payload)
+        m.load_repo_config_patcher.stop()
+        self.assertIsNone(m.handler.load_repo_config())
+        mock_load_json_file.assert_not_called()
 
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):
@@ -673,7 +705,7 @@ class TestPostWarnings(TestNewPR):
         cls.owner = 'repo-owner'
         cls.repo = 'repo-name'
         cls.issue = 7
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
 
     def setUp(self):
         super(TestPostWarnings, self).setUp((
@@ -682,10 +714,13 @@ class TestPostWarnings(TestNewPR):
             ('post_comment', 'highfive.newpr.post_comment'),
         ))
 
+        self.handler = HighfiveHandlerMock(
+            self.payload, repo_config=self.config
+        ).handler
+
     def post_warnings(self):
-        newpr.post_warnings(
-            self.payload, self.config, self.diff, self.owner, self.repo,
-            self.issue, self.token
+        self.handler.post_warnings(
+            self.diff, self.owner, self.repo, self.issue
         )
 
     def test_no_warnings(self):
@@ -774,24 +809,23 @@ class TestNewPrFunction(TestNewPR):
         super(TestNewPrFunction, self).setUp((
             ('api_req', 'highfive.newpr.api_req'),
             ('find_reviewer', 'highfive.newpr.find_reviewer'),
-            ('load_json_file', 'highfive.newpr._load_json_file'),
             ('choose_reviewer', 'highfive.newpr.choose_reviewer'),
             ('set_assignee', 'highfive.newpr.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.is_new_contributor'),
             ('post_comment', 'highfive.newpr.post_comment'),
             ('welcome_msg', 'highfive.newpr.welcome_msg'),
             ('review_msg', 'highfive.newpr.review_msg'),
-            ('post_warnings', 'highfive.newpr.post_warnings'),
+            ('post_warnings', 'highfive.newpr.HighfiveHandler.post_warnings'),
             ('add_labels', 'highfive.newpr.add_labels'),
         ))
 
         self.mocks['api_req'].return_value = {'body': 'diff'}
-        self.mocks['load_json_file'].return_value = self.config
-
-        self.handler = HighfiveHandlerMock(self.payload).handler
 
     def call_new_pr(self):
-        return self.handler.new_pr()
+        handler = HighfiveHandlerMock(
+            self.payload, repo_config=self.config
+        ).handler
+        return handler.new_pr()
 
     def assert_fixed_calls(self, reviewer, to_mention):
         self.mocks['api_req'].assert_called_once_with(
@@ -799,7 +833,6 @@ class TestNewPrFunction(TestNewPR):
             'application/vnd.github.v3.diff'
         )
         self.mocks['find_reviewer'].assert_called_once_with('The PR comment.')
-        self.mocks['load_json_file'].assert_called_once_with('repo-name.json')
         self.mocks['set_assignee'].assert_called_once_with(
             reviewer, 'repo-owner', 'repo-name', '7', self.user, self.token,
             'prAuthor', to_mention
@@ -808,8 +841,7 @@ class TestNewPrFunction(TestNewPR):
             'prAuthor', 'repo-owner', 'repo-name', self.token, self.payload
         )
         self.mocks['post_warnings'].assert_called_once_with(
-            self.payload, self.config, 'diff', 'repo-owner', 'repo-name', '7',
-            self.token
+            'diff', 'repo-owner', 'repo-name', '7'
         )
 
     def test_no_msg_reviewer_new_contributor(self):
@@ -880,7 +912,6 @@ class TestNewPrFunction(TestNewPR):
 
     def test_no_pr_labels_specified(self):
         self.config = {'the': 'config'}
-        self.mocks['load_json_file'].return_value = self.config
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'
@@ -902,7 +933,6 @@ class TestNewPrFunction(TestNewPR):
         self.config = {
             'the': 'config', 'new_pr_labels': []
         }
-        self.mocks['load_json_file'].return_value = self.config
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'

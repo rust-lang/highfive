@@ -294,20 +294,6 @@ def get_irc_nick(gh_name):
 
     return None
 
-def post_warnings(payload, config, diff, owner, repo, issue, token):
-    warnings = []
-
-    surprise = unexpected_branch(payload, config)
-    if surprise:
-        warnings.append(surprise_branch_warning % surprise)
-
-    if modifies_submodule(diff):
-        warnings.append(submodule_warning_msg)
-
-    if warnings:
-        post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, token)
-
-
 class HighfiveHandler(object):
     def __init__(self, payload):
         self.payload = payload
@@ -317,6 +303,18 @@ class HighfiveHandler(object):
         self.integration_user = self.config.get('github', 'user')
         self.integration_token = self.config.get('github', 'token')
 
+        self.repo_config = self.load_repo_config()
+
+    def load_repo_config(self):
+        '''Load the repository configuration, if this is a new PR.'''
+        if self.payload["action"] == "opened":
+            # If this is a new PR, load the repository configuration.
+            print self.payload
+            repo = self.payload['pull_request', 'base', 'repo', 'name']
+            return _load_json_file(repo + '.json')
+
+        return None
+
     def run(self):
         if self.payload["action"] == "opened":
             self.new_pr()
@@ -325,6 +323,19 @@ class HighfiveHandler(object):
         else:
             print self.payload["action"]
             sys.exit(0)
+
+    def post_warnings(self, diff, owner, repo, issue):
+        warnings = []
+
+        surprise = unexpected_branch(self.payload, self.repo_config)
+        if surprise:
+            warnings.append(surprise_branch_warning % surprise)
+
+        if modifies_submodule(diff):
+            warnings.append(submodule_warning_msg)
+
+        if warnings:
+            post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, self.integration_token)
 
     def new_pr(self):
         owner = self.payload['pull_request', 'base', 'repo', 'owner', 'login']
@@ -342,12 +353,10 @@ class HighfiveHandler(object):
         post_msg = False
         to_mention = None
 
-        config = _load_json_file(repo + '.json')
-
         if not reviewer:
             post_msg = True
             reviewer, to_mention = choose_reviewer(
-                repo, owner, diff, author, config
+                repo, owner, diff, author, self.repo_config
             )
 
         set_assignee(
@@ -359,7 +368,7 @@ class HighfiveHandler(object):
             author, owner, repo, self.integration_token, self.payload
         ):
             post_comment(
-                welcome_msg(reviewer, config), owner, repo, issue,
+                welcome_msg(reviewer, self.repo_config), owner, repo, issue,
                 self.integration_token
             )
         elif post_msg:
@@ -368,14 +377,11 @@ class HighfiveHandler(object):
                 self.integration_token
             )
 
-        post_warnings(
-            self.payload, config, diff, owner, repo, issue,
-            self.integration_token
-        )
+        self.post_warnings(diff, owner, repo, issue)
 
-        if config.get("new_pr_labels"):
+        if self.repo_config.get("new_pr_labels"):
             add_labels(
-                config["new_pr_labels"], owner, repo, issue,
+                self.repo_config["new_pr_labels"], owner, repo, issue,
                 self.integration_token
             )
 
