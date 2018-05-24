@@ -47,7 +47,6 @@ def welcome_msg(reviewer, config):
     return raw_welcome % (text, link)
 
 warning_summary = ':warning: **Warning** :warning:\n\n%s'
-unsafe_warning_msg = 'These commits modify **unsafe code**. Please review it carefully!'
 submodule_warning_msg = 'These commits modify **submodules**.'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
 
@@ -60,7 +59,6 @@ def review_msg(reviewer, submitter):
         else review_with_reviewer % reviewer
 
 reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
-unsafe_re = re.compile("\\bunsafe\\b|#!?\\[unsafe_")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
@@ -264,20 +262,6 @@ def choose_reviewer(repo, owner, diff, exclude, config):
     # no eligible reviewer found
     return (None, None)
 
-#def modifies_unsafe(diff):
-#    in_rust_code = False
-#    for line in diff.split('\n'):
-#        if line.startswith("diff --git "):
-#            in_rust_code = line[-3:] == ".rs" and line.find(" b/src/test/") == -1
-#            continue
-#        if not in_rust_code:
-#            continue
-#        if (not line.startswith('+') or line.startswith('+++')) and not line.startswith("@@ "):
-#            continue
-#        if unsafe_re.search(line):
-#            return True
-#    return False
-
 def modifies_submodule(diff):
     return submodule_re.match(diff)
 
@@ -312,10 +296,6 @@ def get_irc_nick(gh_name):
 
 def post_warnings(payload, config, diff, owner, repo, issue, token):
     warnings = []
-
-    # Lets not check for unsafe code for now, it doesn't seem to be very useful and gets a lot of false positives.
-    #if modifies_unsafe(diff):
-    #    warnings += [unsafe_warning_msg]
 
     surprise = unexpected_branch(payload, config)
     if surprise:
