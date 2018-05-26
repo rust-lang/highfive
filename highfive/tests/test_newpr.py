@@ -28,6 +28,7 @@ class HighfiveHandlerMock(object):
                 if key == 'token':
                     return integration_token
 
+        self.patchers_stopped = False
         self.config_patcher = mock.patch('highfive.newpr.ConfigParser')
         self.mock_config_parser = self.config_patcher.start()
         self.mock_config = mock.Mock()
@@ -46,8 +47,16 @@ class HighfiveHandlerMock(object):
         return self
 
     def __exit__(self, _, __, ___):
-        self.config_patcher.stop()
-        self.load_repo_config_patcher.stop()
+        self.stop_patchers()
+
+    def __del__(self):
+        self.stop_patchers()
+
+    def stop_patchers(self):
+        if not self.patchers_stopped:
+            self.patchers_stopped = True
+            self.config_patcher.stop()
+            self.load_repo_config_patcher.stop()
 
 class TestHighfiveHandler(TestNewPR):
     @mock.patch('highfive.newpr.HighfiveHandler.load_repo_config')
@@ -69,7 +78,7 @@ class TestHighfiveHandler(TestNewPR):
             'pull_request': {'base': {'repo': {'name': 'blah'}}}
         })
         m = HighfiveHandlerMock(payload)
-        m.load_repo_config_patcher.stop()
+        m.stop_patchers()
         self.assertEqual(m.handler.load_repo_config(), {'a': 'config!'})
         mock_load_json_file.assert_called_once_with('blah.json')
 
@@ -80,7 +89,7 @@ class TestHighfiveHandler(TestNewPR):
             'pull_request': {'base': {'repo': {'name': 'blah'}}}
         })
         m = HighfiveHandlerMock(payload)
-        m.load_repo_config_patcher.stop()
+        m.stop_patchers()
         self.assertIsNone(m.handler.load_repo_config())
         mock_load_json_file.assert_not_called()
 
@@ -798,7 +807,7 @@ class TestNewPrFunction(TestNewPR):
         super(TestNewPrFunction, self).setUp((
             ('api_req', 'highfive.newpr.api_req'),
             ('find_reviewer', 'highfive.newpr.find_reviewer'),
-            ('choose_reviewer', 'highfive.newpr.choose_reviewer'),
+            ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
             ('set_assignee', 'highfive.newpr.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.is_new_contributor'),
             ('post_comment', 'highfive.newpr.post_comment'),
@@ -845,7 +854,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('reviewUser', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_called_once_with(
-            'repo-name', 'repo-owner', 'diff', 'prAuthor', self.config
+            'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
         self.mocks['welcome_msg'].assert_called_once_with(
             'reviewUser', self.config
@@ -870,7 +879,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('reviewUser', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_called_once_with(
-            'repo-name', 'repo-owner', 'diff', 'prAuthor', self.config
+            'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
         self.mocks['welcome_msg'].assert_not_called()
         self.mocks['review_msg'].assert_called_once_with(
@@ -1083,20 +1092,34 @@ class TestChooseReviewer(TestNewPR):
         cls.global_ = fakes.get_global_configs()
 
     def choose_reviewer(
-        self, repo, owner, diff, exclude, config, global_ = None
+        self, repo, owner, diff, exclude, global_=None
     ):
         return self.choose_reviewer_inner(
-            repo, owner, diff, exclude, config, global_
+            repo, owner, diff, exclude, global_
         )
 
     @mock.patch('highfive.newpr._load_json_file')
     def choose_reviewer_inner(
-        self, repo, owner, diff, exclude, config, global_, mock_load_json
+        self, repo, owner, diff, exclude, global_, mock_load_json
     ):
         mock_load_json.return_value = deepcopy(global_ or { "groups": {} })
-        return newpr.choose_reviewer(
-            repo, owner, diff, exclude, deepcopy(config)
+        return self.handler.choose_reviewer(
+            repo, owner, diff, exclude
         )
+
+    def choose_reviewers(self, diff, author, global_ = None):
+        """Helper function that repeatedly calls choose_reviewer to build sets
+        of reviewers and mentions for a given diff and author.
+        """
+        chosen_reviewers = set()
+        mention_list = set()
+        for _ in xrange(40):
+            (reviewer, mentions) = self.choose_reviewer(
+                'rust', 'rust-lang', diff, author, global_
+            )
+            chosen_reviewers.add(reviewer)
+            mention_list.add(None if mentions is None else tuple(mentions))
+        return chosen_reviewers, mention_list
 
     def test_unsupported_repo(self):
         """The choose_reviewer function has an escape hatch for calls that
@@ -1106,61 +1129,40 @@ class TestChooseReviewer(TestNewPR):
         diff = self.diff['normal']
         config = self.config['individuals_no_dirs']
         test_return = ('test_user_selection_ignore_this', None)
+        self.handler = HighfiveHandlerMock(
+            Payload({'action': 'opened'}), repo_config=config
+        ).handler
 
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'whatever', 'rust-lang', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('whatever', 'rust-lang', diff, 'foo')
         )
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'whatever', 'rust-lang-nursery', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('whatever', 'rust-lang-nursery', diff, 'foo')
         )
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'whatever', 'rust-lang-deprecated', diff, 'foo',
-                deepcopy(config)
-            )
+            self.choose_reviewer('whatever', 'rust-lang-deprecated', diff, 'foo')
         )
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'highfive', 'nrc', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('highfive', 'nrc', diff, 'foo')
         )
         self.assertEqual(
             test_return,
-            self.choose_reviewer(
-                'anything', 'else', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('anything', 'else', diff, 'foo')
         )
-
-    def choose_reviewers(self, diff, config, author, global_ = None):
-        """Helper function that repeatedly calls choose_reviewer to build sets
-        of reviewers and mentions for a given diff, configuration, and
-        author.
-        """
-        chosen_reviewers = set()
-        mention_list = set()
-        for _ in xrange(40):
-            (reviewer, mentions) = self.choose_reviewer(
-                'rust', 'rust-lang', diff, author, deepcopy(config), global_
-            )
-            chosen_reviewers.add(reviewer)
-            mention_list.add(None if mentions is None else tuple(mentions))
-        return chosen_reviewers, mention_list
 
     def test_individuals_no_dirs_1(self):
         """Test choosing a reviewer from a list of individual reviewers, no
         directories, and an author who is not a potential reviewer.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_no_dirs']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_no_dirs'],
-            "nikomatsakis"
+            self.diff['normal'], "nikomatsakis"
         )
         self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1169,8 +1171,11 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer from a list of individual reviewers, no
         directories, and an author who is a potential reviewer.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_no_dirs']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_no_dirs'], "nrc"
+            self.diff['normal'], "nrc"
         )
         self.assertEqual(set(["pnkfelix"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1178,19 +1183,23 @@ class TestChooseReviewer(TestNewPR):
     def test_circular_groups(self):
         """Test choosing a reviewer from groups that have circular references.
         """
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['circular_groups']
+        ).handler
         self.assertRaises(
-            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
-            self.diff['normal'], 'fooauthor',
-            self.config['circular_groups']
+            AssertionError, handler.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor'
         )
 
     def test_global_core(self):
         """Test choosing a reviewer from the core group in the global
         configuration.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['empty']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['empty'], 'fooauthor',
-            self.global_['base']
+            self.diff['normal'], 'fooauthor', self.global_['base']
         )
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1200,19 +1209,23 @@ class TestChooseReviewer(TestNewPR):
         """Test for an AssertionError when the global config contains a group
         already defined in the config.
         """
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_no_dirs']
+        ).handler
         mock_load_json.return_value = self.global_['has_all']
         self.assertRaises(
-            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
-            self.diff['normal'], 'fooauthor',
-            self.config['individuals_no_dirs']
+            AssertionError, handler.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor'
         )
 
     def test_no_potential_reviewers(self):
         """Test choosing a reviewer when nobody qualifies.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['empty']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['empty'], 'alexcrichton',
-            self.global_['base']
+            self.diff['normal'], 'alexcrichton', self.global_['base']
         )
         self.assertEqual(set([None]), chosen_reviewers)
         self.assertEqual(set([None]), mentions)
@@ -1221,9 +1234,11 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer when directory reviewers are defined that
         intersect with the diff.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_dirs']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_dirs'],
-            "nikomatsakis"
+            self.diff['normal'], "nikomatsakis"
         )
         self.assertEqual(set(["pnkfelix", "nrc", "aturon"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1232,9 +1247,11 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer when directory reviewers are defined that
         do not intersect with the diff.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_dirs_2']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_dirs_2'],
-            "nikomatsakis"
+            self.diff['normal'], "nikomatsakis"
         )
         self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)

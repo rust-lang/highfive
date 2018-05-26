@@ -3,6 +3,7 @@
 import urllib, urllib2
 import cgi
 import cgitb
+from copy import deepcopy
 import json
 import random
 import sys
@@ -160,108 +161,6 @@ def find_reviewer(msg):
     match = reviewer_re.search(msg)
     return match.group(1) if match else None
 
-# Choose a reviewer for the PR
-def choose_reviewer(repo, owner, diff, exclude, config):
-    if not (owner == 'rust-lang' or \
-            owner == 'rust-lang-nursery' or \
-            owner == 'rust-lang-deprecated' or \
-            (owner == 'nrc' and repo == 'highfive')):
-        return ('test_user_selection_ignore_this', None)
-
-    # Get JSON data on reviewers.
-    dirs = config.get('dirs', {})
-    groups = config['groups']
-    mentions = config.get('mentions', {})
-
-    # fill in the default groups, ensuring that overwriting is an
-    # error.
-    global_ = _load_json_file('_global.json')
-    for name, people in global_['groups'].iteritems():
-        assert name not in groups, "group %s overlaps with _global.json" % name
-        groups[name] = people
-
-
-    most_changed = None
-    to_mention = []
-    # If there's directories with specially assigned groups/users
-    # inspect the diff to find the directory (under src) with the most
-    # additions
-    if dirs:
-        counts = {}
-        cur_dir = None
-        for line in diff.split('\n'):
-            if line.startswith("diff --git "):
-                # update cur_dir
-                cur_dir = None
-                start = line.find(" b/src/") + len(" b/src/")
-                if start == -1:
-                    continue
-                end = line.find("/", start)
-                if end == -1:
-                    continue
-                full_end = line.rfind("/", start)
-
-                cur_dir = line[start:end]
-                full_dir = line[start:full_end] if full_end != -1 else ""
-
-                # A few heuristics to get better reviewers
-                if cur_dir.startswith('librustc'):
-                    cur_dir = 'librustc'
-                if cur_dir == 'test':
-                    cur_dir = None
-                if len(full_dir) > 0:
-                    for entry in mentions:
-                        if full_dir.startswith(entry) and entry not in to_mention:
-                            to_mention.append(entry)
-                if cur_dir and cur_dir not in counts:
-                    counts[cur_dir] = 0
-                continue
-
-            if cur_dir and (not line.startswith('+++')) and line.startswith('+'):
-                counts[cur_dir] += 1
-
-        # Find the largest count.
-        most_changes = 0
-        for dir, changes in counts.iteritems():
-            if changes > most_changes:
-                most_changes = changes
-                most_changed = dir
-
-    # lookup that directory in the json file to find the potential reviewers
-    potential = groups['all']
-    if most_changed and most_changed in dirs:
-        potential.extend(dirs[most_changed])
-    if not potential:
-        potential = groups['core']
-
-
-    # expand the reviewers list by group
-    reviewers = []
-    seen = {"all"}
-    while potential:
-        p = potential.pop()
-        if p.startswith('@'):
-            # remove the '@' prefix from each username
-            reviewers.append(p[1:])
-        elif p in groups:
-            # avoid infinite loops
-            assert p not in seen, "group %s refers to itself" % p
-            seen.add(p)
-            # we allow groups in groups, so they need to be queued to be resolved
-            potential.extend(groups[p])
-
-    if exclude in reviewers:
-        reviewers.remove(exclude)
-
-    if reviewers:
-        random.seed()
-        mention_list = []
-        for mention in to_mention:
-            mention_list.append(mentions[mention])
-        return (random.choice(reviewers), mention_list)
-    # no eligible reviewer found
-    return (None, None)
-
 def modifies_submodule(diff):
     return submodule_re.match(diff)
 
@@ -296,7 +195,6 @@ class HighfiveHandler(object):
         '''Load the repository configuration, if this is a new PR.'''
         if self.payload["action"] == "opened":
             # If this is a new PR, load the repository configuration.
-            print self.payload
             repo = self.payload['pull_request', 'base', 'repo', 'name']
             return _load_json_file(repo + '.json')
 
@@ -337,6 +235,107 @@ class HighfiveHandler(object):
         return (expected_target, actual_target) \
             if expected_target != actual_target else False
 
+    def choose_reviewer(self, repo, owner, diff, exclude):
+        '''Choose a reviewer for the PR.'''
+        if not (owner == 'rust-lang' or \
+                owner == 'rust-lang-nursery' or \
+                owner == 'rust-lang-deprecated' or \
+                (owner == 'nrc' and repo == 'highfive')):
+            return ('test_user_selection_ignore_this', None)
+
+        # Get JSON data on reviewers.
+        dirs = self.repo_config.get('dirs', {})
+        groups = deepcopy(self.repo_config['groups'])
+        mentions = self.repo_config.get('mentions', {})
+
+        # fill in the default groups, ensuring that overwriting is an
+        # error.
+        global_ = _load_json_file('_global.json')
+        for name, people in global_['groups'].iteritems():
+            assert name not in groups, "group %s overlaps with _global.json" % name
+            groups[name] = people
+
+        most_changed = None
+        to_mention = []
+        # If there's directories with specially assigned groups/users
+        # inspect the diff to find the directory (under src) with the most
+        # additions
+        if dirs:
+            counts = {}
+            cur_dir = None
+            for line in diff.split('\n'):
+                if line.startswith("diff --git "):
+                    # update cur_dir
+                    cur_dir = None
+                    start = line.find(" b/src/") + len(" b/src/")
+                    if start == -1:
+                        continue
+                    end = line.find("/", start)
+                    if end == -1:
+                        continue
+                    full_end = line.rfind("/", start)
+
+                    cur_dir = line[start:end]
+                    full_dir = line[start:full_end] if full_end != -1 else ""
+
+                    # A few heuristics to get better reviewers
+                    if cur_dir.startswith('librustc'):
+                        cur_dir = 'librustc'
+                    if cur_dir == 'test':
+                        cur_dir = None
+                    if len(full_dir) > 0:
+                        for entry in mentions:
+                            if full_dir.startswith(entry) and entry not in to_mention:
+                                to_mention.append(entry)
+                    if cur_dir and cur_dir not in counts:
+                        counts[cur_dir] = 0
+                    continue
+
+                if cur_dir and (not line.startswith('+++')) and line.startswith('+'):
+                    counts[cur_dir] += 1
+
+            # Find the largest count.
+            most_changes = 0
+            for dir, changes in counts.iteritems():
+                if changes > most_changes:
+                    most_changes = changes
+                    most_changed = dir
+
+        # lookup that directory in the json file to find the potential reviewers
+        potential = groups['all']
+        if most_changed and most_changed in dirs:
+            potential.extend(dirs[most_changed])
+        if not potential:
+            potential = groups['core']
+
+
+        # expand the reviewers list by group
+        reviewers = []
+        seen = {"all"}
+        while potential:
+            p = potential.pop()
+            if p.startswith('@'):
+                # remove the '@' prefix from each username
+                reviewers.append(p[1:])
+            elif p in groups:
+                # avoid infinite loops
+                assert p not in seen, "group %s refers to itself" % p
+                seen.add(p)
+                # we allow groups in groups, so they need to be queued to be resolved
+                potential.extend(groups[p])
+
+        if exclude in reviewers:
+            reviewers.remove(exclude)
+
+        if reviewers:
+            random.seed()
+            mention_list = []
+            for mention in to_mention:
+                mention_list.append(mentions[mention])
+            return (random.choice(reviewers), mention_list)
+        # no eligible reviewer found
+        return (None, None)
+
     def new_pr(self):
         owner = self.payload['pull_request', 'base', 'repo', 'owner', 'login']
         repo = self.payload['pull_request', 'base', 'repo', 'name']
@@ -355,9 +354,7 @@ class HighfiveHandler(object):
 
         if not reviewer:
             post_msg = True
-            reviewer, to_mention = choose_reviewer(
-                repo, owner, diff, author, self.repo_config
-            )
+            reviewer, to_mention = self.choose_reviewer(repo, owner, diff, author)
 
         set_assignee(
             reviewer, owner, repo, issue, self.integration_user,
