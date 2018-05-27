@@ -649,7 +649,7 @@ class TestIsNewContributor(TestNewPR):
         cls.username = 'commitUser'
         cls.owner = 'repo-owner'
         cls.repo = 'repo-name'
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
 
     def setUp(self):
         super(TestIsNewContributor, self).setUp((
@@ -658,9 +658,8 @@ class TestIsNewContributor(TestNewPR):
         self.payload = Payload({'repository': {'fork': False}})
 
     def is_new_contributor(self):
-        return newpr.is_new_contributor(
-            self.username, self.owner, self.repo, self.token, self.payload
-        )
+        handler = HighfiveHandlerMock(Payload(self.payload)).handler
+        return handler.is_new_contributor(self.username, self.owner, self.repo)
 
     def api_return(self, total_count):
         return {
@@ -809,7 +808,7 @@ class TestNewPrFunction(TestNewPR):
             ('find_reviewer', 'highfive.newpr.find_reviewer'),
             ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
             ('set_assignee', 'highfive.newpr.set_assignee'),
-            ('is_new_contributor', 'highfive.newpr.is_new_contributor'),
+            ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
             ('post_comment', 'highfive.newpr.post_comment'),
             ('welcome_msg', 'highfive.newpr.welcome_msg'),
             ('review_msg', 'highfive.newpr.review_msg'),
@@ -836,7 +835,7 @@ class TestNewPrFunction(TestNewPR):
             'prAuthor', to_mention
         )
         self.mocks['is_new_contributor'].assert_called_once_with(
-            'prAuthor', 'repo-owner', 'repo-name', self.token, self.payload
+            'prAuthor', 'repo-owner', 'repo-name'
         )
         self.mocks['post_warnings'].assert_called_once_with(
             'diff', 'repo-owner', 'repo-name', '7'

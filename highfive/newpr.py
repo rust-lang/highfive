@@ -137,25 +137,6 @@ def is_collaborator(commenter, owner, repo, token):
 def add_labels(labels, owner, repo, issue, token):
     api_req("POST", issue_labels_url % (owner, repo, issue), labels, token)
 
-def is_new_contributor(username, owner, repo, token, payload):
-    # If this is a fork, we do not treat anyone as a new user. This is
-    # because the API endpoint called in this function indicates all
-    # users in repository forks have zero commits.
-    if payload['repository', 'fork']:
-        return False
-
-    try:
-        result = api_req(
-            'GET', commit_search_url % (owner, repo, username), None, token,
-            'application/vnd.github.cloak-preview'
-        )
-        return json.loads(result['body'])['total_count'] == 0
-    except urllib2.HTTPError, e:
-        if e.code == 422:
-            return True
-        else:
-            raise e
-
 # If the user specified a reviewer, return the username, otherwise returns None.
 def find_reviewer(msg):
     match = reviewer_re.search(msg)
@@ -234,6 +215,25 @@ class HighfiveHandler(object):
 
         return (expected_target, actual_target) \
             if expected_target != actual_target else False
+
+    def is_new_contributor(self, username, owner, repo):
+        # If this is a fork, we do not treat anyone as a new user. This is
+        # because the API endpoint called in this function indicates all
+        # users in repository forks have zero commits.
+        if self.payload['repository', 'fork']:
+            return False
+
+        try:
+            result = api_req(
+                'GET', commit_search_url % (owner, repo, username), None,
+                self.integration_token, 'application/vnd.github.cloak-preview'
+            )
+            return json.loads(result['body'])['total_count'] == 0
+        except urllib2.HTTPError, e:
+            if e.code == 422:
+                return True
+            else:
+                raise e
 
     def choose_reviewer(self, repo, owner, diff, exclude):
         '''Choose a reviewer for the PR.'''
@@ -361,9 +361,7 @@ class HighfiveHandler(object):
             self.integration_token, author, to_mention
         )
 
-        if is_new_contributor(
-            author, owner, repo, self.integration_token, self.payload
-        ):
+        if self.is_new_contributor(author, owner, repo):
             post_comment(
                 welcome_msg(reviewer, self.repo_config), owner, repo, issue,
                 self.integration_token
