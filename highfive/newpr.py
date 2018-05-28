@@ -134,9 +134,6 @@ def is_collaborator(commenter, owner, repo, token):
         else:
             raise e
 
-def add_labels(labels, owner, repo, issue, token):
-    api_req("POST", issue_labels_url % (owner, repo, issue), labels, token)
-
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -339,6 +336,12 @@ class HighfiveHandler(object):
         # no eligible reviewer found
         return (None, None)
 
+    def add_labels(self, labels, owner, repo, issue):
+        api_req(
+            "POST", issue_labels_url % (owner, repo, issue), labels,
+            self.integration_token
+        )
+
     def new_pr(self):
         owner = self.payload['pull_request', 'base', 'repo', 'owner', 'login']
         repo = self.payload['pull_request', 'base', 'repo', 'name']
@@ -378,9 +381,8 @@ class HighfiveHandler(object):
         self.post_warnings(diff, owner, repo, issue)
 
         if self.repo_config.get("new_pr_labels"):
-            add_labels(
-                self.repo_config["new_pr_labels"], owner, repo, issue,
-                self.integration_token
+            self.add_labels(
+                self.repo_config["new_pr_labels"], owner, repo, issue
             )
 
     def new_comment(self):
