@@ -325,16 +325,17 @@ Please see [the contribution instructions](%s) for more information.
             'r? foo',
             'r? @',
         )
+        handler = HighfiveHandlerMock(Payload({})).handler
 
         for (msg, reviewer) in found_cases:
             self.assertEqual(
-                newpr.find_reviewer(msg), reviewer,
+                handler.find_reviewer(msg), reviewer,
                 "expected '%s' from '%s'" % (reviewer, msg)
             )
 
         for msg in not_found_cases:
             self.assertIsNone(
-                newpr.find_reviewer(msg),
+                handler.find_reviewer(msg),
                 "expected '%s' to have no reviewer extracted" % msg
             )
 
@@ -806,7 +807,7 @@ class TestNewPrFunction(TestNewPR):
     def setUp(self):
         super(TestNewPrFunction, self).setUp((
             ('api_req', 'highfive.newpr.api_req'),
-            ('find_reviewer', 'highfive.newpr.find_reviewer'),
+            ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
             ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
             ('set_assignee', 'highfive.newpr.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
@@ -952,7 +953,7 @@ class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp((
             ('is_collaborator', 'highfive.newpr.is_collaborator'),
-            ('find_reviewer', 'highfive.newpr.find_reviewer'),
+            ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
             ('set_assignee', 'highfive.newpr.set_assignee'),
         ))
 

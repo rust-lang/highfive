@@ -137,11 +137,6 @@ def is_collaborator(commenter, owner, repo, token):
 def add_labels(labels, owner, repo, issue, token):
     api_req("POST", issue_labels_url % (owner, repo, issue), labels, token)
 
-# If the user specified a reviewer, return the username, otherwise returns None.
-def find_reviewer(msg):
-    match = reviewer_re.search(msg)
-    return match.group(1) if match else None
-
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -234,6 +229,14 @@ class HighfiveHandler(object):
                 return True
             else:
                 raise e
+
+    def find_reviewer(self, msg):
+        '''
+        If the user specified a reviewer, return the username, otherwise returns
+        None.
+        '''
+        match = reviewer_re.search(msg)
+        return match.group(1) if match else None
 
     def choose_reviewer(self, repo, owner, diff, exclude):
         '''Choose a reviewer for the PR.'''
@@ -348,7 +351,7 @@ class HighfiveHandler(object):
         )['body']
 
         msg = self.payload['pull_request', 'body']
-        reviewer = find_reviewer(msg)
+        reviewer = self.find_reviewer(msg)
         post_msg = False
         to_mention = None
 
@@ -408,7 +411,7 @@ class HighfiveHandler(object):
 
         # Check for r? and set the assignee.
         msg = self.payload['comment', 'body']
-        reviewer = find_reviewer(msg)
+        reviewer = self.find_reviewer(msg)
         if reviewer:
             issue = str(self.payload['issue', 'number'])
             set_assignee(
