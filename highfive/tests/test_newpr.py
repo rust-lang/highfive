@@ -270,11 +270,12 @@ Please see [the contribution instructions](%s) for more information.
         )
 
     def test_submodule(self):
+        handler = HighfiveHandlerMock(Payload({})).handler
         submodule_diff = self._load_fake('submodule.diff')
-        self.assertTrue(newpr.modifies_submodule(submodule_diff))
+        self.assertTrue(handler.modifies_submodule(submodule_diff))
 
         normal_diff = self._load_fake('normal.diff')
-        self.assertFalse(newpr.modifies_submodule(normal_diff))
+        self.assertFalse(handler.modifies_submodule(normal_diff))
 
     def test_expected_branch_default_expected_no_match(self):
         payload = Payload(
@@ -715,7 +716,7 @@ class TestPostWarnings(TestNewPR):
     def setUp(self):
         super(TestPostWarnings, self).setUp((
             ('unexpected_branch', 'highfive.newpr.HighfiveHandler.unexpected_branch'),
-            ('modifies_submodule', 'highfive.newpr.modifies_submodule'),
+            ('modifies_submodule', 'highfive.newpr.HighfiveHandler.modifies_submodule'),
             ('post_comment', 'highfive.newpr.post_comment'),
         ))
 

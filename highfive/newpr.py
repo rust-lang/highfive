@@ -142,9 +142,6 @@ def find_reviewer(msg):
     match = reviewer_re.search(msg)
     return match.group(1) if match else None
 
-def modifies_submodule(diff):
-    return submodule_re.match(diff)
-
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -190,6 +187,9 @@ class HighfiveHandler(object):
             print self.payload["action"]
             sys.exit(0)
 
+    def modifies_submodule(self, diff):
+        return submodule_re.match(diff)
+
     def post_warnings(self, diff, owner, repo, issue):
         warnings = []
 
@@ -197,7 +197,7 @@ class HighfiveHandler(object):
         if surprise:
             warnings.append(surprise_branch_warning % surprise)
 
-        if modifies_submodule(diff):
+        if self.modifies_submodule(diff):
             warnings.append(submodule_warning_msg)
 
         if warnings:
