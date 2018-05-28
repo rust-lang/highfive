@@ -152,6 +152,59 @@ class TestNewPr(base.BaseTest):
 
         api_req_mock.verify_calls()
 
+    def test_new_pr_contributor_with_labels(self):
+        self.mocks['load_json_file'].side_effect = (
+            fakes.get_repo_configs()['individuals_no_dirs_labels'],
+            fakes.get_global_configs()['base'],
+        )
+        payload = fakes.Payload.new_pr(
+            repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'
+        )
+        handler = newpr.HighfiveHandler(payload)
+
+        api_req_mock = ApiReqMocker([
+            (
+                (
+                    'GET', 'https://the.url/', None, 'integration-token',
+                    'application/vnd.github.v3.diff'
+                ),
+                {'body': self._load_fake('normal.diff')},
+            ),
+            (
+                (
+                    'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
+                    {'assignee': 'nrc'}, 'integration-token'
+                ),
+                {'body': {}},
+            ),
+            (
+                (
+                    'GET', newpr.commit_search_url % ('rust-lang', 'rust', 'pnkfelix'),
+                    None, 'integration-token',
+                    'application/vnd.github.cloak-preview'
+                ),
+                {'body': '{"total_count": 1}'},
+            ),
+            (
+                (
+                    'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
+                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'},
+                    'integration-token'
+                ),
+                {'body': {}},
+            ),
+            (
+                (
+                    'POST', newpr.issue_labels_url % ('rust-lang', 'rust', '7'),
+                    ['a', 'b'], 'integration-token'
+                ),
+                {'body': {}},
+            ),
+        ])
+        handler.new_pr()
+
+        api_req_mock.verify_calls()
+
 @attr(type='integration')
 @attr('hermetic')
 class TestNewComment(base.BaseTest):
