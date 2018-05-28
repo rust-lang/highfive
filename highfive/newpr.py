@@ -336,10 +336,10 @@ class HighfiveHandler(object):
         # no eligible reviewer found
         return (None, None)
 
-    def add_labels(self, labels, owner, repo, issue):
+    def add_labels(self, owner, repo, issue):
         api_req(
-            "POST", issue_labels_url % (owner, repo, issue), labels,
-            self.integration_token
+            'POST', issue_labels_url % (owner, repo, issue),
+            self.repo_config['new_pr_labels'], self.integration_token
         )
 
     def new_pr(self):
@@ -381,9 +381,7 @@ class HighfiveHandler(object):
         self.post_warnings(diff, owner, repo, issue)
 
         if self.repo_config.get("new_pr_labels"):
-            self.add_labels(
-                self.repo_config["new_pr_labels"], owner, repo, issue
-            )
+            self.add_labels(owner, repo, issue)
 
     def new_comment(self):
         # Check the issue is a PR and is open.

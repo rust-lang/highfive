@@ -244,13 +244,11 @@ Please see [the contribution instructions](%s) for more information.
     @mock.patch('highfive.newpr.api_req')
     def test_add_labels_success(self, mock_api_req):
         mock_api_req.return_value = {'body': 'response body!'}
-        handler = HighfiveHandlerMock(Payload({})).handler
         labels = ['label1', 'label2']
-        self.assertIsNone(
-            handler.add_labels(
-                labels, 'repo-owner', 'repo-name', 7
-            )
-        )
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'new_pr_labels': labels}
+        ).handler
+        self.assertIsNone(handler.add_labels('repo-owner', 'repo-name', 7))
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
             labels, 'integrationToken'
@@ -260,11 +258,12 @@ Please see [the contribution instructions](%s) for more information.
     def test_add_labels_error(self, mock_api_req):
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
-        handler = HighfiveHandlerMock(Payload({})).handler
         labels = ['label1', 'label2']
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'new_pr_labels': labels}
+        ).handler
         self.assertRaises(
-            HTTPError, handler.add_labels, labels, 'repo-owner', 'repo-name',
-            7
+            HTTPError, handler.add_labels, 'repo-owner', 'repo-name', 7
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
@@ -867,7 +866,7 @@ class TestNewPrFunction(TestNewPR):
             'Welcome!', 'repo-owner', 'repo-name', '7', self.token
         )
         self.mocks['add_labels'].assert_called_once_with(
-            ['foo-label'], 'repo-owner', 'repo-name', '7'
+            'repo-owner', 'repo-name', '7'
         )
 
     def test_no_msg_reviewer_repeat_contributor(self):
@@ -892,7 +891,7 @@ class TestNewPrFunction(TestNewPR):
             'Review message!', 'repo-owner', 'repo-name', '7', self.token
         )
         self.mocks['add_labels'].assert_called_once_with(
-            ['foo-label'], 'repo-owner', 'repo-name', '7'
+            'repo-owner', 'repo-name', '7'
         )
 
     def test_msg_reviewer_repeat_contributor(self):
@@ -908,7 +907,7 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_not_called()
         self.mocks['add_labels'].assert_called_once_with(
-            ['foo-label'], 'repo-owner', 'repo-name', '7'
+            'repo-owner', 'repo-name', '7'
         )
 
     def test_no_pr_labels_specified(self):
