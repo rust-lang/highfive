@@ -163,42 +163,45 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.api_req')
     def test_post_comment_success(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {'body': 'response body!'}
         self.assertIsNone(
-            newpr.post_comment(
-                'Request body!', 'repo-owner', 'repo-name', 7, 'credential'
+            handler.post_comment(
+                'Request body!', 'repo-owner', 'repo-name', 7
             )
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'credential'
+            {'body': 'Request body!'}, 'integrationToken'
         )
 
     @mock.patch('highfive.newpr.api_req')
     def test_post_comment_error_201(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 201, None, None, None)
         self.assertIsNone(
-            newpr.post_comment(
-                'Request body!', 'repo-owner', 'repo-name', 7, 'credential'
+            handler.post_comment(
+                'Request body!', 'repo-owner', 'repo-name', 7
             )
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'credential'
+            {'body': 'Request body!'}, 'integrationToken'
         )
 
     @mock.patch('highfive.newpr.api_req')
     def test_post_comment_error(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
         self.assertRaises(
-            HTTPError, newpr.post_comment, 'Request body!', 'repo-owner',
-            'repo-name', 7, 'credential'
+            HTTPError, handler.post_comment, 'Request body!', 'repo-owner',
+            'repo-name', 7
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'credential'
+            {'body': 'Request body!'}, 'integrationToken'
         )
 
     @mock.patch('highfive.newpr.api_req')
@@ -545,7 +548,7 @@ class TestSetAssignee(TestNewPR):
         super(TestSetAssignee, self).setUp((
             ('api_req', 'highfive.newpr.api_req'),
             ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
-            ('post_comment', 'highfive.newpr.post_comment'),
+            ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
             ('IrcClient', 'highfive.irc.IrcClient'),
         ))
 
@@ -638,7 +641,7 @@ class TestSetAssignee(TestNewPR):
         self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
             'This is important\n\ncc @userA,@userB,@userC\n\nAlso important\n\ncc @userD',
-            self.owner, self.repo, self.issue, self.token
+            self.owner, self.repo, self.issue
         )
 
     def test_no_assignee(self):
@@ -723,7 +726,7 @@ class TestPostWarnings(TestNewPR):
         super(TestPostWarnings, self).setUp((
             ('unexpected_branch', 'highfive.newpr.HighfiveHandler.unexpected_branch'),
             ('modifies_submodule', 'highfive.newpr.HighfiveHandler.modifies_submodule'),
-            ('post_comment', 'highfive.newpr.post_comment'),
+            ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
         ))
 
         self.handler = HighfiveHandlerMock(
@@ -760,7 +763,7 @@ class TestPostWarnings(TestNewPR):
 
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!"""
         self.mocks['post_comment'].assert_called_with(
-            expected_warning, self.owner, self.repo, self.issue, self.token
+            expected_warning, self.owner, self.repo, self.issue
         )
 
     def test_modifies_submodule(self):
@@ -776,7 +779,7 @@ class TestPostWarnings(TestNewPR):
 
 * These commits modify **submodules**."""
         self.mocks['post_comment'].assert_called_with(
-            expected_warning, self.owner, self.repo, self.issue, self.token
+            expected_warning, self.owner, self.repo, self.issue
         )
 
     def test_unexpected_branch_modifies_submodule(self):
@@ -795,7 +798,7 @@ class TestPostWarnings(TestNewPR):
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
 * These commits modify **submodules**."""
         self.mocks['post_comment'].assert_called_with(
-            expected_warning, self.owner, self.repo, self.issue, self.token
+            expected_warning, self.owner, self.repo, self.issue
         )
 
 class TestNewPrFunction(TestNewPR):
@@ -816,7 +819,7 @@ class TestNewPrFunction(TestNewPR):
             ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
             ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
-            ('post_comment', 'highfive.newpr.post_comment'),
+            ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
             ('welcome_msg', 'highfive.newpr.welcome_msg'),
             ('review_msg', 'highfive.newpr.review_msg'),
             ('post_warnings', 'highfive.newpr.HighfiveHandler.post_warnings'),
@@ -867,7 +870,7 @@ class TestNewPrFunction(TestNewPR):
         )
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
-            'Welcome!', 'repo-owner', 'repo-name', '7', self.token
+            'Welcome!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_called_once_with(
             'repo-owner', 'repo-name', '7'
@@ -892,7 +895,7 @@ class TestNewPrFunction(TestNewPR):
             'reviewUser', 'prAuthor'
         )
         self.mocks['post_comment'].assert_called_once_with(
-            'Review message!', 'repo-owner', 'repo-name', '7', self.token
+            'Review message!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_called_once_with(
             'repo-owner', 'repo-name', '7'
@@ -929,7 +932,7 @@ class TestNewPrFunction(TestNewPR):
         )
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
-            'Welcome!', 'repo-owner', 'repo-name', '7', self.token
+            'Welcome!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_not_called()
 
@@ -950,7 +953,7 @@ class TestNewPrFunction(TestNewPR):
         )
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
-            'Welcome!', 'repo-owner', 'repo-name', '7', self.token
+            'Welcome!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_not_called()
 

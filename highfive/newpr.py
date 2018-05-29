@@ -89,15 +89,6 @@ def api_req(method, url, data=None, token=None, media_type=None):
     body = f.read()
     return { "header": header, "body": body }
 
-def post_comment(body, owner, repo, issue, token):
-    try:
-        api_req("POST", post_comment_url % (owner, repo, issue), {"body": body}, token)['body']
-    except urllib2.HTTPError, e:
-        if e.code == 201:
-            pass
-        else:
-            raise e
-
 class HighfiveHandler(object):
     def __init__(self, payload):
         self.payload = payload
@@ -156,7 +147,7 @@ class HighfiveHandler(object):
                     message += '\n\n'
                 message += "%s\n\ncc %s" % (mention['message'],
                                             ','.join([x for x in mention['reviewers'] if x != user]))
-            post_comment(message, owner, repo, issue, self.integration_token)
+            self.post_comment(message, owner, repo, issue)
 
     def get_irc_nick(self, gh_name):
         """ returns None if the request status code is not 200,
@@ -199,7 +190,19 @@ class HighfiveHandler(object):
             warnings.append(submodule_warning_msg)
 
         if warnings:
-            post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue, self.integration_token)
+            self.post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue)
+
+    def post_comment(self, body, owner, repo, issue):
+        try:
+            api_req(
+                "POST", post_comment_url % (owner, repo, issue),
+                {"body": body}, self.integration_token
+            )['body']
+        except urllib2.HTTPError, e:
+            if e.code == 201:
+                pass
+            else:
+                raise e
 
     def unexpected_branch(self):
         """ returns (expected_branch, actual_branch) if they differ, else False
@@ -374,14 +377,12 @@ class HighfiveHandler(object):
         )
 
         if self.is_new_contributor(author, owner, repo):
-            post_comment(
-                welcome_msg(reviewer, self.repo_config), owner, repo, issue,
-                self.integration_token
+            self.post_comment(
+                welcome_msg(reviewer, self.repo_config), owner, repo, issue
             )
         elif post_msg:
-            post_comment(
-                review_msg(reviewer, author), owner, repo, issue,
-                self.integration_token
+            self.post_comment(
+                review_msg(reviewer, author), owner, repo, issue
             )
 
         self.post_warnings(diff, owner, repo, issue)
