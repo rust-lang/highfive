@@ -536,7 +536,7 @@ class TestSetAssignee(TestNewPR):
         cls.repo = 'repo-name'
         cls.issue = 7
         cls.user = 'integrationUser'
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
 
     def setUp(self):
         super(TestSetAssignee, self).setUp((
@@ -548,10 +548,12 @@ class TestSetAssignee(TestNewPR):
 
         self.mocks['client'] = self.mocks['IrcClient'].return_value
 
+        self.handler = HighfiveHandlerMock(Payload({})).handler
+
     def set_assignee(self, assignee='', to_mention=None):
         assignee = self.assignee if assignee == '' else assignee
-        return newpr.set_assignee(
-            assignee, self.owner, self.repo, self.issue, self.user, self.token,
+        return self.handler.set_assignee(
+            assignee, self.owner, self.repo, self.issue, self.user,
             self.author, to_mention or []
         )
 
@@ -809,7 +811,7 @@ class TestNewPrFunction(TestNewPR):
             ('api_req', 'highfive.newpr.api_req'),
             ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
             ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
-            ('set_assignee', 'highfive.newpr.set_assignee'),
+            ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
             ('post_comment', 'highfive.newpr.post_comment'),
             ('welcome_msg', 'highfive.newpr.welcome_msg'),
@@ -833,8 +835,8 @@ class TestNewPrFunction(TestNewPR):
         )
         self.mocks['find_reviewer'].assert_called_once_with('The PR comment.')
         self.mocks['set_assignee'].assert_called_once_with(
-            reviewer, 'repo-owner', 'repo-name', '7', self.user, self.token,
-            'prAuthor', to_mention
+            reviewer, 'repo-owner', 'repo-name', '7', self.user, 'prAuthor',
+            to_mention
         )
         self.mocks['is_new_contributor'].assert_called_once_with(
             'prAuthor', 'repo-owner', 'repo-name'
@@ -954,7 +956,7 @@ class TestNewComment(TestNewPR):
         super(TestNewComment, self).setUp((
             ('is_collaborator', 'highfive.newpr.HighfiveHandler.is_collaborator'),
             ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
-            ('set_assignee', 'highfive.newpr.set_assignee'),
+            ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
         ))
 
     @staticmethod
@@ -1080,7 +1082,7 @@ class TestNewComment(TestNewPR):
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_called_with(
             'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
-            'integrationToken', 'userA', None
+            'userA', None
         )
 
 class TestChooseReviewer(TestNewPR):

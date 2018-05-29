@@ -98,31 +98,6 @@ def post_comment(body, owner, repo, issue, token):
         else:
             raise e
 
-def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
-    try:
-        api_req("PATCH", issue_url % (owner, repo, issue), {"assignee": assignee}, token)['body']
-    except urllib2.HTTPError, e:
-        if e.code == 201:
-            pass
-        else:
-            raise e
-
-    if assignee:
-        irc_name_of_reviewer = get_irc_nick(assignee)
-        if irc_name_of_reviewer:
-            client = irc.IrcClient(target="#rust-bots")
-            client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
-                .format(irc_name_of_reviewer, owner, repo, issue, author))
-
-    if to_mention and len(to_mention) > 0:
-        message = ''
-        for mention in to_mention:
-            if len(message) > 0:
-                message += '\n\n'
-            message += "%s\n\ncc %s" % (mention['message'],
-                                        ','.join([x for x in mention['reviewers'] if x != user]))
-        post_comment(message, owner, repo, issue, token)
-
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -170,6 +145,34 @@ class HighfiveHandler(object):
 
     def modifies_submodule(self, diff):
         return submodule_re.match(diff)
+
+    def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
+        try:
+            api_req(
+                "PATCH", issue_url % (owner, repo, issue),
+                {"assignee": assignee}, self.integration_token
+            )['body']
+        except urllib2.HTTPError, e:
+            if e.code == 201:
+                pass
+            else:
+                raise e
+
+        if assignee:
+            irc_name_of_reviewer = get_irc_nick(assignee)
+            if irc_name_of_reviewer:
+                client = irc.IrcClient(target="#rust-bots")
+                client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
+                    .format(irc_name_of_reviewer, owner, repo, issue, author))
+
+        if to_mention and len(to_mention) > 0:
+            message = ''
+            for mention in to_mention:
+                if len(message) > 0:
+                    message += '\n\n'
+                message += "%s\n\ncc %s" % (mention['message'],
+                                            ','.join([x for x in mention['reviewers'] if x != user]))
+            post_comment(message, owner, repo, issue, self.integration_token)
 
     def is_collaborator(self, commenter, owner, repo):
         """Returns True if `commenter` is a collaborator in the repo."""
@@ -365,9 +368,9 @@ class HighfiveHandler(object):
             post_msg = True
             reviewer, to_mention = self.choose_reviewer(repo, owner, diff, author)
 
-        set_assignee(
+        self.set_assignee(
             reviewer, owner, repo, issue, self.integration_user,
-            self.integration_token, author, to_mention
+            author, to_mention
         )
 
         if self.is_new_contributor(author, owner, repo):
@@ -415,9 +418,9 @@ class HighfiveHandler(object):
         reviewer = self.find_reviewer(msg)
         if reviewer:
             issue = str(self.payload['issue', 'number'])
-            set_assignee(
+            self.set_assignee(
                 reviewer, owner, repo, issue, self.integration_user,
-                self.integration_token, author, None
+                author, None
             )
 
 
