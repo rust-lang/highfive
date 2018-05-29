@@ -123,17 +123,6 @@ def set_assignee(assignee, owner, repo, issue, user, token, author, to_mention):
                                         ','.join([x for x in mention['reviewers'] if x != user]))
         post_comment(message, owner, repo, issue, token)
 
-def is_collaborator(commenter, owner, repo, token):
-    """Returns True if `commenter` is a collaborator in the repo."""
-    try:
-        api_req("GET", user_collabo_url % (owner, repo, commenter), None, token)
-        return True
-    except urllib2.HTTPError, e:
-        if e.code == 404:
-            return False
-        else:
-            raise e
-
 def get_irc_nick(gh_name):
     """ returns None if the request status code is not 200,
      if the user does not exist on the rustacean database,
@@ -181,6 +170,20 @@ class HighfiveHandler(object):
 
     def modifies_submodule(self, diff):
         return submodule_re.match(diff)
+
+    def is_collaborator(self, commenter, owner, repo):
+        """Returns True if `commenter` is a collaborator in the repo."""
+        try:
+            api_req(
+                "GET", user_collabo_url % (owner, repo, commenter), None,
+                self.integration_token
+            )
+            return True
+        except urllib2.HTTPError, e:
+            if e.code == 404:
+                return False
+            else:
+                raise e
 
     def post_warnings(self, diff, owner, repo, issue):
         warnings = []
@@ -404,9 +407,7 @@ class HighfiveHandler(object):
                     and commenter == self.payload['issue', 'assignee', 'login']
         )):
             # Check if commenter is a collaborator.
-            if not is_collaborator(
-                commenter, owner, repo, self.integration_token
-            ):
+            if not self.is_collaborator(commenter, owner, repo):
                 return
 
         # Check for r? and set the assignee.

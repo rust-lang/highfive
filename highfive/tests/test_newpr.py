@@ -203,42 +203,41 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.api_req')
     def test_is_collaborator_true(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertTrue(
-            newpr.is_collaborator(
-                'commentUser', 'repo-owner', 'repo-name', 'credential'
-            )
+            handler.is_collaborator('commentUser', 'repo-owner', 'repo-name')
         )
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'credential'
+            None, 'integrationToken'
         )
 
     @mock.patch('highfive.newpr.api_req')
     def test_is_collaborator_false(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.side_effect = HTTPError(None, 404, None, None, None)
         self.assertFalse(
-            newpr.is_collaborator(
-                'commentUser', 'repo-owner', 'repo-name', 'credential'
-            )
+            handler.is_collaborator('commentUser', 'repo-owner', 'repo-name')
         )
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'credential'
+            None, 'integrationToken'
         )
 
     @mock.patch('highfive.newpr.api_req')
     def test_is_collaborator_error(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.side_effect = HTTPError(None, 500, None, None, None)
         self.assertRaises(
-            HTTPError, newpr.is_collaborator, 'commentUser', 'repo-owner',
-            'repo-name', 'credential'
+            HTTPError, handler.is_collaborator, 'commentUser', 'repo-owner',
+            'repo-name'
         )
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'credential'
+            None, 'integrationToken'
         )
 
     @mock.patch('highfive.newpr.api_req')
@@ -953,7 +952,7 @@ class TestNewPrFunction(TestNewPR):
 class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp((
-            ('is_collaborator', 'highfive.newpr.is_collaborator'),
+            ('is_collaborator', 'highfive.newpr.HighfiveHandler.is_collaborator'),
             ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
             ('set_assignee', 'highfive.newpr.set_assignee'),
         ))
@@ -1026,7 +1025,7 @@ class TestNewComment(TestNewPR):
         self.mocks['is_collaborator'].return_value = False
         self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name', 'integrationToken'
+            'userB', 'repo-owner', 'repo-name'
         )
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
@@ -1059,7 +1058,7 @@ class TestNewComment(TestNewPR):
         self.mocks['is_collaborator'].return_value = True
         handler.new_comment()
         self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name', 'integrationToken'
+            'userB', 'repo-owner', 'repo-name'
         )
         self.mocks['find_reviewer'].assert_called()
 
