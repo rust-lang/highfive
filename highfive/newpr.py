@@ -39,7 +39,6 @@ warning_summary = ':warning: **Warning** :warning:\n\n%s'
 submodule_warning_msg = 'These commits modify **submodules**.'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
 
-
 review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
