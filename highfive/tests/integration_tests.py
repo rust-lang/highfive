@@ -55,7 +55,7 @@ class TestNewPr(base.BaseTest):
         super(TestNewPr, self).setUp((
             ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
-            ('load_json_file', 'highfive.newpr._load_json_file'),
+            ('load_json_file', 'highfive.newpr.HighfiveHandler._load_json_file'),
         ))
 
         self.mocks['get_irc_nick'].return_value = None

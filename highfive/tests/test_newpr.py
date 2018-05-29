@@ -70,7 +70,7 @@ class TestHighfiveHandler(TestNewPR):
             self.assertEqual(m.handler.repo_config, {'a': 'config!'})
             m.mock_config.read.assert_called_once_with('./config')
 
-    @mock.patch('highfive.newpr._load_json_file')
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_load_repo_config_new_pr(self, mock_load_json_file):
         mock_load_json_file.return_value = {'a': 'config!'}
         payload = Payload({
@@ -82,7 +82,7 @@ class TestHighfiveHandler(TestNewPR):
         self.assertEqual(m.handler.load_repo_config(), {'a': 'config!'})
         mock_load_json_file.assert_called_once_with('blah.json')
 
-    @mock.patch('highfive.newpr._load_json_file')
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_load_repo_config_not_new_pr(self, mock_load_json_file):
         payload = Payload({
             'action': 'created',
@@ -153,12 +153,13 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_dirname.return_value = '/the/path'
         contents = ['some json']
         with mock.patch(
             '__builtin__.open', mock.mock_open(read_data=json.dumps(contents))
         ) as mock_file:
-            self.assertEqual(newpr._load_json_file('a-config.json'), contents)
+            self.assertEqual(handler._load_json_file('a-config.json'), contents)
             mock_file.assert_called_with('/the/path/configs/a-config.json')
 
     @mock.patch('highfive.newpr.api_req')
@@ -1107,7 +1108,7 @@ class TestChooseReviewer(TestNewPR):
             repo, owner, diff, exclude, global_
         )
 
-    @mock.patch('highfive.newpr._load_json_file')
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def choose_reviewer_inner(
         self, repo, owner, diff, exclude, global_, mock_load_json
     ):
@@ -1213,7 +1214,7 @@ class TestChooseReviewer(TestNewPR):
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
-    @mock.patch('highfive.newpr._load_json_file')
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_global_group_overlap(self, mock_load_json):
         """Test for an AssertionError when the global config contains a group
         already defined in the config.

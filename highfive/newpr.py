@@ -65,12 +65,6 @@ submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
 
-def _load_json_file(name):
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-
-    with open(os.path.join(configs_dir, name)) as config:
-        return json.load(config)
-
 def api_req(method, url, data=None, token=None, media_type=None):
     data = None if not data else json.dumps(data)
     headers = {} if not data else {'Content-Type': 'application/json'}
@@ -105,7 +99,7 @@ class HighfiveHandler(object):
         if self.payload["action"] == "opened":
             # If this is a new PR, load the repository configuration.
             repo = self.payload['pull_request', 'base', 'repo', 'name']
-            return _load_json_file(repo + '.json')
+            return self._load_json_file(repo + '.json')
 
         return None
 
@@ -117,6 +111,12 @@ class HighfiveHandler(object):
         else:
             print self.payload["action"]
             sys.exit(0)
+
+    def _load_json_file(self, name):
+        configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+
+        with open(os.path.join(configs_dir, name)) as config:
+            return json.load(config)
 
     def modifies_submodule(self, diff):
         return submodule_re.match(diff)
@@ -259,7 +259,7 @@ class HighfiveHandler(object):
 
         # fill in the default groups, ensuring that overwriting is an
         # error.
-        global_ = _load_json_file('_global.json')
+        global_ = self._load_json_file('_global.json')
         for name, people in global_['groups'].iteritems():
             assert name not in groups, "group %s overlaps with _global.json" % name
             groups[name] = people
