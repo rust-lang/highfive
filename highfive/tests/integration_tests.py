@@ -34,7 +34,7 @@ class TestIsNewContributor(base.BaseTest):
 class ApiReqMocker(object):
     def __init__(self, calls_and_returns):
         self.calls = [(c[0],) for c in calls_and_returns]
-        self.patcher = mock.patch('highfive.newpr.api_req')
+        self.patcher = mock.patch('highfive.newpr.HighfiveHandler.api_req')
         self.mock = self.patcher.start()
         self.mock.side_effect = [c[1] for c in calls_and_returns]
 
@@ -78,7 +78,7 @@ class TestNewPr(base.BaseTest):
         api_req_mock = ApiReqMocker([
             (
                 (
-                    'GET', 'https://the.url/', None, 'integration-token',
+                    'GET', 'https://the.url/', None,
                     'application/vnd.github.v3.diff'
                 ),
                 {'body': self._load_fake('normal.diff')},
@@ -86,22 +86,21 @@ class TestNewPr(base.BaseTest):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}, 'integration-token'
+                    {'assignee': 'nrc'}
                 ),
                 {'body': {}},
             ),
             (
                 (
                     'GET', newpr.commit_search_url % ('rust-lang', 'rust', 'pnkfelix'),
-                    None, 'integration-token', 'application/vnd.github.cloak-preview'
+                    None, 'application/vnd.github.cloak-preview'
                 ),
                 {'body': '{"total_count": 0}'},
             ),
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"},
-                    'integration-token'
+                    {'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"}
                 ),
                 {'body': {}},
             ),
@@ -119,7 +118,7 @@ class TestNewPr(base.BaseTest):
         api_req_mock = ApiReqMocker([
             (
                 (
-                    'GET', 'https://the.url/', None, 'integration-token',
+                    'GET', 'https://the.url/', None,
                     'application/vnd.github.v3.diff'
                 ),
                 {'body': self._load_fake('normal.diff')},
@@ -127,23 +126,21 @@ class TestNewPr(base.BaseTest):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}, 'integration-token'
+                    {'assignee': 'nrc'}
                 ),
                 {'body': {}},
             ),
             (
                 (
                     'GET', newpr.commit_search_url % ('rust-lang', 'rust', 'pnkfelix'),
-                    None, 'integration-token',
-                    'application/vnd.github.cloak-preview'
+                    None, 'application/vnd.github.cloak-preview'
                 ),
                 {'body': '{"total_count": 1}'},
             ),
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'},
-                    'integration-token'
+                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'}
                 ),
                 {'body': {}},
             ),
@@ -165,7 +162,7 @@ class TestNewPr(base.BaseTest):
         api_req_mock = ApiReqMocker([
             (
                 (
-                    'GET', 'https://the.url/', None, 'integration-token',
+                    'GET', 'https://the.url/', None,
                     'application/vnd.github.v3.diff'
                 ),
                 {'body': self._load_fake('normal.diff')},
@@ -173,30 +170,28 @@ class TestNewPr(base.BaseTest):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}, 'integration-token'
+                    {'assignee': 'nrc'}
                 ),
                 {'body': {}},
             ),
             (
                 (
                     'GET', newpr.commit_search_url % ('rust-lang', 'rust', 'pnkfelix'),
-                    None, 'integration-token',
-                    'application/vnd.github.cloak-preview'
+                    None, 'application/vnd.github.cloak-preview'
                 ),
                 {'body': '{"total_count": 1}'},
             ),
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'},
-                    'integration-token'
+                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'}
                 ),
                 {'body': {}},
             ),
             (
                 (
                     'POST', newpr.issue_labels_url % ('rust-lang', 'rust', '7'),
-                    ['a', 'b'], 'integration-token'
+                    ['a', 'b']
                 ),
                 {'body': {}},
             ),
@@ -227,7 +222,7 @@ class TestNewComment(base.BaseTest):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
-                    {'assignee': 'davidalber'}, 'integration-token'
+                    {'assignee': 'davidalber'}
                 ),
                 {'body': {}},
             ),
@@ -247,14 +242,14 @@ class TestNewComment(base.BaseTest):
                     newpr.user_collabo_url % (
                         'rust-lang', 'rust', 'davidalber'
                     ),
-                    None, 'integration-token'
+                    None
                 ),
                 {'body': {}},
             ),
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
-                    {'assignee': 'davidalber'}, 'integration-token'
+                    {'assignee': 'davidalber'}
                 ),
                 {'body': {}},
             ),

@@ -171,7 +171,7 @@ Please see [the contribution instructions](%s) for more information.
             self.assertEqual(handler._load_json_file('a-config.json'), contents)
             mock_file.assert_called_with('/the/path/configs/a-config.json')
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_success(self, mock_api_req):
         handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {'body': 'response body!'}
@@ -182,10 +182,10 @@ Please see [the contribution instructions](%s) for more information.
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'integrationToken'
+            {'body': 'Request body!'}
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_error_201(self, mock_api_req):
         handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {}
@@ -197,10 +197,10 @@ Please see [the contribution instructions](%s) for more information.
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'integrationToken'
+            {'body': 'Request body!'}
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_error(self, mock_api_req):
         handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {}
@@ -211,10 +211,10 @@ Please see [the contribution instructions](%s) for more information.
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'integrationToken'
+            {'body': 'Request body!'}
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_is_collaborator_true(self, mock_api_req):
         handler = HighfiveHandlerMock(Payload({})).handler
         self.assertTrue(
@@ -223,10 +223,10 @@ Please see [the contribution instructions](%s) for more information.
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'integrationToken'
+            None
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_is_collaborator_false(self, mock_api_req):
         handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.side_effect = HTTPError(None, 404, None, None, None)
@@ -236,10 +236,10 @@ Please see [the contribution instructions](%s) for more information.
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'integrationToken'
+            None
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_is_collaborator_error(self, mock_api_req):
         handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.side_effect = HTTPError(None, 500, None, None, None)
@@ -250,10 +250,10 @@ Please see [the contribution instructions](%s) for more information.
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'integrationToken'
+            None
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_add_labels_success(self, mock_api_req):
         mock_api_req.return_value = {'body': 'response body!'}
         labels = ['label1', 'label2']
@@ -263,10 +263,10 @@ Please see [the contribution instructions](%s) for more information.
         self.assertIsNone(handler.add_labels('repo-owner', 'repo-name', 7))
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
-            labels, 'integrationToken'
+            labels
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_add_labels_error(self, mock_api_req):
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
@@ -279,7 +279,7 @@ Please see [the contribution instructions](%s) for more information.
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
-            labels, 'integrationToken'
+            labels
         )
 
     def test_submodule(self):
@@ -426,6 +426,8 @@ class TestApiReq(TestNewPR):
         self.gzipped_body = self.mocks['GzipFile'].return_value.read
         self.gzipped_body.return_value = 'body2'
 
+        self.handler = HighfiveHandlerMock(Payload({})).handler
+
     def verify_mock_calls(self, header_calls, gzipped):
         self.mocks['Request'].assert_called_with(
             self.url, json.dumps(self.data) if self.data else self.data,
@@ -452,9 +454,9 @@ class TestApiReq(TestNewPR):
             self.gzipped_body.assert_not_called()
 
     def call_api_req(self):
-        return newpr.api_req(
-            self.method, self.url, self.data, token=self.token,
-            media_type=self.media_type
+        self.handler.integration_token = self.token
+        return self.handler.api_req(
+            self.method, self.url, self.data, media_type=self.media_type
         )
 
     def test1(self):
@@ -556,7 +558,7 @@ class TestSetAssignee(TestNewPR):
 
     def setUp(self):
         super(TestSetAssignee, self).setUp((
-            ('api_req', 'highfive.newpr.api_req'),
+            ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
             ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
             ('IrcClient', 'highfive.irc.IrcClient'),
@@ -579,8 +581,7 @@ class TestSetAssignee(TestNewPR):
             'PATCH',
             'https://api.github.com/repos/%s/%s/issues/%s' % (
                 self.owner, self.repo, self.issue
-            ),
-            {"assignee": assignee}, self.token
+            ), {"assignee": assignee}
         )
 
     def test_api_req_good(self):
@@ -673,7 +674,7 @@ class TestIsNewContributor(TestNewPR):
 
     def setUp(self):
         super(TestIsNewContributor, self).setUp((
-            ('api_req', 'highfive.newpr.api_req'),
+            ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
         ))
         self.payload = Payload({'repository': {'fork': False}})
 
@@ -692,8 +693,7 @@ class TestIsNewContributor(TestNewPR):
             'GET',
             'https://api.github.com/search/commits?q=repo:%s/%s+author:%s' % (
                 self.owner, self.repo, self.username
-            ), None, self.token,
-            'application/vnd.github.cloak-preview'
+            ), None, 'application/vnd.github.cloak-preview'
         )
 
     def test_is_new_contributor_fork(self):
@@ -824,7 +824,7 @@ class TestNewPrFunction(TestNewPR):
 
     def setUp(self):
         super(TestNewPrFunction, self).setUp((
-            ('api_req', 'highfive.newpr.api_req'),
+            ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
             ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
             ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
             ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
@@ -846,8 +846,7 @@ class TestNewPrFunction(TestNewPR):
 
     def assert_fixed_calls(self, reviewer, to_mention):
         self.mocks['api_req'].assert_called_once_with(
-            'GET', 'https://the.url/', None, self.token,
-            'application/vnd.github.v3.diff'
+            'GET', 'https://the.url/', None, 'application/vnd.github.v3.diff'
         )
         self.mocks['find_reviewer'].assert_called_once_with('The PR comment.')
         self.mocks['set_assignee'].assert_called_once_with(

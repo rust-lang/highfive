@@ -48,25 +48,6 @@ submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
-
-def api_req(method, url, data=None, token=None, media_type=None):
-    data = None if not data else json.dumps(data)
-    headers = {} if not data else {'Content-Type': 'application/json'}
-    req = urllib2.Request(url, data, headers)
-    req.get_method = lambda: method
-    if token:
-        req.add_header("Authorization", "token %s" % token)
-
-    if media_type:
-        req.add_header("Accept", media_type)
-    f = urllib2.urlopen(req)
-    header = f.info()
-    if header.get('Content-Encoding') == 'gzip':
-        buf = StringIO(f.read())
-        f = gzip.GzipFile(fileobj=buf)
-    body = f.read()
-    return { "header": header, "body": body }
-
 class HighfiveHandler(object):
     def __init__(self, payload):
         self.payload = payload
@@ -105,11 +86,29 @@ class HighfiveHandler(object):
     def modifies_submodule(self, diff):
         return submodule_re.match(diff)
 
+    def api_req(self, method, url, data=None, media_type=None):
+        data = None if not data else json.dumps(data)
+        headers = {} if not data else {'Content-Type': 'application/json'}
+        req = urllib2.Request(url, data, headers)
+        req.get_method = lambda: method
+        if self.integration_token:
+            req.add_header("Authorization", "token %s" % self.integration_token)
+
+        if media_type:
+            req.add_header("Accept", media_type)
+        f = urllib2.urlopen(req)
+        header = f.info()
+        if header.get('Content-Encoding') == 'gzip':
+            buf = StringIO(f.read())
+            f = gzip.GzipFile(fileobj=buf)
+        body = f.read()
+        return { "header": header, "body": body }
+
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
         try:
-            api_req(
+            self.api_req(
                 "PATCH", issue_url % (owner, repo, issue),
-                {"assignee": assignee}, self.integration_token
+                {"assignee": assignee}
             )['body']
         except urllib2.HTTPError, e:
             if e.code == 201:
@@ -152,9 +151,8 @@ class HighfiveHandler(object):
     def is_collaborator(self, commenter, owner, repo):
         """Returns True if `commenter` is a collaborator in the repo."""
         try:
-            api_req(
-                "GET", user_collabo_url % (owner, repo, commenter), None,
-                self.integration_token
+            self.api_req(
+                "GET", user_collabo_url % (owner, repo, commenter), None
             )
             return True
         except urllib2.HTTPError, e:
@@ -178,9 +176,8 @@ class HighfiveHandler(object):
 
     def post_comment(self, body, owner, repo, issue):
         try:
-            api_req(
-                "POST", post_comment_url % (owner, repo, issue),
-                {"body": body}, self.integration_token
+            self.api_req(
+                "POST", post_comment_url % (owner, repo, issue), {"body": body}
             )['body']
         except urllib2.HTTPError, e:
             if e.code == 201:
@@ -224,9 +221,9 @@ class HighfiveHandler(object):
             return False
 
         try:
-            result = api_req(
+            result = self.api_req(
                 'GET', commit_search_url % (owner, repo, username), None,
-                self.integration_token, 'application/vnd.github.cloak-preview'
+                'application/vnd.github.cloak-preview'
             )
             return json.loads(result['body'])['total_count'] == 0
         except urllib2.HTTPError, e:
@@ -345,9 +342,9 @@ class HighfiveHandler(object):
         return (None, None)
 
     def add_labels(self, owner, repo, issue):
-        api_req(
+        self.api_req(
             'POST', issue_labels_url % (owner, repo, issue),
-            self.repo_config['new_pr_labels'], self.integration_token
+            self.repo_config['new_pr_labels']
         )
 
     def new_pr(self):
@@ -356,9 +353,9 @@ class HighfiveHandler(object):
 
         author = self.payload['pull_request', 'user', 'login']
         issue = str(self.payload["number"])
-        diff = api_req(
+        diff = self.api_req(
             "GET", self.payload["pull_request", "url"], None,
-            self.integration_token, "application/vnd.github.v3.diff",
+            "application/vnd.github.v3.diff",
         )['body']
 
         msg = self.payload['pull_request', 'body']
