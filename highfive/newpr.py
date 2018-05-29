@@ -35,18 +35,6 @@ If any changes to this PR are deemed necessary, please add them as extra commits
 Please see [the contribution instructions](%s) for more information.
 """
 
-
-def welcome_msg(reviewer, config):
-    if reviewer is None:
-        text = welcome_without_reviewer
-    else:
-        text = welcome_with_reviewer % reviewer
-    # Default to the Rust contribution guide if "contributing" wasn't set
-    link = config.get('contributing')
-    if not link:
-        link = "https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md"
-    return raw_welcome % (text, link)
-
 warning_summary = ':warning: **Warning** :warning:\n\n%s'
 submodule_warning_msg = 'These commits modify **submodules**.'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
@@ -199,6 +187,17 @@ class HighfiveHandler(object):
                 pass
             else:
                 raise e
+
+    def welcome_msg(self, reviewer):
+        if reviewer is None:
+            text = welcome_without_reviewer
+        else:
+            text = welcome_with_reviewer % reviewer
+        # Default to the Rust contribution guide if "contributing" wasn't set
+        link = self.repo_config.get('contributing')
+        if not link:
+            link = "https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md"
+        return raw_welcome % (text, link)
 
     def review_msg(self, reviewer, submitter):
         return review_without_reviewer % submitter if reviewer is None \
@@ -378,7 +377,7 @@ class HighfiveHandler(object):
 
         if self.is_new_contributor(author, owner, repo):
             self.post_comment(
-                welcome_msg(reviewer, self.repo_config), owner, repo, issue
+                self.welcome_msg(reviewer), owner, repo, issue
             )
         elif post_msg:
             self.post_comment(

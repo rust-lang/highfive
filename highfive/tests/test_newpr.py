@@ -103,8 +103,9 @@ Please see [the contribution instructions](%s) for more information.
 """
 
         # No reviewer, no config contributing link.
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertEqual(
-            newpr.welcome_msg(None, {}),
+            handler.welcome_msg(None),
             base_msg % (
                 '@nrc (NB. this repo may be misconfigured)',
                 'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
@@ -112,8 +113,9 @@ Please see [the contribution instructions](%s) for more information.
         )
 
         # Has reviewer, no config contributing link.
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertEqual(
-            newpr.welcome_msg('userA', {}),
+            handler.welcome_msg('userA'),
             base_msg % (
                 '@userA (or someone else)',
                 'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
@@ -121,8 +123,11 @@ Please see [the contribution instructions](%s) for more information.
         )
 
         # No reviewer, has config contributing link.
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'contributing': 'https://something'}
+        ).handler
         self.assertEqual(
-            newpr.welcome_msg(None, {'contributing': 'https://something'}),
+            handler.welcome_msg(None),
             base_msg % (
                 '@nrc (NB. this repo may be misconfigured)',
                 'https://something'
@@ -130,8 +135,11 @@ Please see [the contribution instructions](%s) for more information.
         )
 
         # Has reviewer, has config contributing link.
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'contributing': 'https://something'}
+        ).handler
         self.assertEqual(
-            newpr.welcome_msg('userA', {'contributing': 'https://something'}),
+            handler.welcome_msg('userA'),
             base_msg % (
                 '@userA (or someone else)',
                 'https://something'
@@ -822,7 +830,7 @@ class TestNewPrFunction(TestNewPR):
             ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
             ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
-            ('welcome_msg', 'highfive.newpr.welcome_msg'),
+            ('welcome_msg', 'highfive.newpr.HighfiveHandler.welcome_msg'),
             ('review_msg', 'highfive.newpr.HighfiveHandler.review_msg'),
             ('post_warnings', 'highfive.newpr.HighfiveHandler.post_warnings'),
             ('add_labels', 'highfive.newpr.HighfiveHandler.add_labels'),
@@ -867,9 +875,7 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['choose_reviewer'].assert_called_once_with(
             'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
-        self.mocks['welcome_msg'].assert_called_once_with(
-            'reviewUser', self.config
-        )
+        self.mocks['welcome_msg'].assert_called_once_with('reviewUser')
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
             'Welcome!', 'repo-owner', 'repo-name', '7'
@@ -929,9 +935,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
-        self.mocks['welcome_msg'].assert_called_once_with(
-            'foundReviewer', self.config
-        )
+        self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
             'Welcome!', 'repo-owner', 'repo-name', '7'
@@ -950,9 +954,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
-        self.mocks['welcome_msg'].assert_called_once_with(
-            'foundReviewer', self.config
-        )
+        self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
             'Welcome!', 'repo-owner', 'repo-name', '7'
