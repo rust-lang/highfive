@@ -234,3 +234,30 @@ class TestNewComment(base.BaseTest):
         ])
         handler.new_comment()
         api_req_mock.verify_calls()
+
+    def test_author_not_commenter_is_collaborator(self):
+        payload = fakes.Payload.new_comment()
+        payload._payload['issue']['user']['login'] = 'foouser'
+
+        handler = newpr.HighfiveHandler(payload)
+        api_req_mock = ApiReqMocker([
+            (
+                (
+                    "GET",
+                    newpr.user_collabo_url % (
+                        'rust-lang', 'rust', 'davidalber'
+                    ),
+                    None, 'integration-token'
+                ),
+                {'body': {}},
+            ),
+            (
+                (
+                    'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
+                    {'assignee': 'davidalber'}, 'integration-token'
+                ),
+                {'body': {}},
+            ),
+        ])
+        handler.new_comment()
+        api_req_mock.verify_calls()
