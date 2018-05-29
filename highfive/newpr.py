@@ -55,10 +55,6 @@ surprise_branch_warning = "Pull requests are usually filed against the %s branch
 review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
-def review_msg(reviewer, submitter):
-    return review_without_reviewer % submitter if reviewer is None \
-        else review_with_reviewer % reviewer
-
 reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 
@@ -203,6 +199,10 @@ class HighfiveHandler(object):
                 pass
             else:
                 raise e
+
+    def review_msg(self, reviewer, submitter):
+        return review_without_reviewer % submitter if reviewer is None \
+            else review_with_reviewer % reviewer
 
     def unexpected_branch(self):
         """ returns (expected_branch, actual_branch) if they differ, else False
@@ -382,7 +382,7 @@ class HighfiveHandler(object):
             )
         elif post_msg:
             self.post_comment(
-                review_msg(reviewer, author), owner, repo, issue
+                self.review_msg(reviewer, author), owner, repo, issue
             )
 
         self.post_warnings(diff, owner, repo, issue)

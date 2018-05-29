@@ -140,14 +140,15 @@ Please see [the contribution instructions](%s) for more information.
 
     def test_review_msg(self):
         # No reviewer.
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertEqual(
-            newpr.review_msg(None, 'userB'),
+            handler.review_msg(None, 'userB'),
             '@userB: no appropriate reviewer found, use r? to override'
         )
 
         # Has reviewer.
         self.assertEqual(
-            newpr.review_msg('userA', 'userB'),
+            handler.review_msg('userA', 'userB'),
             'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
         )
 
@@ -822,7 +823,7 @@ class TestNewPrFunction(TestNewPR):
             ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
             ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
             ('welcome_msg', 'highfive.newpr.welcome_msg'),
-            ('review_msg', 'highfive.newpr.review_msg'),
+            ('review_msg', 'highfive.newpr.HighfiveHandler.review_msg'),
             ('post_warnings', 'highfive.newpr.HighfiveHandler.post_warnings'),
             ('add_labels', 'highfive.newpr.HighfiveHandler.add_labels'),
         ))
