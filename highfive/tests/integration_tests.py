@@ -53,7 +53,7 @@ class ApiReqMocker(object):
 class TestNewPr(base.BaseTest):
     def setUp(self):
         super(TestNewPr, self).setUp((
-            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
             ('load_json_file', 'highfive.newpr._load_json_file'),
         ))
@@ -210,7 +210,7 @@ class TestNewPr(base.BaseTest):
 class TestNewComment(base.BaseTest):
     def setUp(self):
         super(TestNewComment, self).setUp((
-            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
         ))
 

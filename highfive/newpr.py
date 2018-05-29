@@ -98,22 +98,6 @@ def post_comment(body, owner, repo, issue, token):
         else:
             raise e
 
-def get_irc_nick(gh_name):
-    """ returns None if the request status code is not 200,
-     if the user does not exist on the rustacean database,
-     or if the user has no `irc` field associated with their username
-    """
-    try:
-        data = urllib2.urlopen(rustaceans_api_url.format(username=gh_name))
-        if data.getcode() == 200:
-            rustacean_data = json.loads(data.read())
-            if rustacean_data:
-                return rustacean_data[0].get("irc")
-    except urllib2.HTTPError:
-        pass
-
-    return None
-
 class HighfiveHandler(object):
     def __init__(self, payload):
         self.payload = payload
@@ -159,7 +143,7 @@ class HighfiveHandler(object):
                 raise e
 
         if assignee:
-            irc_name_of_reviewer = get_irc_nick(assignee)
+            irc_name_of_reviewer = self.get_irc_nick(assignee)
             if irc_name_of_reviewer:
                 client = irc.IrcClient(target="#rust-bots")
                 client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
@@ -173,6 +157,22 @@ class HighfiveHandler(object):
                 message += "%s\n\ncc %s" % (mention['message'],
                                             ','.join([x for x in mention['reviewers'] if x != user]))
             post_comment(message, owner, repo, issue, self.integration_token)
+
+    def get_irc_nick(self, gh_name):
+        """ returns None if the request status code is not 200,
+         if the user does not exist on the rustacean database,
+         or if the user has no `irc` field associated with their username
+        """
+        try:
+            data = urllib2.urlopen(rustaceans_api_url.format(username=gh_name))
+            if data.getcode() == 200:
+                rustacean_data = json.loads(data.read())
+                if rustacean_data:
+                    return rustacean_data[0].get("irc")
+        except urllib2.HTTPError:
+            pass
+
+        return None
 
     def is_collaborator(self, commenter, owner, repo):
         """Returns True if `commenter` is a collaborator in the repo."""

@@ -354,8 +354,9 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_non_200(self, mock_urllib2):
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.setup_get_irc_nick_mocks(mock_urllib2, 503)
-        self.assertIsNone(newpr.get_irc_nick('foo'))
+        self.assertIsNone(handler.get_irc_nick('foo'))
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
@@ -363,8 +364,9 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_no_data(self, mock_urllib2):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_data = self.setup_get_irc_nick_mocks(mock_urllib2, 200, '[]')
-        self.assertIsNone(newpr.get_irc_nick('foo'))
+        self.assertIsNone(handler.get_irc_nick('foo'))
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
@@ -374,11 +376,12 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_has_data(self, mock_urllib2):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_data = self.setup_get_irc_nick_mocks(
             mock_urllib2, 200,
             '[{"username":"nrc","name":"Nick Cameron","irc":"nrc","email":"nrc@ncameron.org","discourse":"nrc","reddit":"nick29581","twitter":"@nick_r_cameron","blog":"https://www.ncameron.org/blog","website":"https://www.ncameron.org","notes":"<p>I work on the Rust compiler, language design, and tooling. I lead the dev tools team and am part of the core team. I&#39;m part of the research team at Mozilla.</p>\\n","avatar":"https://avatars.githubusercontent.com/nrc","irc_channels":["rust-dev-tools","rust","rust-internals","rust-lang","rustc","servo"]}]'
         )
-        self.assertEqual(newpr.get_irc_nick('nrc'), 'nrc')
+        self.assertEqual(handler.get_irc_nick('nrc'), 'nrc')
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=nrc'
@@ -541,7 +544,7 @@ class TestSetAssignee(TestNewPR):
     def setUp(self):
         super(TestSetAssignee, self).setUp((
             ('api_req', 'highfive.newpr.api_req'),
-            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
+            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('post_comment', 'highfive.newpr.post_comment'),
             ('IrcClient', 'highfive.irc.IrcClient'),
         ))
