@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import urllib, urllib2
+import urllib2
 import cgi
 import cgitb
 from copy import deepcopy
@@ -11,8 +11,6 @@ import ConfigParser
 from StringIO import StringIO
 import gzip
 import re
-import time
-import socket
 import os
 
 from highfive import irc, payload
