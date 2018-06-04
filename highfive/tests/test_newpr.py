@@ -12,6 +12,87 @@ from urllib2 import HTTPError
 class TestNewPR(base.BaseTest):
     pass
 
+class HighfiveHandlerMock(object):
+    def __init__(
+        self, payload, integration_user='integrationUser',
+        integration_token='integrationToken', repo_config={}
+    ):
+        assert(type(payload) == Payload)
+        self.integration_user = integration_user
+        self.integration_token = integration_token
+
+        def config_handler(section, key):
+            if section == 'github':
+                if key == 'user':
+                    return integration_user
+                if key == 'token':
+                    return integration_token
+
+        self.patchers_stopped = False
+        self.config_patcher = mock.patch('highfive.newpr.ConfigParser')
+        self.mock_config_parser = self.config_patcher.start()
+        self.mock_config = mock.Mock()
+        self.mock_config.get.side_effect = config_handler
+        self.mock_config_parser.RawConfigParser.return_value = self.mock_config
+
+        self.load_repo_config_patcher = mock.patch(
+            'highfive.newpr.HighfiveHandler.load_repo_config'
+        )
+        self.mock_load_repo_config = self.load_repo_config_patcher.start()
+        self.mock_load_repo_config.return_value = repo_config
+
+        self.handler = newpr.HighfiveHandler(payload)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _, __, ___):
+        self.stop_patchers()
+
+    def __del__(self):
+        self.stop_patchers()
+
+    def stop_patchers(self):
+        if not self.patchers_stopped:
+            self.patchers_stopped = True
+            self.config_patcher.stop()
+            self.load_repo_config_patcher.stop()
+
+class TestHighfiveHandler(TestNewPR):
+    @mock.patch('highfive.newpr.HighfiveHandler.load_repo_config')
+    def test_init(self, mock_load_repo_config):
+        payload = Payload({'the': 'payload'})
+        with HighfiveHandlerMock(payload, repo_config={'a': 'config!'}) as m:
+            self.assertEqual(m.handler.payload, payload)
+            self.assertEqual(m.handler.config, m.mock_config)
+            self.assertEqual(m.handler.integration_user, 'integrationUser')
+            self.assertEqual(m.handler.integration_token, 'integrationToken')
+            self.assertEqual(m.handler.repo_config, {'a': 'config!'})
+            m.mock_config.read.assert_called_once_with('./config')
+
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
+    def test_load_repo_config_new_pr(self, mock_load_json_file):
+        mock_load_json_file.return_value = {'a': 'config!'}
+        payload = Payload({
+            'action': 'opened',
+            'pull_request': {'base': {'repo': {'name': 'blah'}}}
+        })
+        m = HighfiveHandlerMock(payload)
+        m.stop_patchers()
+        self.assertEqual(m.handler.load_repo_config(), {'a': 'config!'})
+        mock_load_json_file.assert_called_once_with('blah.json')
+
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
+    def test_load_repo_config_not_new_pr(self, mock_load_json_file):
+        payload = Payload({
+            'action': 'created',
+            'pull_request': {'base': {'repo': {'name': 'blah'}}}
+        })
+        m = HighfiveHandlerMock(payload)
+        m.stop_patchers()
+        self.assertIsNone(m.handler.load_repo_config())
+        mock_load_json_file.assert_not_called()
+
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):
         base_msg = """Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from %s soon.
@@ -22,8 +103,9 @@ Please see [the contribution instructions](%s) for more information.
 """
 
         # No reviewer, no config contributing link.
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertEqual(
-            newpr.welcome_msg(None, {}),
+            handler.welcome_msg(None),
             base_msg % (
                 '@nrc (NB. this repo may be misconfigured)',
                 'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
@@ -31,8 +113,9 @@ Please see [the contribution instructions](%s) for more information.
         )
 
         # Has reviewer, no config contributing link.
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertEqual(
-            newpr.welcome_msg('userA', {}),
+            handler.welcome_msg('userA'),
             base_msg % (
                 '@userA (or someone else)',
                 'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
@@ -40,8 +123,11 @@ Please see [the contribution instructions](%s) for more information.
         )
 
         # No reviewer, has config contributing link.
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'contributing': 'https://something'}
+        ).handler
         self.assertEqual(
-            newpr.welcome_msg(None, {'contributing': 'https://something'}),
+            handler.welcome_msg(None),
             base_msg % (
                 '@nrc (NB. this repo may be misconfigured)',
                 'https://something'
@@ -49,8 +135,11 @@ Please see [the contribution instructions](%s) for more information.
         )
 
         # Has reviewer, has config contributing link.
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'contributing': 'https://something'}
+        ).handler
         self.assertEqual(
-            newpr.welcome_msg('userA', {'contributing': 'https://something'}),
+            handler.welcome_msg('userA'),
             base_msg % (
                 '@userA (or someone else)',
                 'https://something'
@@ -59,175 +148,177 @@ Please see [the contribution instructions](%s) for more information.
 
     def test_review_msg(self):
         # No reviewer.
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertEqual(
-            newpr.review_msg(None, 'userB'),
+            handler.review_msg(None, 'userB'),
             '@userB: no appropriate reviewer found, use r? to override'
         )
 
         # Has reviewer.
         self.assertEqual(
-            newpr.review_msg('userA', 'userB'),
+            handler.review_msg('userA', 'userB'),
             'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
         )
 
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_dirname.return_value = '/the/path'
         contents = ['some json']
         with mock.patch(
             '__builtin__.open', mock.mock_open(read_data=json.dumps(contents))
         ) as mock_file:
-            self.assertEqual(newpr._load_json_file('a-config.json'), contents)
+            self.assertEqual(handler._load_json_file('a-config.json'), contents)
             mock_file.assert_called_with('/the/path/configs/a-config.json')
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_success(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {'body': 'response body!'}
         self.assertIsNone(
-            newpr.post_comment(
-                'Request body!', 'repo-owner', 'repo-name', 7, 'credential'
+            handler.post_comment(
+                'Request body!', 'repo-owner', 'repo-name', 7
             )
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'credential'
+            {'body': 'Request body!'}
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_error_201(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 201, None, None, None)
         self.assertIsNone(
-            newpr.post_comment(
-                'Request body!', 'repo-owner', 'repo-name', 7, 'credential'
+            handler.post_comment(
+                'Request body!', 'repo-owner', 'repo-name', 7
             )
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'credential'
+            {'body': 'Request body!'}
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_error(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
         self.assertRaises(
-            HTTPError, newpr.post_comment, 'Request body!', 'repo-owner',
-            'repo-name', 7, 'credential'
+            HTTPError, handler.post_comment, 'Request body!', 'repo-owner',
+            'repo-name', 7
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/comments',
-            {'body': 'Request body!'}, 'credential'
+            {'body': 'Request body!'}
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_is_collaborator_true(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.assertTrue(
-            newpr.is_collaborator(
-                'commentUser', 'repo-owner', 'repo-name', 'credential'
-            )
+            handler.is_collaborator('commentUser', 'repo-owner', 'repo-name')
         )
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'credential'
+            None
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_is_collaborator_false(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.side_effect = HTTPError(None, 404, None, None, None)
         self.assertFalse(
-            newpr.is_collaborator(
-                'commentUser', 'repo-owner', 'repo-name', 'credential'
-            )
+            handler.is_collaborator('commentUser', 'repo-owner', 'repo-name')
         )
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'credential'
+            None
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_is_collaborator_error(self, mock_api_req):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_api_req.side_effect = HTTPError(None, 500, None, None, None)
         self.assertRaises(
-            HTTPError, newpr.is_collaborator, 'commentUser', 'repo-owner',
-            'repo-name', 'credential'
+            HTTPError, handler.is_collaborator, 'commentUser', 'repo-owner',
+            'repo-name'
         )
         mock_api_req.assert_called_with(
             'GET',
             'https://api.github.com/repos/repo-owner/repo-name/collaborators/commentUser',
-            None, 'credential'
+            None
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_add_labels_success(self, mock_api_req):
         mock_api_req.return_value = {'body': 'response body!'}
         labels = ['label1', 'label2']
-        self.assertIsNone(
-            newpr.add_labels(
-                labels, 'repo-owner', 'repo-name', 7, 'credential'
-            )
-        )
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'new_pr_labels': labels}
+        ).handler
+        self.assertIsNone(handler.add_labels('repo-owner', 'repo-name', 7))
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
-            labels, 'credential'
+            labels
         )
 
-    @mock.patch('highfive.newpr.api_req')
+    @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_add_labels_error(self, mock_api_req):
         mock_api_req.return_value = {}
         mock_api_req.side_effect = HTTPError(None, 422, None, None, None)
         labels = ['label1', 'label2']
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config={'new_pr_labels': labels}
+        ).handler
         self.assertRaises(
-            HTTPError, newpr.add_labels, labels, 'repo-owner', 'repo-name',
-            7, 'credential'
+            HTTPError, handler.add_labels, 'repo-owner', 'repo-name', 7
         )
         mock_api_req.assert_called_with(
             'POST', 'https://api.github.com/repos/repo-owner/repo-name/issues/7/labels',
-            labels, 'credential'
+            labels
         )
 
     def test_submodule(self):
+        handler = HighfiveHandlerMock(Payload({})).handler
         submodule_diff = self._load_fake('submodule.diff')
-        self.assertTrue(newpr.modifies_submodule(submodule_diff))
+        self.assertTrue(handler.modifies_submodule(submodule_diff))
 
         normal_diff = self._load_fake('normal.diff')
-        self.assertFalse(newpr.modifies_submodule(normal_diff))
+        self.assertFalse(handler.modifies_submodule(normal_diff))
 
     def test_expected_branch_default_expected_no_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
         )
-        config = {}
-        self.assertEqual(
-            newpr.unexpected_branch(payload, config),
-            ('master', 'dev')
-        )
+        with HighfiveHandlerMock(payload, repo_config={}) as m:
+            self.assertEqual(m.handler.unexpected_branch(), ('master', 'dev'))
 
     def test_expected_branch_default_expected_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:master'}}}
         )
-        config = {}
-        self.assertFalse(newpr.unexpected_branch(payload, config))
+        with HighfiveHandlerMock(payload, repo_config={}) as m:
+            self.assertFalse(m.handler.unexpected_branch())
 
     def test_expected_branch_custom_expected_no_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:master'}}}
         )
         config = {'expected_branch': 'dev' }
-        self.assertEqual(
-            newpr.unexpected_branch(payload, config),
-            ('dev', 'master')
-        )
+        with HighfiveHandlerMock(payload, repo_config=config) as m:
+            self.assertEqual(m.handler.unexpected_branch(), ('dev', 'master'))
 
     def test_expected_branch_custom_expected_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label':'repo-owner:dev'}}}
         )
         config = {'expected_branch': 'dev' }
-        self.assertFalse(newpr.unexpected_branch(payload, config))
+        with HighfiveHandlerMock(payload, repo_config=config) as m:
+            self.assertFalse(m.handler.unexpected_branch())
 
     def test_find_reviewer(self):
         found_cases = (
@@ -247,16 +338,17 @@ Please see [the contribution instructions](%s) for more information.
             'r? foo',
             'r? @',
         )
+        handler = HighfiveHandlerMock(Payload({})).handler
 
         for (msg, reviewer) in found_cases:
             self.assertEqual(
-                newpr.find_reviewer(msg), reviewer,
+                handler.find_reviewer(msg), reviewer,
                 "expected '%s' from '%s'" % (reviewer, msg)
             )
 
         for msg in not_found_cases:
             self.assertIsNone(
-                newpr.find_reviewer(msg),
+                handler.find_reviewer(msg),
                 "expected '%s' to have no reviewer extracted" % msg
             )
 
@@ -275,8 +367,9 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_non_200(self, mock_urllib2):
+        handler = HighfiveHandlerMock(Payload({})).handler
         self.setup_get_irc_nick_mocks(mock_urllib2, 503)
-        self.assertIsNone(newpr.get_irc_nick('foo'))
+        self.assertIsNone(handler.get_irc_nick('foo'))
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
@@ -284,8 +377,9 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_no_data(self, mock_urllib2):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_data = self.setup_get_irc_nick_mocks(mock_urllib2, 200, '[]')
-        self.assertIsNone(newpr.get_irc_nick('foo'))
+        self.assertIsNone(handler.get_irc_nick('foo'))
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
@@ -295,11 +389,12 @@ Please see [the contribution instructions](%s) for more information.
 
     @mock.patch('highfive.newpr.urllib2')
     def test_get_irc_nick_has_data(self, mock_urllib2):
+        handler = HighfiveHandlerMock(Payload({})).handler
         mock_data = self.setup_get_irc_nick_mocks(
             mock_urllib2, 200,
             '[{"username":"nrc","name":"Nick Cameron","irc":"nrc","email":"nrc@ncameron.org","discourse":"nrc","reddit":"nick29581","twitter":"@nick_r_cameron","blog":"https://www.ncameron.org/blog","website":"https://www.ncameron.org","notes":"<p>I work on the Rust compiler, language design, and tooling. I lead the dev tools team and am part of the core team. I&#39;m part of the research team at Mozilla.</p>\\n","avatar":"https://avatars.githubusercontent.com/nrc","irc_channels":["rust-dev-tools","rust","rust-internals","rust-lang","rustc","servo"]}]'
         )
-        self.assertEqual(newpr.get_irc_nick('nrc'), 'nrc')
+        self.assertEqual(handler.get_irc_nick('nrc'), 'nrc')
 
         mock_urllib2.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=nrc'
@@ -331,6 +426,8 @@ class TestApiReq(TestNewPR):
         self.gzipped_body = self.mocks['GzipFile'].return_value.read
         self.gzipped_body.return_value = 'body2'
 
+        self.handler = HighfiveHandlerMock(Payload({})).handler
+
     def verify_mock_calls(self, header_calls, gzipped):
         self.mocks['Request'].assert_called_with(
             self.url, json.dumps(self.data) if self.data else self.data,
@@ -357,9 +454,9 @@ class TestApiReq(TestNewPR):
             self.gzipped_body.assert_not_called()
 
     def call_api_req(self):
-        return newpr.api_req(
-            self.method, self.url, self.data, token=self.token,
-            media_type=self.media_type
+        self.handler.integration_token = self.token
+        return self.handler.api_req(
+            self.method, self.url, self.data, media_type=self.media_type
         )
 
     def test1(self):
@@ -457,22 +554,24 @@ class TestSetAssignee(TestNewPR):
         cls.repo = 'repo-name'
         cls.issue = 7
         cls.user = 'integrationUser'
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
 
     def setUp(self):
         super(TestSetAssignee, self).setUp((
-            ('api_req', 'highfive.newpr.api_req'),
-            ('get_irc_nick', 'highfive.newpr.get_irc_nick'),
-            ('post_comment', 'highfive.newpr.post_comment'),
+            ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
+            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
+            ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
             ('IrcClient', 'highfive.irc.IrcClient'),
         ))
 
         self.mocks['client'] = self.mocks['IrcClient'].return_value
 
+        self.handler = HighfiveHandlerMock(Payload({})).handler
+
     def set_assignee(self, assignee='', to_mention=None):
         assignee = self.assignee if assignee == '' else assignee
-        return newpr.set_assignee(
-            assignee, self.owner, self.repo, self.issue, self.user, self.token,
+        return self.handler.set_assignee(
+            assignee, self.owner, self.repo, self.issue, self.user,
             self.author, to_mention or []
         )
 
@@ -482,8 +581,7 @@ class TestSetAssignee(TestNewPR):
             'PATCH',
             'https://api.github.com/repos/%s/%s/issues/%s' % (
                 self.owner, self.repo, self.issue
-            ),
-            {"assignee": assignee}, self.token
+            ), {"assignee": assignee}
         )
 
     def test_api_req_good(self):
@@ -554,7 +652,7 @@ class TestSetAssignee(TestNewPR):
         self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
             'This is important\n\ncc @userA,@userB,@userC\n\nAlso important\n\ncc @userD',
-            self.owner, self.repo, self.issue, self.token
+            self.owner, self.repo, self.issue
         )
 
     def test_no_assignee(self):
@@ -572,18 +670,17 @@ class TestIsNewContributor(TestNewPR):
         cls.username = 'commitUser'
         cls.owner = 'repo-owner'
         cls.repo = 'repo-name'
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
 
     def setUp(self):
         super(TestIsNewContributor, self).setUp((
-            ('api_req', 'highfive.newpr.api_req'),
+            ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
         ))
         self.payload = Payload({'repository': {'fork': False}})
 
     def is_new_contributor(self):
-        return newpr.is_new_contributor(
-            self.username, self.owner, self.repo, self.token, self.payload
-        )
+        handler = HighfiveHandlerMock(Payload(self.payload)).handler
+        return handler.is_new_contributor(self.username, self.owner, self.repo)
 
     def api_return(self, total_count):
         return {
@@ -596,8 +693,7 @@ class TestIsNewContributor(TestNewPR):
             'GET',
             'https://api.github.com/search/commits?q=repo:%s/%s+author:%s' % (
                 self.owner, self.repo, self.username
-            ), None, self.token,
-            'application/vnd.github.cloak-preview'
+            ), None, 'application/vnd.github.cloak-preview'
         )
 
     def test_is_new_contributor_fork(self):
@@ -634,19 +730,22 @@ class TestPostWarnings(TestNewPR):
         cls.owner = 'repo-owner'
         cls.repo = 'repo-name'
         cls.issue = 7
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
 
     def setUp(self):
         super(TestPostWarnings, self).setUp((
-            ('unexpected_branch', 'highfive.newpr.unexpected_branch'),
-            ('modifies_submodule', 'highfive.newpr.modifies_submodule'),
-            ('post_comment', 'highfive.newpr.post_comment'),
+            ('unexpected_branch', 'highfive.newpr.HighfiveHandler.unexpected_branch'),
+            ('modifies_submodule', 'highfive.newpr.HighfiveHandler.modifies_submodule'),
+            ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
         ))
 
+        self.handler = HighfiveHandlerMock(
+            self.payload, repo_config=self.config
+        ).handler
+
     def post_warnings(self):
-        newpr.post_warnings(
-            self.payload, self.config, self.diff, self.owner, self.repo,
-            self.issue, self.token
+        self.handler.post_warnings(
+            self.diff, self.owner, self.repo, self.issue
         )
 
     def test_no_warnings(self):
@@ -655,9 +754,7 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
         self.mocks['post_comment'].assert_not_called()
 
@@ -669,16 +766,14 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
 
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!"""
         self.mocks['post_comment'].assert_called_with(
-            expected_warning, self.owner, self.repo, self.issue, self.token
+            expected_warning, self.owner, self.repo, self.issue
         )
 
     def test_modifies_submodule(self):
@@ -687,16 +782,14 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
 
 * These commits modify **submodules**."""
         self.mocks['post_comment'].assert_called_with(
-            expected_warning, self.owner, self.repo, self.issue, self.token
+            expected_warning, self.owner, self.repo, self.issue
         )
 
     def test_unexpected_branch_modifies_submodule(self):
@@ -707,9 +800,7 @@ class TestPostWarnings(TestNewPR):
 
         self.post_warnings()
 
-        self.mocks['unexpected_branch'].assert_called_with(
-            self.payload, self.config
-        )
+        self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
@@ -717,7 +808,7 @@ class TestPostWarnings(TestNewPR):
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
 * These commits modify **submodules**."""
         self.mocks['post_comment'].assert_called_with(
-            expected_warning, self.owner, self.repo, self.issue, self.token
+            expected_warning, self.owner, self.repo, self.issue
         )
 
 class TestNewPrFunction(TestNewPR):
@@ -728,46 +819,45 @@ class TestNewPrFunction(TestNewPR):
         cls.payload = fakes.Payload.new_pr()
 
         cls.user = 'integrationUser'
-        cls.token = 'credential'
+        cls.token = 'integrationToken'
+
 
     def setUp(self):
         super(TestNewPrFunction, self).setUp((
-            ('api_req', 'highfive.newpr.api_req'),
-            ('find_reviewer', 'highfive.newpr.find_reviewer'),
-            ('load_json_file', 'highfive.newpr._load_json_file'),
-            ('choose_reviewer', 'highfive.newpr.choose_reviewer'),
-            ('set_assignee', 'highfive.newpr.set_assignee'),
-            ('is_new_contributor', 'highfive.newpr.is_new_contributor'),
-            ('post_comment', 'highfive.newpr.post_comment'),
-            ('welcome_msg', 'highfive.newpr.welcome_msg'),
-            ('review_msg', 'highfive.newpr.review_msg'),
-            ('post_warnings', 'highfive.newpr.post_warnings'),
-            ('add_labels', 'highfive.newpr.add_labels'),
+            ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
+            ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
+            ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
+            ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
+            ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
+            ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
+            ('welcome_msg', 'highfive.newpr.HighfiveHandler.welcome_msg'),
+            ('review_msg', 'highfive.newpr.HighfiveHandler.review_msg'),
+            ('post_warnings', 'highfive.newpr.HighfiveHandler.post_warnings'),
+            ('add_labels', 'highfive.newpr.HighfiveHandler.add_labels'),
         ))
 
         self.mocks['api_req'].return_value = {'body': 'diff'}
-        self.mocks['load_json_file'].return_value = self.config
 
     def call_new_pr(self):
-        return newpr.new_pr(self.payload, self.user, self.token)
+        handler = HighfiveHandlerMock(
+            self.payload, repo_config=self.config
+        ).handler
+        return handler.new_pr()
 
     def assert_fixed_calls(self, reviewer, to_mention):
         self.mocks['api_req'].assert_called_once_with(
-            'GET', 'https://the.url/', None, self.token,
-            'application/vnd.github.v3.diff'
+            'GET', 'https://the.url/', None, 'application/vnd.github.v3.diff'
         )
         self.mocks['find_reviewer'].assert_called_once_with('The PR comment.')
-        self.mocks['load_json_file'].assert_called_once_with('repo-name.json')
         self.mocks['set_assignee'].assert_called_once_with(
-            reviewer, 'repo-owner', 'repo-name', '7', self.user, self.token,
-            'prAuthor', to_mention
+            reviewer, 'repo-owner', 'repo-name', '7', self.user, 'prAuthor',
+            to_mention
         )
         self.mocks['is_new_contributor'].assert_called_once_with(
-            'prAuthor', 'repo-owner', 'repo-name', self.token, self.payload
+            'prAuthor', 'repo-owner', 'repo-name'
         )
         self.mocks['post_warnings'].assert_called_once_with(
-            self.payload, self.config, 'diff', 'repo-owner', 'repo-name', '7',
-            self.token
+            'diff', 'repo-owner', 'repo-name', '7'
         )
 
     def test_no_msg_reviewer_new_contributor(self):
@@ -782,17 +872,15 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('reviewUser', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_called_once_with(
-            'repo-name', 'repo-owner', 'diff', 'prAuthor', self.config
+            'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
-        self.mocks['welcome_msg'].assert_called_once_with(
-            'reviewUser', self.config
-        )
+        self.mocks['welcome_msg'].assert_called_once_with('reviewUser')
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
-            'Welcome!', 'repo-owner', 'repo-name', '7', self.token
+            'Welcome!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_called_once_with(
-            ['foo-label'], 'repo-owner', 'repo-name', '7', self.token
+            'repo-owner', 'repo-name', '7'
         )
 
     def test_no_msg_reviewer_repeat_contributor(self):
@@ -807,17 +895,17 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('reviewUser', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_called_once_with(
-            'repo-name', 'repo-owner', 'diff', 'prAuthor', self.config
+            'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
         self.mocks['welcome_msg'].assert_not_called()
         self.mocks['review_msg'].assert_called_once_with(
             'reviewUser', 'prAuthor'
         )
         self.mocks['post_comment'].assert_called_once_with(
-            'Review message!', 'repo-owner', 'repo-name', '7', self.token
+            'Review message!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_called_once_with(
-            ['foo-label'], 'repo-owner', 'repo-name', '7', self.token
+            'repo-owner', 'repo-name', '7'
         )
 
     def test_msg_reviewer_repeat_contributor(self):
@@ -833,12 +921,11 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_not_called()
         self.mocks['add_labels'].assert_called_once_with(
-            ['foo-label'], 'repo-owner', 'repo-name', '7', self.token
+            'repo-owner', 'repo-name', '7'
         )
 
     def test_no_pr_labels_specified(self):
         self.config = {'the': 'config'}
-        self.mocks['load_json_file'].return_value = self.config
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'
@@ -847,12 +934,10 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
-        self.mocks['welcome_msg'].assert_called_once_with(
-            'foundReviewer', self.config
-        )
+        self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
-            'Welcome!', 'repo-owner', 'repo-name', '7', self.token
+            'Welcome!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_not_called()
 
@@ -860,7 +945,6 @@ class TestNewPrFunction(TestNewPR):
         self.config = {
             'the': 'config', 'new_pr_labels': []
         }
-        self.mocks['load_json_file'].return_value = self.config
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'
@@ -869,25 +953,23 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_fixed_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
-        self.mocks['welcome_msg'].assert_called_once_with(
-            'foundReviewer', self.config
-        )
+        self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
-            'Welcome!', 'repo-owner', 'repo-name', '7', self.token
+            'Welcome!', 'repo-owner', 'repo-name', '7'
         )
         self.mocks['add_labels'].assert_not_called()
 
 class TestNewComment(TestNewPR):
     def setUp(self):
         super(TestNewComment, self).setUp((
-            ('is_collaborator', 'highfive.newpr.is_collaborator'),
-            ('find_reviewer', 'highfive.newpr.find_reviewer'),
-            ('set_assignee', 'highfive.newpr.set_assignee'),
+            ('is_collaborator', 'highfive.newpr.HighfiveHandler.is_collaborator'),
+            ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
+            ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
         ))
 
     @staticmethod
-    def make_payload(
+    def make_handler(
         state='open', is_pull_request=True, commenter='userA',
         repo='repo-name', owner='repo-owner', author='userB',
         comment='comment!', issue_number=7, assignee=None
@@ -920,45 +1002,41 @@ class TestNewComment(TestNewPR):
         if assignee is not None:
             payload._payload['issue']['assignee'] = {'login': assignee}
 
-        return payload
+        return HighfiveHandlerMock(payload).handler
 
     def test_not_open(self):
-        payload = self.make_payload(state='closed')
+        handler = self.make_handler(state='closed')
 
-        self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
     def test_not_pr(self):
-        payload = self.make_payload(is_pull_request=False)
+        handler = self.make_handler(is_pull_request=False)
 
-        self.assertIsNone(newpr.new_comment(payload, 'user', 'credential'))
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
     def test_commenter_is_integration_user(self):
-        payload = self.make_payload(commenter='integrationUser')
+        handler = self.make_handler(commenter='integrationUser')
 
-        self.assertIsNone(
-            newpr.new_comment(payload, 'integrationUser', 'credential')
-        )
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
 
     def test_unauthorized_assigner(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userB', assignee='userC'
         )
 
         self.mocks['is_collaborator'].return_value = False
-        self.assertIsNone(
-            newpr.new_comment(payload, 'integrationUser', 'credential')
-        )
+        self.assertIsNone(handler.new_comment())
         self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name', 'credential'
+            'userB', 'repo-owner', 'repo-name'
         )
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
@@ -966,54 +1044,54 @@ class TestNewComment(TestNewPR):
     # There are three ways to make it past the authorized assigner
     # check. The next three methods excercise those paths.
     def test_authorized_assigner_author_is_commenter(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userA', assignee='userC'
         )
 
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called()
 
     def test_authorized_assigner_commenter_is_assignee(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userB', assignee='userB'
         )
 
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called()
 
     def test_authorized_assigner_commenter_is_collaborator(self):
-        payload = self.make_payload(
+        handler = self.make_handler(
             author='userA', commenter='userB', assignee='userC'
         )
 
         self.mocks['is_collaborator'].return_value = True
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name', 'credential'
+            'userB', 'repo-owner', 'repo-name'
         )
         self.mocks['find_reviewer'].assert_called()
 
     def test_no_reviewer(self):
-        payload = self.make_payload(author='userA', commenter='userA')
+        handler = self.make_handler(author='userA', commenter='userA')
 
         self.mocks['find_reviewer'].return_value = None
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_not_called()
 
     def test_has_reviewer(self):
-        payload = self.make_payload(author='userA', commenter='userA')
+        handler = self.make_handler(author='userA', commenter='userA')
 
         self.mocks['find_reviewer'].return_value = 'userD'
-        newpr.new_comment(payload, 'integrationUser', 'credential')
+        handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_called_with('comment!')
         self.mocks['set_assignee'].assert_called_with(
             'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
-            'credential', 'userA', None
+            'userA', None
         )
 
 class TestChooseReviewer(TestNewPR):
@@ -1026,20 +1104,34 @@ class TestChooseReviewer(TestNewPR):
         cls.global_ = fakes.get_global_configs()
 
     def choose_reviewer(
-        self, repo, owner, diff, exclude, config, global_ = None
+        self, repo, owner, diff, exclude, global_=None
     ):
         return self.choose_reviewer_inner(
-            repo, owner, diff, exclude, config, global_
+            repo, owner, diff, exclude, global_
         )
 
-    @mock.patch('highfive.newpr._load_json_file')
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def choose_reviewer_inner(
-        self, repo, owner, diff, exclude, config, global_, mock_load_json
+        self, repo, owner, diff, exclude, global_, mock_load_json
     ):
         mock_load_json.return_value = deepcopy(global_ or { "groups": {} })
-        return newpr.choose_reviewer(
-            repo, owner, diff, exclude, deepcopy(config)
+        return self.handler.choose_reviewer(
+            repo, owner, diff, exclude
         )
+
+    def choose_reviewers(self, diff, author, global_ = None):
+        """Helper function that repeatedly calls choose_reviewer to build sets
+        of reviewers and mentions for a given diff and author.
+        """
+        chosen_reviewers = set()
+        mention_list = set()
+        for _ in xrange(40):
+            (reviewer, mentions) = self.choose_reviewer(
+                'rust', 'rust-lang', diff, author, global_
+            )
+            chosen_reviewers.add(reviewer)
+            mention_list.add(None if mentions is None else tuple(mentions))
+        return chosen_reviewers, mention_list
 
     def test_unsupported_repo(self):
         """The choose_reviewer function has an escape hatch for calls that
@@ -1049,61 +1141,40 @@ class TestChooseReviewer(TestNewPR):
         diff = self.diff['normal']
         config = self.config['individuals_no_dirs']
         test_return = ('test_user_selection_ignore_this', None)
+        self.handler = HighfiveHandlerMock(
+            Payload({'action': 'opened'}), repo_config=config
+        ).handler
 
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'whatever', 'rust-lang', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('whatever', 'rust-lang', diff, 'foo')
         )
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'whatever', 'rust-lang-nursery', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('whatever', 'rust-lang-nursery', diff, 'foo')
         )
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'whatever', 'rust-lang-deprecated', diff, 'foo',
-                deepcopy(config)
-            )
+            self.choose_reviewer('whatever', 'rust-lang-deprecated', diff, 'foo')
         )
         self.assertNotEqual(
             test_return,
-            self.choose_reviewer(
-                'highfive', 'nrc', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('highfive', 'nrc', diff, 'foo')
         )
         self.assertEqual(
             test_return,
-            self.choose_reviewer(
-                'anything', 'else', diff, 'foo', deepcopy(config)
-            )
+            self.choose_reviewer('anything', 'else', diff, 'foo')
         )
-
-    def choose_reviewers(self, diff, config, author, global_ = None):
-        """Helper function that repeatedly calls choose_reviewer to build sets
-        of reviewers and mentions for a given diff, configuration, and
-        author.
-        """
-        chosen_reviewers = set()
-        mention_list = set()
-        for _ in xrange(40):
-            (reviewer, mentions) = self.choose_reviewer(
-                'rust', 'rust-lang', diff, author, deepcopy(config), global_
-            )
-            chosen_reviewers.add(reviewer)
-            mention_list.add(None if mentions is None else tuple(mentions))
-        return chosen_reviewers, mention_list
 
     def test_individuals_no_dirs_1(self):
         """Test choosing a reviewer from a list of individual reviewers, no
         directories, and an author who is not a potential reviewer.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_no_dirs']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_no_dirs'],
-            "nikomatsakis"
+            self.diff['normal'], "nikomatsakis"
         )
         self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1112,8 +1183,11 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer from a list of individual reviewers, no
         directories, and an author who is a potential reviewer.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_no_dirs']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_no_dirs'], "nrc"
+            self.diff['normal'], "nrc"
         )
         self.assertEqual(set(["pnkfelix"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1121,41 +1195,49 @@ class TestChooseReviewer(TestNewPR):
     def test_circular_groups(self):
         """Test choosing a reviewer from groups that have circular references.
         """
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['circular_groups']
+        ).handler
         self.assertRaises(
-            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
-            self.diff['normal'], 'fooauthor',
-            self.config['circular_groups']
+            AssertionError, handler.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor'
         )
 
     def test_global_core(self):
         """Test choosing a reviewer from the core group in the global
         configuration.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['empty']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['empty'], 'fooauthor',
-            self.global_['base']
+            self.diff['normal'], 'fooauthor', self.global_['base']
         )
         self.assertEqual(set(['alexcrichton']), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
 
-    @mock.patch('highfive.newpr._load_json_file')
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_global_group_overlap(self, mock_load_json):
         """Test for an AssertionError when the global config contains a group
         already defined in the config.
         """
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_no_dirs']
+        ).handler
         mock_load_json.return_value = self.global_['has_all']
         self.assertRaises(
-            AssertionError, newpr.choose_reviewer, 'rust', 'rust-lang',
-            self.diff['normal'], 'fooauthor',
-            self.config['individuals_no_dirs']
+            AssertionError, handler.choose_reviewer, 'rust', 'rust-lang',
+            self.diff['normal'], 'fooauthor'
         )
 
     def test_no_potential_reviewers(self):
         """Test choosing a reviewer when nobody qualifies.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['empty']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['empty'], 'alexcrichton',
-            self.global_['base']
+            self.diff['normal'], 'alexcrichton', self.global_['base']
         )
         self.assertEqual(set([None]), chosen_reviewers)
         self.assertEqual(set([None]), mentions)
@@ -1164,9 +1246,11 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer when directory reviewers are defined that
         intersect with the diff.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_dirs']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_dirs'],
-            "nikomatsakis"
+            self.diff['normal'], "nikomatsakis"
         )
         self.assertEqual(set(["pnkfelix", "nrc", "aturon"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1175,9 +1259,11 @@ class TestChooseReviewer(TestNewPR):
         """Test choosing a reviewer when directory reviewers are defined that
         do not intersect with the diff.
         """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.config['individuals_dirs_2']
+        ).handler
         (chosen_reviewers, mentions) = self.choose_reviewers(
-            self.diff['normal'], self.config['individuals_dirs_2'],
-            "nikomatsakis"
+            self.diff['normal'], "nikomatsakis"
         )
         self.assertEqual(set(["pnkfelix", "nrc"]), chosen_reviewers)
         self.assertEqual(set([()]), mentions)
@@ -1185,42 +1271,39 @@ class TestChooseReviewer(TestNewPR):
 class TestRun(TestNewPR):
     def setUp(self):
         super(TestRun, self).setUp((
-            ('ConfigParser', 'highfive.newpr.ConfigParser'),
-            ('new_pr', 'highfive.newpr.new_pr'),
-            ('new_comment', 'highfive.newpr.new_comment'),
+            ('new_pr', 'highfive.newpr.HighfiveHandler.new_pr'),
+            ('new_comment', 'highfive.newpr.HighfiveHandler.new_comment'),
             ('sys', 'highfive.newpr.sys'),
         ))
 
-        self.config_mock = mock.Mock()
-        self.config_mock.get.side_effect = (
-            'integration-user', 'integration-token'
-        )
-        self.mocks['ConfigParser'].RawConfigParser.return_value = self.config_mock
-
-    def test_newpr(self):
-        payload = {'action': 'opened'}
-        newpr.run(payload)
-        self.assertEqual(self.config_mock.get.call_count, 2)
-        self.mocks['new_pr'].assert_called_once_with(
+    def handler_mock(self, payload):
+        return HighfiveHandlerMock(
             payload, 'integration-user', 'integration-token'
         )
+
+    def test_newpr(self):
+        payload = Payload({'action': 'opened'})
+        m = self.handler_mock(payload)
+        m.handler.run()
+        self.assertEqual(m.mock_config.get.call_count, 2)
+        self.mocks['new_pr'].assert_called_once_with()
         self.mocks['new_comment'].assert_not_called()
         self.mocks['sys'].exit.assert_not_called()
 
     def test_new_comment(self):
-        payload = {'action': 'created'}
-        newpr.run(payload)
-        self.assertEqual(self.config_mock.get.call_count, 2)
+        payload = Payload({'action': 'created'})
+        m = self.handler_mock(payload)
+        m.handler.run()
+        self.assertEqual(m.mock_config.get.call_count, 2)
         self.mocks['new_pr'].assert_not_called()
-        self.mocks['new_comment'].assert_called_once_with(
-            payload, 'integration-user', 'integration-token'
-        )
+        self.mocks['new_comment'].assert_called_once_with()
         self.mocks['sys'].exit.assert_not_called()
 
     def test_unsupported_payload(self):
-        payload = {'action': 'something-not-supported'}
-        newpr.run(payload)
-        self.assertEqual(self.config_mock.get.call_count, 2)
+        payload = Payload({'action': 'something-not-supported'})
+        m = self.handler_mock(payload)
+        m.handler.run()
+        self.assertEqual(m.mock_config.get.call_count, 2)
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_not_called()
         self.mocks['sys'].exit.assert_called_once_with(0)

@@ -11,6 +11,11 @@ def get_repo_configs():
             "groups": { "all": ["@pnkfelix", "@nrc"] },
             "dirs": {},
         },
+        'individuals_no_dirs_labels': {
+            "groups": { "all": ["@pnkfelix", "@nrc"] },
+            "dirs": {},
+            "new_pr_labels": ["a", "b"],
+        },
         'individuals_dirs': {
             "groups": { "all": ["@pnkfelix", "@nrc"] },
             "dirs": { "librustc": ["@aturon"] },
