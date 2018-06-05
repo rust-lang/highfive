@@ -819,7 +819,6 @@ class TestNewPrFunction(TestNewPR):
         cls.user = 'integrationUser'
         cls.token = 'integrationToken'
 
-
     def setUp(self):
         super(TestNewPrFunction, self).setUp((
             ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
