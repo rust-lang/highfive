@@ -355,28 +355,32 @@ class HighfiveHandler(object):
             "application/vnd.github.v3.diff",
         )['body']
 
-        msg = self.payload['pull_request', 'body']
-        reviewer = self.find_reviewer(msg)
-        post_msg = False
-        to_mention = None
+        if not self.payload['pull_request', 'assignees']:
+            # Only try to set an assignee if one isn't already set.
+            msg = self.payload['pull_request', 'body']
+            reviewer = self.find_reviewer(msg)
+            post_msg = False
+            to_mention = None
 
-        if not reviewer:
-            post_msg = True
-            reviewer, to_mention = self.choose_reviewer(repo, owner, diff, author)
+            if not reviewer:
+                post_msg = True
+                reviewer, to_mention = self.choose_reviewer(
+                    repo, owner, diff, author
+                )
 
-        self.set_assignee(
-            reviewer, owner, repo, issue, self.integration_user,
-            author, to_mention
-        )
-
-        if self.is_new_contributor(author, owner, repo):
-            self.post_comment(
-                self.welcome_msg(reviewer), owner, repo, issue
+            self.set_assignee(
+                reviewer, owner, repo, issue, self.integration_user,
+                author, to_mention
             )
-        elif post_msg:
-            self.post_comment(
-                self.review_msg(reviewer, author), owner, repo, issue
-            )
+
+            if self.is_new_contributor(author, owner, repo):
+                self.post_comment(
+                    self.welcome_msg(reviewer), owner, repo, issue
+                )
+            elif post_msg:
+                self.post_comment(
+                    self.review_msg(reviewer, author), owner, repo, issue
+                )
 
         self.post_warnings(diff, owner, repo, issue)
 

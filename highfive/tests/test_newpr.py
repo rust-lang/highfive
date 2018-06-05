@@ -816,8 +816,6 @@ class TestNewPrFunction(TestNewPR):
     def setUpClass(cls):
         cls.config = {'the': 'config', 'new_pr_labels': ['foo-label']}
 
-        cls.payload = fakes.Payload.new_pr()
-
         cls.user = 'integrationUser'
         cls.token = 'integrationToken'
 
@@ -837,6 +835,7 @@ class TestNewPrFunction(TestNewPR):
         ))
 
         self.mocks['api_req'].return_value = {'body': 'diff'}
+        self.payload = fakes.Payload.new_pr()
 
     def call_new_pr(self):
         handler = HighfiveHandlerMock(
@@ -844,7 +843,7 @@ class TestNewPrFunction(TestNewPR):
         ).handler
         return handler.new_pr()
 
-    def assert_fixed_calls(self, reviewer, to_mention):
+    def assert_set_assignee_branch_calls(self, reviewer, to_mention):
         self.mocks['api_req'].assert_called_once_with(
             'GET', 'https://the.url/', None, 'application/vnd.github.v3.diff'
         )
@@ -870,7 +869,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.call_new_pr()
 
-        self.assert_fixed_calls('reviewUser', ['to', 'mention'])
+        self.assert_set_assignee_branch_calls('reviewUser', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_called_once_with(
             'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
@@ -893,7 +892,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.call_new_pr()
 
-        self.assert_fixed_calls('reviewUser', ['to', 'mention'])
+        self.assert_set_assignee_branch_calls('reviewUser', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_called_once_with(
             'repo-name', 'repo-owner', 'diff', 'prAuthor'
         )
@@ -915,11 +914,36 @@ class TestNewPrFunction(TestNewPR):
 
         self.call_new_pr()
 
-        self.assert_fixed_calls('foundReviewer', None)
+        self.assert_set_assignee_branch_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
         self.mocks['welcome_msg'].assert_not_called()
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_not_called()
+        self.mocks['add_labels'].assert_called_once_with(
+            'repo-owner', 'repo-name', '7'
+        )
+
+    def test_assignee_already_set(self):
+        self.payload._payload['pull_request']['assignees'] = [
+            {'login': 'assignedUser'},
+        ]
+
+        self.call_new_pr()
+
+        self.mocks['api_req'].assert_called_once_with(
+            'GET', 'https://the.url/', None, 'application/vnd.github.v3.diff'
+        )
+        self.mocks['find_reviewer'].assert_not_called()
+        self.mocks['choose_reviewer'].assert_not_called()
+        self.mocks['set_assignee'].assert_not_called()
+        self.mocks['is_new_contributor'].assert_not_called()
+        self.mocks['welcome_msg'].assert_not_called()
+        self.mocks['review_msg'].assert_not_called()
+        self.mocks['post_comment'].assert_not_called()
+        self.mocks['post_warnings'].assert_called_once_with(
+            'diff', 'repo-owner', 'repo-name', '7'
+        )
+
         self.mocks['add_labels'].assert_called_once_with(
             'repo-owner', 'repo-name', '7'
         )
@@ -932,7 +956,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.call_new_pr()
 
-        self.assert_fixed_calls('foundReviewer', None)
+        self.assert_set_assignee_branch_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
         self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
@@ -951,7 +975,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.call_new_pr()
 
-        self.assert_fixed_calls('foundReviewer', None)
+        self.assert_set_assignee_branch_calls('foundReviewer', None)
         self.mocks['choose_reviewer'].assert_not_called()
         self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
