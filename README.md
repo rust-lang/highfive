@@ -16,6 +16,15 @@ history see the comments in [#35][].
 [@highfive]: https://github.com/highfive
 [#35]: https://github.com/rust-lang-nursery/highfive/issues/35
 
+### Table of Contents
+
+1. [Installation](#installation)
+2. [Testing](#testing)
+3. [Adding a Project](#adding-a-project)
+4. [Enabling a Repository](#enabling-a-repository)
+5. [Local Development](#local-development)
+6. [License](#license)
+
 ## Installation
 
 To install `highfive`, you just need to execute the `setup.py` script or use
@@ -114,21 +123,18 @@ your local instance. Here is one approach for running a local server:
   $ PYTHONPATH=$PYTHONPATH:$PWD python serve.py
   ```
   Now you have Highfive listening on port 8000 of your machine.
-- Your Highfive instance will need to be reachable from outside your
-  machine. If that's possible without further work, skip to the next
-  item. Otherwise, do the following:
+- Your Highfive instance will need to be reachable from outside of your
+  machine. If it's not, do the following:
 
-  An easy way to handle this for development is to use
-  [ngrok](https://ngrok.com/). If you go that route, you will get a
+  Use [ngrok](https://ngrok.com/) to get a
   temporary domain name that proxies to your Highfive
   instance. Additionally, you will be able to use ngrok's inspector to
   easily examine and replay the requests.
-- Set up the web hook following the instructions in [Enabling a
+- Set up the webhook by following the instructions in [Enabling a
   Repo](#enabling-a-repo), substituting your local Highfive IP address
-  or domain name and port (if necessary).
+  or domain name and port number (if necessary).
 - Obtain an OAuth token. In the account you are creating the token in,
-  go to https://github.com/settings/tokens. Grant access to the repo
-  scope.
+  go to https://github.com/settings/tokens. Grant access to the repository scope.
 - Put the authorization information obtained in the previous step into
   a file named config in the top of the repository (i.e., the
   directory containing this file). Here's a template of what it should
