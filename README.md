@@ -16,12 +16,11 @@ history see the comments in [#35][].
 [@highfive]: https://github.com/highfive
 [#35]: https://github.com/rust-lang-nursery/highfive/issues/35
 
-Install
-=======
+## Installation
 
-To install `highfive` you just need to execute the `setup.py` script or use
-`pip` directly. Both commands have to be executed from the directory where the
-`setup.py` script is located.
+To install `highfive`, you just need to execute the `setup.py` script or use
+`pip` directly. Both commands have to be executed from the directory where
+`setup.py` is located.
 
     $ python setup.py install
 
@@ -30,10 +29,9 @@ or
     $ pip install . # the dot is important ;)
 
 
-Testing
-=======
+## Testing
 
-To run tests, make sure the test-requirements are installed by running:
+Before running tests, make sure the test-requirements are installed by running the following command:
 
     $ pip install -r test-requirements.txt
 
@@ -52,13 +50,10 @@ types of "unit" or "integration". To run only unit tests do:
 Only unit tests are run in PR builds. All tests are run in daily cron
 builds.
 
-Adding a Project
-================
+## Adding a Project
 
 To make rust-highfive interact with a new repo, add a configuration file in
-`highfive/configs`, with a filename of the form `reponame.json`. 
-
-It should look like:
+`highfive/configs`, with a filename of the form `reponame.json`. The file should look like:
 
 ```
 {
@@ -76,10 +71,10 @@ It should look like:
 ```
 
 The `groups` section allows you to alias lists of usernames. You should
-specify at least one user in the group "all"; others are optional.
+specify at least one user in the group "all". Others are optional.
 
-The `dirs` section is where you map directories of the repo to users or
-groups who're eligible to review PRs affecting it. This section can be left
+In the `dirs` section, you map directories of the repository to users or
+groups who're eligible to review PRs that are affecting it. This section can be left
 blank.
 
 `contributing` specifies the contribution guide link in the message which
@@ -94,21 +89,20 @@ The bot posts a warning on any PR that targets an unexpected branch.
 `new_pr_labels` contains a list of labels to apply to each new PR. If it's left
 out or empty, no new labels will be applied.
 
-Enabling a Repo
+## Enabling a Repository
 ---------------
 
-Once the hooks for a repository are set up, visit the repo's webhook settings
+Once the hooks for a repository are set up, visit the repository's webhook settings
 page at `https://github.com/org/repo/settings/hooks`. 
 
 Create a new webhook, pointing at your highfive instance's location:
 
 Payload URL: `http://99.88.777.666/highfive/newpr.py`
 Content type: `application/x-www-form-urlencoded`
-Leave the 'secret' field blank.
-Let me select individual events: Issue comment, pull request
-Check the box by 'Active'
 
-Local Development
+Leave the 'secret' field blank. Let me select individual events: Issue comment, pull request. Check the box by 'Active'.
+
+## Local Development
 -----------------
 
 You can run Highfive on your machine and configure a repository to use
@@ -122,7 +116,7 @@ your local instance. Here is one approach for running a local server:
   Now you have Highfive listening on port 8000 of your machine.
 - Your Highfive instance will need to be reachable from outside your
   machine. If that's possible without further work, skip to the next
-  item. Otherwise, something needs to be figured out.
+  item. Otherwise, do the following:
 
   An easy way to handle this for development is to use
   [ngrok](https://ngrok.com/). If you go that route, you will get a
@@ -162,8 +156,8 @@ Here are some details to be aware of:
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
-License
-=======
+## License
+
 Highfive is licensed under the terms of both the MIT License and the
 Apache License (Version 2.0).
 
