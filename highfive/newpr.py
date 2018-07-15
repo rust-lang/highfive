@@ -289,6 +289,9 @@ class HighfiveHandler(object):
                         for entry in mentions:
                             if full_dir.startswith(entry) and entry not in to_mention:
                                 to_mention.append(entry)
+                            elif (entry.endswith('.rs') and full_dir.endswith(entry)
+                                  and entry not in to_mention):
+                                to_mention.append(entry)
                     if cur_dir and cur_dir not in counts:
                         counts[cur_dir] = 0
                     continue
