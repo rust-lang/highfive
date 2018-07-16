@@ -109,10 +109,12 @@ page at `https://github.com/org/repo/settings/hooks`.
 
 Create a new webhook, pointing at your highfive instance's location:
 
-Payload URL: `http://99.88.777.666/highfive/newpr.py`
-Content type: `application/x-www-form-urlencoded`
-
-Leave the 'secret' field blank. Let me select individual events: Issue comment, pull request. Check the box by 'Active'.
+- Enter payload URL: `http://99.88.777.666/highfive/newpr.py`
+- Enter content type: `application/x-www-form-urlencoded`
+- Leave the "secret" field blank
+- Click on "Let me select individual events", and heck the boxes by "Issue comment" and "pull request"
+- Check the box by "Active"
+- Click on "Add webhook"
 
 Local Development
 -----------------
