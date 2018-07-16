@@ -40,6 +40,10 @@
         "src/doc": {
             "message": "Some changes occurred in HTML/CSS.",
             "reviewers": ["@GuillaumeGomez"]
+        },
+        "diagnostics.rs": {
+            "message": "Some changes occurred in diagnostic error codes",
+            "reviewers": ["@GuillaumeGomez"]
         }
     },
     "contributors": [
