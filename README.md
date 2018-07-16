@@ -25,7 +25,8 @@ history see the comments in [#35][].
 5. [Local Development](#local-development)
 6. [License](#license)
 
-## Installation
+Installation
+=======
 
 To install `highfive`, you just need to execute the `setup.py` script or use
 `pip` directly. Both commands have to be executed from the directory where
@@ -38,7 +39,8 @@ or
     $ pip install . # the dot is important ;)
 
 
-## Testing
+Testing
+=======
 
 Before running tests, make sure the test-requirements are installed by running the following command:
 
@@ -59,7 +61,8 @@ types of "unit" or "integration". To run only unit tests do:
 Only unit tests are run in PR builds. All tests are run in daily cron
 builds.
 
-## Adding a Project
+Adding a Project
+================
 
 To make rust-highfive interact with a new repo, add a configuration file in
 `highfive/configs`, with a filename of the form `reponame.json`. The file should look like:
@@ -98,7 +101,7 @@ The bot posts a warning on any PR that targets an unexpected branch.
 `new_pr_labels` contains a list of labels to apply to each new PR. If it's left
 out or empty, no new labels will be applied.
 
-## Enabling a Repository
+Enabling a Repository
 ---------------
 
 Once the hooks for a repository are set up, visit the repository's webhook settings
@@ -111,7 +114,7 @@ Content type: `application/x-www-form-urlencoded`
 
 Leave the 'secret' field blank. Let me select individual events: Issue comment, pull request. Check the box by 'Active'.
 
-## Local Development
+Local Development
 -----------------
 
 You can run Highfive on your machine and configure a repository to use
@@ -123,13 +126,7 @@ your local instance. Here is one approach for running a local server:
   $ PYTHONPATH=$PYTHONPATH:$PWD python serve.py
   ```
   Now you have Highfive listening on port 8000 of your machine.
-- Your Highfive instance will need to be reachable from outside of your
-  machine. If it's not, do the following:
-
-  Use [ngrok](https://ngrok.com/) to get a
-  temporary domain name that proxies to your Highfive
-  instance. Additionally, you will be able to use ngrok's inspector to
-  easily examine and replay the requests.
+- Your Highfive instance will need to be reachable from outside of your machine. One way to do this is to use [ngrok](https://ngrok.com/) to get a temporary domain name that proxies to your Highfive instance. Additionally, you will be able to use ngrok's inspector to easily examine and replay the requests.
 - Set up the webhook by following the instructions in [Enabling a
   Repo](#enabling-a-repo), substituting your local Highfive IP address
   or domain name and port number (if necessary).
@@ -162,7 +159,8 @@ Here are some details to be aware of:
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
-## License
+License
+=======
 
 Highfive is licensed under the terms of both the MIT License and the
 Apache License (Version 2.0).
