@@ -86,7 +86,7 @@ The `groups` section allows you to alias lists of usernames. You should
 specify at least one user in the group "all". Others are optional.
 
 In the `dirs` section, you map directories of the repository to users or
-groups who're eligible to review PRs that are affecting it. This section can be left
+groups who're eligible to review PRs. This section can be left
 blank.
 
 `contributing` specifies the contribution guide link in the message which
