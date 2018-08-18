@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -e
+
+STAGING_DIR=staging
+PROD_DIR=prod
+
+function decho {
+    CYAN='\033[0;36m'    
+    GREEN='\033[0;32m'
+    RED='\033[0;31m'
+    RESET='\033[0m'
+
+    case "$1" in
+	"c")
+	    COLOR=$CYAN
+	    ;;
+	"g")
+	    COLOR=$GREEN
+	    ;;
+	"r")
+	    COLOR=$RED
+	    ;;
+    esac
+    echo -e "${COLOR}$2${RESET}"
+}
+
+function finish {
+    if [ $? = 0 ]; then
+	decho g "Deployment successful!"
+    else
+	decho r "Deployment failed!"
+    fi
+}
+trap "finish" EXIT
+
+if [ $# != 1 ]; then
+    echo Usage: $0 TARGET
+    echo
+    echo "    TARGET is a Git target, such as branch, commit hash, or tag"
+    exit 1
+fi
+
+TARGET=$1
+decho c "Deploying $TARGET"
+
+cd /highfive
+rm -rf $STAGING_DIR
+git clone https://github.com/rust-lang-nursery/highfive.git $STAGING_DIR
+cd $STAGING_DIR
+git checkout $TARGET
+
+# Get the commit hash for the supplied target
+COMMIT_HASH=`git rev-parse $TARGET 2> /dev/null`
+if [ $? != 0 ]; then
+  decho c "Invalid Git target: $TARGET"
+  exit 1
+fi
+
+# Install the config (e.g., Git credentials)
+source ~/awsclienv/bin/activate
+cd deployment
+aws kms decrypt --region=us-east-1 --ciphertext-blob fileb://config.secure --output text --query Plaintext | base64 --decode > ../highfive/config
+
+# Install the Apache config
+decho c "Installing new Apache config"
+sudo cp apache.conf /etc/apache2/conf-available/highfive.conf
+
+# Rename the staging directory to the commit hash
+cd ../..
+rm -rf $COMMIT_HASH
+mv $STAGING_DIR $COMMIT_HASH
+
+# Point the prod link at this new deployment
+decho c "Pointing production to $TARGET deployment"
+ln -sf /highfive/$COMMIT_HASH /highfive/prod
+
+# Restart Apache
+decho c "Restarting Apache"
+sudo apachectl restart

@@ -1,0 +1,27 @@
+#cloud-config
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCYOiknDNRFEkdTNodNp7mFxsj2pIS9R0nUPfyUaGHThQYswtzOKPiJgI282NipIGBYfmlrbyp3Fdsnpzcf5LBIuZZQKIZ5dkWB9/ylPfqx01jj20+3riB3O5FKgUBE0hXLim8f7XNEheoRZvI4U1txbsRIvOHMGQ5INrrr6iGN2xxio3kiiUvtEtZAcGzeqymxKXgwa/z5kjZ1ZJm99rjcmEn4jmlV6LbLXrC8g4v5zQ9wiKdVef0CY0zkzq2dfQGNjx+llF0e/M7qATEh70ptKZSFm9EBdli2MiCBR0OB5Ah7rQ+lAbfgjw1sGQgzk3HL0LxaDNjDUuamiJXWCjElWMaEsUXKjTynY+nGKt1z7Do2htlIp/rSslRzCzc4kvGGA4dcrkJZNthPZUn6+svBSH/RlFoULb2dLmC9FQWXw+a2cHgCKbH9xgjeI8mkHv2n3Q0Q1n9U1iV/EUVeBs6cLKxoEzSOXg+Y2yPf1SXUvdUctFnbYPQAzGln+ZwSmeMoNXLSViaBG3hQolIAeN1NlpP2idPTCEj3VHNUEur+NenEMTEi9v38yQ8MnRctVF3nPeQIx1zOEZgn3BgAEVn1XhxQoqNAcnzxP7a/2vvlIFKYY7cxXI04umrZ+qDmze4A0vylQs0CDo1gH/rIoyaEREHeZnflbU7DqE5OtHI2vQ== alber.david@gmail.com
+
+# Upgrade apt and install packages.
+package_update: true
+packages:
+  - apache2
+  - mosh
+  - python
+  - python-pip
+
+runcmd:
+  - 'pip install virtualenv'
+  - 'su - ubuntu -c "cd ~ && virtualenv awsclienv && awsclienv/bin/pip install awscli"'
+  # Set up deployment directory
+  - [ mkdir, /highfive ]
+  - [ chown, "ubuntu:ubuntu", /highfive ]
+  # Set up deployment script and do initial deployment
+  - 'su - ubuntu -c "cd ~ && wget https://raw.githubusercontent.com/rust-lang-nursery/highfive/master/deployment/deploy && chmod 755 deploy && ./deploy master"'
+  # Apache configuration
+  - [ a2enmod, cgi ]
+  - [ rm, /etc/apache2/conf-enabled/serve-cgi-bin.conf ]
+  - 'rm /etc/apache2/sites-enabled/*'
+  - [ ln, -s, /etc/apache2/conf-available/highfive.conf, /etc/apache2/conf-enabled ]
+  - [ systemctl, restart, --no-block, apache2 ]
