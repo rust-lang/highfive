@@ -10,7 +10,7 @@ install:
 script:
   - |
     if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then
-      nosetests
+      pytest
     else
-      nosetests -a hermetic
+      pytest -m hermetic
     fi

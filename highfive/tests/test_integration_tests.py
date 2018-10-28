@@ -1,34 +1,27 @@
 from highfive import newpr, payload
-from highfive.tests import base, fakes
+from highfive.tests import fakes
+from highfive.tests.patcherize import patcherize
 from highfive.tests.test_newpr import HighfiveHandlerMock
 import mock
-from nose.plugins.attrib import attr
+import pytest
 
-@attr(type='integration')
-class TestIsNewContributor(base.BaseTest):
-    def setUp(self):
-        super(TestIsNewContributor, self).setUp()
-
-        self.payload = payload.Payload({'repository': {'fork': False}})
-        self.handler = HighfiveHandlerMock(
-            self.payload, integration_token=''
+@pytest.mark.integration
+class TestIsNewContributor(object):
+    @pytest.fixture(autouse=True)
+    def mock_handler(cls):
+        cls.handler = HighfiveHandlerMock(
+            payload.Payload({'repository': {'fork': False}}), integration_token=''
         ).handler
 
     def test_real_contributor_true(self):
-        self.assertFalse(
-            self.handler.is_new_contributor('nrc', 'rust-lang', 'rust')
-        )
+        assert not self.handler.is_new_contributor('nrc', 'rust-lang', 'rust')
 
     def test_real_contributor_false(self):
-        self.assertTrue(
-            self.handler.is_new_contributor('octocat', 'rust-lang', 'rust')
-        )
+        assert self.handler.is_new_contributor('octocat', 'rust-lang', 'rust')
 
     def test_fake_user(self):
-        self.assertTrue(
-            self.handler.is_new_contributor(
-                'fjkesfgojsrgljsdgla', 'rust-lang', 'rust'
-            )
+        assert self.handler.is_new_contributor(
+            'fjkesfgojsrgljsdgla', 'rust-lang', 'rust'
         )
 
 class ApiReqMocker(object):
@@ -48,23 +41,24 @@ class ApiReqMocker(object):
 
         assert self.mock.call_count == len(self.calls)
 
-@attr(type='integration')
-@attr('hermetic')
-class TestNewPr(base.BaseTest):
-    def setUp(self):
-        super(TestNewPr, self).setUp((
+@pytest.mark.integration
+@pytest.mark.hermetic
+class TestNewPr(object):
+    @pytest.fixture(autouse=True)
+    def make_mocks(cls, patcherize):
+        cls.mocks = patcherize((
             ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
             ('load_json_file', 'highfive.newpr.HighfiveHandler._load_json_file'),
         ))
 
-        self.mocks['get_irc_nick'].return_value = None
+        cls.mocks['get_irc_nick'].return_value = None
 
         config_mock = mock.Mock()
         config_mock.get.side_effect = ('integration-user', 'integration-token')
-        self.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
+        cls.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
 
-        self.mocks['load_json_file'].side_effect = (
+        cls.mocks['load_json_file'].side_effect = (
             fakes.get_repo_configs()['individuals_no_dirs'],
             fakes.get_global_configs()['base'],
         )
@@ -81,7 +75,7 @@ class TestNewPr(base.BaseTest):
                     'GET', 'https://the.url/', None,
                     'application/vnd.github.v3.diff'
                 ),
-                {'body': self._load_fake('normal.diff')},
+                {'body': fakes.load_fake('normal.diff')},
             ),
             (
                 (
@@ -121,7 +115,7 @@ class TestNewPr(base.BaseTest):
                     'GET', 'https://the.url/', None,
                     'application/vnd.github.v3.diff'
                 ),
-                {'body': self._load_fake('normal.diff')},
+                {'body': fakes.load_fake('normal.diff')},
             ),
             (
                 (
@@ -165,7 +159,7 @@ class TestNewPr(base.BaseTest):
                     'GET', 'https://the.url/', None,
                     'application/vnd.github.v3.diff'
                 ),
-                {'body': self._load_fake('normal.diff')},
+                {'body': fakes.load_fake('normal.diff')},
             ),
             (
                 (
@@ -200,20 +194,21 @@ class TestNewPr(base.BaseTest):
 
         api_req_mock.verify_calls()
 
-@attr(type='integration')
-@attr('hermetic')
-class TestNewComment(base.BaseTest):
-    def setUp(self):
-        super(TestNewComment, self).setUp((
+@pytest.mark.integration
+@pytest.mark.hermetic
+class TestNewComment(object):
+    @pytest.fixture(autouse=True)
+    def make_mocks(cls, patcherize):
+        cls.mocks = patcherize((
             ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
         ))
 
-        self.mocks['get_irc_nick'].return_value = None
+        cls.mocks['get_irc_nick'].return_value = None
 
         config_mock = mock.Mock()
         config_mock.get.side_effect = ('integration-user', 'integration-token')
-        self.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
+        cls.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
 
     def test_author_is_commenter(self):
         payload = fakes.Payload.new_comment()
