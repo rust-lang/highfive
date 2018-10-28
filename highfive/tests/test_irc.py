@@ -1,13 +1,12 @@
 import mock
+import pytest
 
 from highfive import irc
-from highfive.tests import base
-from nose.plugins.attrib import attr
 
-@attr(type='unit')
-@attr('hermetic')
-class TestIrc(base.BaseTest):
 
+@pytest.mark.unit
+@pytest.mark.hermetic
+class TestIrc(object):
     def test_send_and_join(self):
         with mock.patch('socket.socket') as mocked_socket:
             with mock.patch('time.sleep') as time:

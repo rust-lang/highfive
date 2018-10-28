@@ -50,15 +50,16 @@ Before running tests, make sure the test-requirements are installed by running t
 Once the dependencies are installed, you can run all tests by
 executing:
 
-    $ nosetests
+    $ pytest
 
-Tests are labeled using the nosetests [Attribute Selector
-Plugin](http://nose.readthedocs.io/en/latest/plugins/attrib.html) with
-types of "unit" or "integration". To run only unit tests do:
+Tests are labeled as "unit", "integration", and "hermetic". All unit
+tests are hermetic, but only some integration tests are hermetic. A
+non-hermetic test makes network requests. To run only hermetic tests
+do:
 
-    $ nosetests -a type=unit
+    $ pytest -m hermetic
 
-Only unit tests are run in PR builds. All tests are run in daily cron
+Hermetic tests are run in PR builds. All tests are run in daily cron
 builds.
 
 Adding a Project

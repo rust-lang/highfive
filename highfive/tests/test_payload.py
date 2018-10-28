@@ -1,25 +1,28 @@
 from copy import deepcopy
 from highfive.payload import Payload
-from highfive.tests import base
+from highfive.tests.fakes import load_fake
 import json
 import mock
-from nose.plugins.attrib import attr
-import unittest
+import pytest
 
-@attr(type='unit')
-@attr('hermetic')
-class TestPayload(base.BaseTest):
-    @classmethod
-    def setUpClass(cls):
-        cls.payload = Payload(json.loads(cls._load_fake('open-pr.payload')))
+
+@pytest.mark.unit
+@pytest.mark.hermetic
+class TestPayload(object):
+    @pytest.fixture(autouse=True)
+    def make_payload(cls):
+        cls.payload = Payload(json.loads(load_fake('open-pr.payload')))
 
     def test_get_attr(self):
-        self.assertEqual(self.payload['pull_request', 'state'], 'open')
-        self.assertEqual(self.payload['number'], 1)
+        assert self.payload['pull_request', 'state'] == 'open'
+        assert self.payload['number'] == 1
 
     def test_get_attr_not_found(self):
-        self.assertRaises(KeyError, self.payload.__getitem__, 'foo')
-        self.assertRaises(KeyError, self.payload.__getitem__, ['foo', 'bar'])
-        self.assertRaises(
-            KeyError, self.payload.__getitem__, ['pull_request', 'baz']
-        )
+        with pytest.raises(KeyError):
+            self.payload.__getitem__('foo')
+
+        with pytest.raises(KeyError):
+            self.payload.__getitem__(['foo', 'bar'])
+
+        with pytest.raises(KeyError):
+            self.payload.__getitem__(['pull_request', 'baz'])

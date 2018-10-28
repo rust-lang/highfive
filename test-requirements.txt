@@ -1,3 +1,2 @@
-testtools
-nose
 mock
+pytest

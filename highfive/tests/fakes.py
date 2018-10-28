@@ -2,6 +2,12 @@ from highfive import payload
 import json
 import os
 
+def load_fake(fake):
+    fakes_dir = os.path.join(os.path.dirname(__file__), 'fakes')
+
+    with open(os.path.join(fakes_dir, fake)) as fake:
+        return fake.read()
+
 def get_fake_filename(name):
     return os.path.join(os.path.dirname(__file__), 'fakes', name)
 
