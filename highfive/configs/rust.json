@@ -46,9 +46,5 @@
             "reviewers": ["@GuillaumeGomez"]
         }
     },
-    "contributors": [
-        "Aatch",
-        "lifthrasiir"
-    ],
     "new_pr_labels": ["S-waiting-on-review"]
 }

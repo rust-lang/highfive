@@ -1,2 +1,3 @@
+jsonschema
 mock
 pytest
