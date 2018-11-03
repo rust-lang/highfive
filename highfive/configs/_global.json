@@ -1,6 +1,6 @@
 {
     "groups": {
-        "core": ["@nikomatsakis", "@alexcrichton", "@aturon"],
+        "core": ["@nikomatsakis", "@alexcrichton"],
         "crates": ["@alexcrichton"],
         "doc": ["@steveklabnik", "@GuillaumeGomez", "@frewsxcv", "@QuietMisdreavus"]
     }
