@@ -162,6 +162,21 @@ Here are some details to be aware of:
 
 [rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
 
+Docker
+------
+
+Alternatively, you can build a Docker image that runs Highfive.
+
+    $ docker build -t highfive .
+
+To run a container, you must mount a config file. Assuming you are
+launching a container from a directory containing a config file, you
+can do the following.
+
+    $ docker run -d --rm --name highfive -p 8080:80 -v $(pwd)/config:/highfive/highfive/config highfive
+
+At this point, Highfive is accessible at http://localhost:8080.
+
 License
 =======
 
