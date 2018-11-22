@@ -149,11 +149,6 @@ your local instance. Here is one approach for running a local server:
 
 Here are some details to be aware of:
 
-- The beginning of `choose_reviewer` in
-  [highfive/newpr.py](/highfive/newpr.py) contains logic that causes
-  Highfive to ignore requests from unqualified repositories. You will
-  likely need to modify this logic in order for your local Highfive to
-  take action on new PRs.
 - For Highfive to know how to select reviewers for your repository,
   you need a configuration file in
   [highfive/configs](/highfive/configs).

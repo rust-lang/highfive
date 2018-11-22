@@ -73,11 +73,11 @@ class TestHighfiveHandler(TestNewPR):
             m.mock_config.read.assert_called_once_with('./config')
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
-    def test_load_repo_config_new_pr(self, mock_load_json_file):
+    def test_load_repo_config_supported(self, mock_load_json_file):
         mock_load_json_file.return_value = {'a': 'config!'}
         payload = Payload({
             'action': 'opened',
-            'pull_request': {'base': {'repo': {'name': 'blah'}}}
+            'repository': {'name': 'blah'}
         })
         m = HighfiveHandlerMock(payload)
         m.stop_patchers()
@@ -85,15 +85,17 @@ class TestHighfiveHandler(TestNewPR):
         mock_load_json_file.assert_called_once_with('blah.json')
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
-    def test_load_repo_config_not_new_pr(self, mock_load_json_file):
+    def test_load_repo_config_unsupported(self, mock_load_json_file):
+        mock_load_json_file.side_effect = IOError
         payload = Payload({
             'action': 'created',
-            'pull_request': {'base': {'repo': {'name': 'blah'}}}
+            'repository': {'name': 'blah'}
         })
         m = HighfiveHandlerMock(payload)
         m.stop_patchers()
-        assert m.handler.load_repo_config() is None
-        mock_load_json_file.assert_not_called()
+        with pytest.raises(newpr.UnsupportedRepoError):
+            m.handler.load_repo_config()
+        mock_load_json_file.assert_called_once_with('blah.json')
 
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):
@@ -1122,34 +1124,6 @@ class TestChooseReviewer(TestNewPR):
             chosen_reviewers.add(reviewer)
             mention_list.add(None if mentions is None else tuple(mentions))
         return chosen_reviewers, mention_list
-
-    def test_unsupported_repo(self):
-        """The choose_reviewer function has an escape hatch for calls that
-        are not in specific GitHub organizations or owners. This tests
-        that logic.
-        """
-        diff = self.fakes['diff']['normal']
-        config = self.fakes['config']['individuals_no_dirs']
-        test_return = ('test_user_selection_ignore_this', None)
-        self.handler = HighfiveHandlerMock(
-            Payload({'action': 'opened'}), repo_config=config
-        ).handler
-
-        assert test_return != self.choose_reviewer(
-            'whatever', 'rust-lang', diff, 'foo'
-        )
-        assert test_return != self.choose_reviewer(
-            'whatever', 'rust-lang-nursery', diff, 'foo'
-        )
-        assert test_return != self.choose_reviewer(
-            'whatever', 'rust-lang-deprecated', diff, 'foo'
-        )
-        assert test_return != self.choose_reviewer(
-            'highfive', 'nrc', diff, 'foo'
-        )
-        assert test_return == self.choose_reviewer(
-            'anything', 'else', diff, 'foo'
-        )
 
     def test_individuals_no_dirs_1(self):
         """Test choosing a reviewer from a list of individual reviewers, no

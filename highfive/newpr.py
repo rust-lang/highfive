@@ -45,6 +45,9 @@ submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
+class UnsupportedRepoError(IOError):
+    pass
+
 class HighfiveHandler(object):
     def __init__(self, payload):
         self.payload = payload
@@ -57,13 +60,12 @@ class HighfiveHandler(object):
         self.repo_config = self.load_repo_config()
 
     def load_repo_config(self):
-        '''Load the repository configuration, if this is a new PR.'''
-        if self.payload["action"] == "opened":
-            # If this is a new PR, load the repository configuration.
-            repo = self.payload['pull_request', 'base', 'repo', 'name']
+        '''Load the repository configuration.'''
+        repo = self.payload['repository', 'name']
+        try:
             return self._load_json_file(repo + '.json')
-
-        return None
+        except IOError:
+            raise UnsupportedRepoError
 
     def run(self):
         if self.payload["action"] == "opened":
@@ -239,12 +241,6 @@ class HighfiveHandler(object):
 
     def choose_reviewer(self, repo, owner, diff, exclude):
         '''Choose a reviewer for the PR.'''
-        if not (owner == 'rust-lang' or \
-                owner == 'rust-lang-nursery' or \
-                owner == 'rust-lang-deprecated' or \
-                (owner == 'nrc' and repo == 'highfive')):
-            return ('test_user_selection_ignore_this', None)
-
         # Get JSON data on reviewers.
         dirs = self.repo_config.get('dirs', {})
         groups = deepcopy(self.repo_config['groups'])
@@ -433,5 +429,8 @@ if __name__ == "__main__":
 
     post = cgi.FieldStorage()
     payload_raw = post.getfirst("payload",'')
-    handler = HighfiveHandler(payload.Payload(json.loads(payload_raw)))
-    handler.run()
+    try:
+        handler = HighfiveHandler(payload.Payload(json.loads(payload_raw)))
+        handler.run()
+    except UnsupportedRepoError:
+        print "Unsupported repository"
