@@ -1,9 +1,0 @@
-{
-    "groups":{
-        "all": ["@fitzgen"]
-    },
-    "dirs":{
-    },
-    "expected_branch": "develop",
-    "new_pr_labels": ["S-waiting-for-review"]
-}
