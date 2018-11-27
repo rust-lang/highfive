@@ -6,6 +6,7 @@ from highfive.tests.patcherize import patcherize
 from highfive.tests.fakes import load_fake
 import json
 import mock
+import os
 import pytest
 from urllib2 import HTTPError
 
@@ -77,25 +78,29 @@ class TestHighfiveHandler(TestNewPR):
         mock_load_json_file.return_value = {'a': 'config!'}
         payload = Payload({
             'action': 'opened',
-            'repository': {'name': 'blah'}
+            'repository': {'full_name': 'foo/blah'}
         })
         m = HighfiveHandlerMock(payload)
         m.stop_patchers()
         assert m.handler.load_repo_config() == {'a': 'config!'}
-        mock_load_json_file.assert_called_once_with('blah.json')
+        mock_load_json_file.assert_called_once_with(
+            os.path.join('foo', 'blah.json')
+        )
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_load_repo_config_unsupported(self, mock_load_json_file):
         mock_load_json_file.side_effect = IOError
         payload = Payload({
             'action': 'created',
-            'repository': {'name': 'blah'}
+            'repository': {'full_name': 'foo/blah'}
         })
         m = HighfiveHandlerMock(payload)
         m.stop_patchers()
         with pytest.raises(newpr.UnsupportedRepoError):
             m.handler.load_repo_config()
-        mock_load_json_file.assert_called_once_with('blah.json')
+        mock_load_json_file.assert_called_once_with(
+            os.path.join('foo', 'blah.json')
+        )
 
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):

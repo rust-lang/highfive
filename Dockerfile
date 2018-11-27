@@ -10,7 +10,7 @@ WORKDIR /highfive
 
 COPY setup.py .
 COPY highfive/*.py highfive/
-COPY highfive/configs/* highfive/configs/
+COPY highfive/configs/ highfive/configs/
 RUN python setup.py install
 RUN touch highfive/config
 RUN chown -R www-data:www-data .

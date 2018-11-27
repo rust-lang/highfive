@@ -61,9 +61,9 @@ class HighfiveHandler(object):
 
     def load_repo_config(self):
         '''Load the repository configuration.'''
-        repo = self.payload['repository', 'name']
+        (org, repo) = self.payload['repository', 'full_name'].split('/')
         try:
-            return self._load_json_file(repo + '.json')
+            return self._load_json_file(os.path.join(org, repo) + '.json')
         except IOError:
             raise UnsupportedRepoError
 
