@@ -17,7 +17,6 @@ from highfive import irc, payload
 
 # Maximum per page is 100. Sorted by number of commits, so most of the time the
 # contributor will happen early,
-contributors_url = "https://api.github.com/repos/%s/%s/contributors?per_page=100"
 post_comment_url = "https://api.github.com/repos/%s/%s/issues/%s/comments"
 user_collabo_url = "https://api.github.com/repos/%s/%s/collaborators/%s"
 issue_url = "https://api.github.com/repos/%s/%s/issues/%s"
