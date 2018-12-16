@@ -21,9 +21,9 @@ history see the comments in [#35][].
 1. [Installation](#installation)
 2. [Testing](#testing)
 3. [Adding a Project](#adding-a-project)
-4. [Enabling a Repository](#enabling-a-repository)
-5. [Local Development](#local-development)
-6. [License](#license)
+5. [Enabling a Repository](#enabling-a-repository)
+6. [Local Development](#local-development)
+7. [License](#license)
 
 Installation
 =======
@@ -125,17 +125,16 @@ out or empty, no new labels will be applied.
 Enabling a Repository
 ---------------
 
-Once the hooks for a repository are set up, visit the repository's webhook settings
-page at `https://github.com/org/repo/settings/hooks`. 
+Once the PR updating the repository configuration has been merged, run the
+`update-webhooks.py` script at the root of this repository:
 
-Create a new webhook, pointing at your highfive instance's location:
+```
+$ python3 update-webhooks.py
+```
 
-- Enter payload URL: `http://99.88.777.666/highfive/newpr.py`
-- Enter content type: `application/x-www-form-urlencoded`
-- Leave the "secret" field blank
-- Click on "Let me select individual events", and heck the boxes by "Issue comment" and "pull request"
-- Check the box by "Active"
-- Click on "Add webhook"
+The script requires the `GITHUB_TOKEN` environment variable to be set to a
+valid GitHub API token, and it will make sure the configuration of all the
+repositories you have admin access to is correct.
 
 Local Development
 -----------------
