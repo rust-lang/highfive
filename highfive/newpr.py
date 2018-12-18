@@ -424,7 +424,7 @@ if __name__ == "__main__":
     print "Content-Type: text/html;charset=utf-8"
     print
 
-    cgitb.enable()
+    cgitb.enable(display=0, logdir="/var/log/highfive-tracebacks", format="txt")
 
     post = cgi.FieldStorage()
     payload_raw = post.getfirst("payload",'')
