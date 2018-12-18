@@ -23,5 +23,7 @@ RUN rm conf-enabled/serve-cgi-bin.conf
 RUN rm sites-enabled/*
 RUN ln -s ../conf-available/highfive.conf conf-enabled
 
+RUN mkdir /var/log/highfive-tracebacks && chown www-data: /var/log/highfive-tracebacks
+
 EXPOSE 80
 CMD apachectl -D FOREGROUND
