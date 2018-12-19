@@ -325,6 +325,10 @@ Please see [the contribution instructions](%s) for more information.
             'r?! @foo',
             'r? foo',
             'r? @',
+            # When there is no content in a PR description GitHub sets the body
+            # as None instead of an empty string
+            # https://github.com/rust-lang-nursery/highfive/issues/184
+            None,
         )
         handler = HighfiveHandlerMock(Payload({})).handler
 

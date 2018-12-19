@@ -103,6 +103,47 @@ class TestNewPr(object):
 
         api_req_mock.verify_calls()
 
+    def test_new_pr_empty_body(self):
+        payload = fakes.Payload.new_pr(
+            repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix',
+            pr_body=None,
+        )
+        handler = newpr.HighfiveHandler(payload)
+
+        api_req_mock = ApiReqMocker([
+            (
+                (
+                    'GET', 'https://the.url/', None,
+                    'application/vnd.github.v3.diff'
+                ),
+                {'body': fakes.load_fake('normal.diff')},
+            ),
+            (
+                (
+                    'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
+                    {'assignee': 'nrc'}
+                ),
+                {'body': {}},
+            ),
+            (
+                (
+                    'GET', newpr.commit_search_url % ('rust-lang', 'rust', 'pnkfelix'),
+                    None, 'application/vnd.github.cloak-preview'
+                ),
+                {'body': '{"total_count": 0}'},
+            ),
+            (
+                (
+                    'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
+                    {'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"}
+                ),
+                {'body': {}},
+            ),
+        ])
+        handler.new_pr()
+
+        api_req_mock.verify_calls()
+
     def test_new_pr_contributor(self):
         payload = fakes.Payload.new_pr(
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'

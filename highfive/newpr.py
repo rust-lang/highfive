@@ -235,8 +235,9 @@ class HighfiveHandler(object):
         If the user specified a reviewer, return the username, otherwise returns
         None.
         '''
-        match = reviewer_re.search(msg)
-        return match.group(1) if match else None
+        if msg is not None:
+            match = reviewer_re.search(msg)
+            return match.group(1) if match else None
 
     def choose_reviewer(self, repo, owner, diff, exclude):
         '''Choose a reviewer for the PR.'''
