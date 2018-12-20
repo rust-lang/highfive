@@ -19,11 +19,11 @@ history see the comments in [#35][].
 ### Table of Contents
 
 1. [Installation](#installation)
-2. [Testing](#testing)
-3. [Adding a Project](#adding-a-project)
-5. [Enabling a Repository](#enabling-a-repository)
-6. [Local Development](#local-development)
-7. [License](#license)
+1. [Testing](#testing)
+1. [Adding a Project](#adding-a-project)
+1. [Enabling a Repository](#enabling-a-repository)
+1. [Local Development](#local-development)
+1. [License](#license)
 
 Installation
 =======
