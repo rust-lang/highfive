@@ -12,6 +12,7 @@ from StringIO import StringIO
 import gzip
 import re
 import os
+from retry import retry
 
 from highfive import irc, payload
 
@@ -45,6 +46,9 @@ submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
 class UnsupportedRepoError(IOError):
+    pass
+
+class HttpClientError(Exception):
     pass
 
 class HighfiveHandler(object):
@@ -102,6 +106,7 @@ class HighfiveHandler(object):
         body = f.read()
         return { "header": header, "body": body }
 
+    @retry(HttpClientError, delay=1, backoff=2, max_delay=3)
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
         try:
             self.api_req(
@@ -111,6 +116,8 @@ class HighfiveHandler(object):
         except urllib2.HTTPError, e:
             if e.code == 201:
                 pass
+            elif e.code == 400:
+                raise HttpClientError
             else:
                 raise e
 
@@ -146,6 +153,7 @@ class HighfiveHandler(object):
 
         return None
 
+    @retry(HttpClientError, delay=1, backoff=2, max_delay=3)
     def is_collaborator(self, commenter, owner, repo):
         """Returns True if `commenter` is a collaborator in the repo."""
         try:
@@ -156,6 +164,8 @@ class HighfiveHandler(object):
         except urllib2.HTTPError, e:
             if e.code == 404:
                 return False
+            elif e.code == 400:
+                raise HttpClientError
             else:
                 raise e
 
@@ -172,6 +182,7 @@ class HighfiveHandler(object):
         if warnings:
             self.post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue)
 
+    @retry(HttpClientError, delay=1, backoff=2, max_delay=3)
     def post_comment(self, body, owner, repo, issue):
         try:
             self.api_req(
@@ -180,6 +191,8 @@ class HighfiveHandler(object):
         except urllib2.HTTPError, e:
             if e.code == 201:
                 pass
+            elif e.code == 400:
+                raise HttpClientError
             else:
                 raise e
 
@@ -211,6 +224,7 @@ class HighfiveHandler(object):
         return (expected_target, actual_target) \
             if expected_target != actual_target else False
 
+    @retry(HttpClientError, delay=1, backoff=2, max_delay=3)
     def is_new_contributor(self, username, owner, repo):
         # If this is a fork, we do not treat anyone as a new user. This is
         # because the API endpoint called in this function indicates all
@@ -227,6 +241,8 @@ class HighfiveHandler(object):
         except urllib2.HTTPError, e:
             if e.code == 422:
                 return True
+            elif e.code == 400:
+                raise HttpClientError
             else:
                 raise e
 

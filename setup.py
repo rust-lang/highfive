@@ -9,4 +9,5 @@ setup(name='highfive',
       author_email='no-idea@no-server.no-suffix',
       url='https://github.com/rust-lang-nursery/highfive',
       packages=['highfive'],
+      install_requires=['retry'],
 )
