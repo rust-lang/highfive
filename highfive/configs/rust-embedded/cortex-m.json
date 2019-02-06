@@ -1,0 +1,6 @@
+{
+    "groups": {
+        "all": ["cortex-m"]
+    },
+    "new_pr_labels": ["S-waiting-on-review"]
+}
