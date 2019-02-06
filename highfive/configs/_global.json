@@ -2,6 +2,7 @@
     "groups": {
         "core": ["@nikomatsakis", "@alexcrichton"],
         "crates": ["@alexcrichton"],
-        "doc": ["@steveklabnik", "@GuillaumeGomez", "@frewsxcv", "@QuietMisdreavus"]
+        "doc": ["@steveklabnik", "@GuillaumeGomez", "@frewsxcv", "@QuietMisdreavus"],
+        "embedded/cortex-m": ["@adamgreig", "@ithinuel", "@japaric", "@korken89", "@thejpster", "@therealprof"]
     }
 }
