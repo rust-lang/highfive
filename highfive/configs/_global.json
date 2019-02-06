@@ -3,6 +3,6 @@
         "core": ["@nikomatsakis", "@alexcrichton"],
         "crates": ["@alexcrichton"],
         "doc": ["@steveklabnik", "@GuillaumeGomez", "@frewsxcv", "@QuietMisdreavus"],
-        "cortex-m": ["@adamgreig", "@ithinuel", "@japaric", "@korken89", "@thejpster", "@therealprof"]
+        "embedded/cortex-m": ["@adamgreig", "@ithinuel", "@japaric", "@korken89", "@thejpster", "@therealprof"]
     }
 }

@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["cortex-m"]
+        "all": ["embedded/cortex-m"]
     },
     "new_pr_labels": ["S-waiting-on-review"]
 }
