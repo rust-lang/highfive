@@ -1,8 +1,8 @@
 {
     "groups": {
         "all": [],
-        "compiler": ["@nikomatsakis", "@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@michaelwoerister", "@varkor", "@matthewjasper", "@davidtwco", "@zackmdavis", "@oli-obk"],
-        "syntax": ["@nikomatsakis", "@pnkfelix", "@petrochenkov", "@michaelwoerister", "@eddyb"],
+        "compiler": ["@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@michaelwoerister", "@varkor", "@matthewjasper", "@davidtwco", "@zackmdavis", "@oli-obk"],
+        "syntax": ["@pnkfelix", "@petrochenkov", "@michaelwoerister", "@eddyb"],
         "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"],
         "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
