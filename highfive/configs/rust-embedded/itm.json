@@ -1,0 +1,6 @@
+{
+    "groups": {
+        "all": ["rust-embedded/cortex-m", "rust-embedded/tools"]
+    },
+    "new_pr_labels": ["S-waiting-on-review", "T-cortex-m", "T-tools"]
+}
