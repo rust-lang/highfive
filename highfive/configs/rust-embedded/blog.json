@@ -1,0 +1,6 @@
+{
+    "groups": {
+        "all": ["rust-embedded/resources"]
+    },
+    "new_pr_labels": ["S-waiting-on-review", "T-resources"]
+}
