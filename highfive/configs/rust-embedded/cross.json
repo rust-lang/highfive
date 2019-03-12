@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["@DylanDPC", "@jamesmunns", "@japaric"]
+        "all": ["@DylanDPC", "@jamesmunns"]
     },
     "new_pr_labels": ["S-waiting-on-review"]
 }
