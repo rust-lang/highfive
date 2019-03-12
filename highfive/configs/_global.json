@@ -8,6 +8,7 @@
         "rust-embedded/embedded-linux": ["@posborne", "@nastevens"],
         "rust-embedded/hal": ["@hannobraun", "@ryankurte", "@thejpster", "@therealprof", "@ithinuel", "@japaric"],
         "rust-embedded/infrastructure": ["@ryankurte", "@nastevens"],
-        "rust-embedded/resources": ["@adamgreig", "@andre-richter", "@jamesmunns", "@japaric", "@korken89", "@ryankurte", "@thejpster", "@therealprof"]
+        "rust-embedded/resources": ["@adamgreig", "@andre-richter", "@jamesmunns", "@japaric", "@korken89", "@ryankurte", "@thejpster", "@therealprof"],
+        "rust-embedded/tools": ["@Emilgardis", "@ryankurte", "@therealprof"]
     }
 }
