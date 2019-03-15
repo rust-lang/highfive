@@ -16,6 +16,7 @@ setup(
         'click',
         'flask',
         'python-dotenv',
+        'requests',
         'waitress',
     ],
     entry_points = {

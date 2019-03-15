@@ -14,7 +14,6 @@ COPY setup.py .
 COPY highfive/*.py highfive/
 COPY highfive/configs/ highfive/configs/
 RUN pip install .
-RUN touch highfive/config
 
 EXPOSE 80
 ENV HIGHFIVE_PORT 80

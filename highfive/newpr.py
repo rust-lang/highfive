@@ -47,13 +47,11 @@ class UnsupportedRepoError(IOError):
     pass
 
 class HighfiveHandler(object):
-    def __init__(self, payload):
+    def __init__(self, payload, config):
         self.payload = payload
 
-        self.config = ConfigParser.RawConfigParser()
-        self.config.read('./config')
-        self.integration_user = self.config.get('github', 'user')
-        self.integration_token = self.config.get('github', 'token')
+        self.integration_user = config.github_username
+        self.integration_token = config.github_token
 
         self.repo_config = self.load_repo_config()
 

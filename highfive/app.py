@@ -1,5 +1,7 @@
 import json
+import sys
 
+from .config import Config, InvalidTokenException
 from .newpr import HighfiveHandler, UnsupportedRepoError
 from .payload import Payload
 
@@ -9,7 +11,7 @@ import flask
 import waitress
 
 
-def create_app():
+def create_app(config):
     app = flask.Flask(__name__)
 
     # The canonical URL is /webhook, but other URLs are accepted for backward
@@ -23,7 +25,7 @@ def create_app():
         except (KeyError, ValueError), _:
             return 'Error: missing or invalid payload\n', 400
         try:
-            handler = HighfiveHandler(Payload(payload))
+            handler = HighfiveHandler(Payload(payload), config)
             return handler.run(flask.request.headers['X-GitHub-Event'])
         except UnsupportedRepoError:
             return 'Error: this repository is not configured!\n', 400
@@ -37,8 +39,16 @@ def create_app():
 
 @click.command()
 @click.option('--port', default=8000)
-def cli(port):
-    app = create_app()
+@click.option('--github-token', required=True)
+def cli(port, github_token):
+    try:
+        config = Config(github_token)
+    except InvalidTokenException:
+        print 'error: invalid github token provided!'
+        sys.exit(1)
+    print 'Found a valid GitHub token for user @' + config.github_username
+
+    app = create_app(config)
     waitress.serve(app, port=port)
 
 

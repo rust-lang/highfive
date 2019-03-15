@@ -1,9 +1,11 @@
 from highfive import newpr, payload
+from highfive.config import Config
 from highfive.tests import fakes
 from highfive.tests.patcherize import patcherize
 from highfive.tests.test_newpr import HighfiveHandlerMock
 import mock
 import pytest
+import responses
 
 @pytest.mark.integration
 class TestIsNewContributor(object):
@@ -41,6 +43,14 @@ class ApiReqMocker(object):
 
         assert self.mock.call_count == len(self.calls)
 
+def dummy_config():
+    with responses.RequestsMock() as resp:
+        resp.add(
+            responses.GET, 'https://api.github.com/user',
+            json={'login': 'integration-user'},
+        )
+        return Config('integration_token')
+
 @pytest.mark.integration
 @pytest.mark.hermetic
 class TestNewPr(object):
@@ -54,10 +64,6 @@ class TestNewPr(object):
 
         cls.mocks['get_irc_nick'].return_value = None
 
-        config_mock = mock.Mock()
-        config_mock.get.side_effect = ('integration-user', 'integration-token')
-        cls.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
-
         cls.mocks['load_json_file'].side_effect = (
             fakes.get_repo_configs()['individuals_no_dirs'],
             fakes.get_global_configs()['base'],
@@ -67,7 +73,7 @@ class TestNewPr(object):
         payload = fakes.Payload.new_pr(
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'
         )
-        handler = newpr.HighfiveHandler(payload)
+        handler = newpr.HighfiveHandler(payload, dummy_config())
 
         api_req_mock = ApiReqMocker([
             (
@@ -108,7 +114,7 @@ class TestNewPr(object):
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix',
             pr_body=None,
         )
-        handler = newpr.HighfiveHandler(payload)
+        handler = newpr.HighfiveHandler(payload, dummy_config())
 
         api_req_mock = ApiReqMocker([
             (
@@ -148,7 +154,7 @@ class TestNewPr(object):
         payload = fakes.Payload.new_pr(
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'
         )
-        handler = newpr.HighfiveHandler(payload)
+        handler = newpr.HighfiveHandler(payload, dummy_config())
 
         api_req_mock = ApiReqMocker([
             (
@@ -192,7 +198,7 @@ class TestNewPr(object):
         payload = fakes.Payload.new_pr(
             repo_owner='rust-lang', repo_name='rust', pr_author='pnkfelix'
         )
-        handler = newpr.HighfiveHandler(payload)
+        handler = newpr.HighfiveHandler(payload, dummy_config())
 
         api_req_mock = ApiReqMocker([
             (
@@ -253,7 +259,7 @@ class TestNewComment(object):
 
     def test_author_is_commenter(self):
         payload = fakes.Payload.new_comment()
-        handler = newpr.HighfiveHandler(payload)
+        handler = newpr.HighfiveHandler(payload, dummy_config())
         api_req_mock = ApiReqMocker([
             (
                 (
@@ -270,7 +276,7 @@ class TestNewComment(object):
         payload = fakes.Payload.new_comment()
         payload._payload['issue']['user']['login'] = 'foouser'
 
-        handler = newpr.HighfiveHandler(payload)
+        handler = newpr.HighfiveHandler(payload, dummy_config())
         api_req_mock = ApiReqMocker([
             (
                 (

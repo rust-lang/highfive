@@ -162,14 +162,11 @@ your local instance. Here is one approach for running a local server:
   or domain name and port number (if necessary).
 - Obtain an OAuth token. In the account you are creating the token in,
   go to https://github.com/settings/tokens. Grant access to the repository scope.
-- Put the authorization information obtained in the previous step into
-  a file named config in the top of the repository (i.e., the
-  directory containing this file). Here's a template of what it should
-  look like:
+- Put the authorization information obtained in the previous step into a file
+  named `.env` in the top of the repository (i.e., the directory containing
+  this file). Here is a template of what it should look like:
   ```
-  [github]
-  user: OAUTH_TOKEN_USER
-  token: OAUTH_TOKEN
+  HIGHFIVE_GITHUB_TOKEN=your-token
   ```
   _Do not check in this file or commit your OAuth token to a
   repository in any other way. It is a secret._
@@ -189,13 +186,17 @@ Docker
 
 Alternatively, you can build a Docker image that runs Highfive.
 
-    $ docker build -t highfive .
+```
+$ docker build -t highfive .
+```
 
 To run a container, you must mount a config file. Assuming you are
 launching a container from a directory containing a config file, you
 can do the following.
 
-    $ docker run -d --rm --name highfive -p 8080:80 -v $(pwd)/config:/highfive/highfive/config highfive
+```
+$ docker run -d --rm --name highfive -p 8000:80 -e HIGHFIVE_GITHUB_TOKEN=token highfive
+```
 
 At this point, Highfive is accessible at http://localhost:8080.
 
