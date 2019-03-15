@@ -195,7 +195,7 @@ launching a container from a directory containing a config file, you
 can do the following.
 
 ```
-$ docker run -d --rm --name highfive -p 8000:80 -e HIGHFIVE_GITHUB_TOKEN=token highfive
+$ docker run -d --rm --name highfive -p 8000:80 -e HIGHFIVE_GITHUB_TOKEN=token -e HIGHFIVE_WEBHOOK_SECRET=secret highfive
 ```
 
 At this point, Highfive is accessible at http://localhost:8080.
