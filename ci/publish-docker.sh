@@ -1,6 +1,5 @@
 #!/bin/bash
-set -euo pipefail
-IFS=$'\n\t'
+set -e
 
 ECR_IMAGE="890664054962.dkr.ecr.us-west-1.amazonaws.com/rust-highfive:latest"
 
