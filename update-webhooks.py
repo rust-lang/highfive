@@ -7,11 +7,12 @@
 # URLs of old highfive instances
 # Webhooks with this URL will be edited to point to the new instance
 REPLACE_OLD_URLS = [
-    "https://www.ncameron.org/highfive/newpr.py"
+    "https://www.ncameron.org/highfive/newpr.py",
+    "https://internal-secret-rust-bots.rust-lang.org/highfive/newpr.py",
 ]
 
 # URL of the current instance
-CURRENT_URL = "https://internal-secret-rust-bots.rust-lang.org/highfive/newpr.py"
+CURRENT_URL = "https://highfive.infra.rust-lang.org/webhook"
 
 # Events the current instance requires
 EVENTS = [
@@ -51,7 +52,7 @@ def find_config_files(path):
             result.append(file)
     return result
 
-def update_webhook(config, api):
+def update_webhook(config, api, secret):
     """Update the webhook of a single file"""
     name = os.path.basename(config).rsplit(".", 1)[0]
     org = os.path.basename(os.path.dirname(config))
@@ -82,6 +83,7 @@ def update_webhook(config, api):
         api.req("POST", "repos/%s/%s/hooks", org, name, data={
             "config": {
                 "url": CURRENT_URL,
+                "secret": secret,
                 "content_type": "form",
                 "insecure_ssl": 0,
             },
@@ -93,6 +95,7 @@ def update_webhook(config, api):
         api.req("PATCH", "repos/%s/%s/hooks/%s", org, name, replace, data={
             "config": {
                 "url": CURRENT_URL,
+                "secret": secret,
                 "content_type": "form",
                 "insecure_ssl": 0,
             },
@@ -107,5 +110,7 @@ if __name__ == "__main__":
         exit(1)
     api = GitHubApi(os.environ["GITHUB_TOKEN"])
 
+    secret = input("Please enter the webhooks' secret key: ")
+
     for config in find_config_files("highfive/configs"):
-        update_webhook(config, api)
+        update_webhook(config, api, secret)
