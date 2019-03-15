@@ -142,26 +142,31 @@ Local Development
 You can run Highfive on your machine and configure a repository to use
 your local instance. Here is one approach for running a local server:
 
-- Use [serve.py](/serve.py) to run the Highfive service. From the
-  repository root, do:
+- Create a [virtualenv](https://virtualenv.pypa.io/en/stable/) to isolate the
+  Python environment from the rest of the system, and install highfive in it:
   ```
-  $ PYTHONPATH=$PYTHONPATH:$PWD python serve.py
+  $ virtualenv -p python2 env
+  $ env/bin/pip install -e .
   ```
-  Now you have Highfive listening on port 8000 of your machine.
-- Your Highfive instance will need to be reachable from outside of your machine. One way to do this is to use [ngrok](https://ngrok.com/) to get a temporary domain name that proxies to your Highfive instance. Additionally, you will be able to use ngrok's inspector to easily examine and replay the requests.
+- Run the highfive command to start a development server on port 8000:
+  ```
+  $ env/bin/highfive
+  ```
+- Your Highfive instance will need to be reachable from outside of your
+  machine. One way to do this is to use [ngrok](https://ngrok.com/) to get a
+  temporary domain name that proxies to your Highfive instance. Additionally,
+  you will be able to use ngrok's inspector to easily examine and replay the
+  requests.
 - Set up the webhook by following the instructions in [Enabling a
   Repo](#enabling-a-repo), substituting your local Highfive IP address
   or domain name and port number (if necessary).
 - Obtain an OAuth token. In the account you are creating the token in,
   go to https://github.com/settings/tokens. Grant access to the repository scope.
-- Put the authorization information obtained in the previous step into
-  a file named config in the top of the repository (i.e., the
-  directory containing this file). Here's a template of what it should
-  look like:
+- Put the authorization information obtained in the previous step into a file
+  named `.env` in the top of the repository (i.e., the directory containing
+  this file). Here is a template of what it should look like:
   ```
-  [github]
-  user: OAUTH_TOKEN_USER
-  token: OAUTH_TOKEN
+  HIGHFIVE_GITHUB_TOKEN=your-token
   ```
   _Do not check in this file or commit your OAuth token to a
   repository in any other way. It is a secret._
@@ -181,13 +186,17 @@ Docker
 
 Alternatively, you can build a Docker image that runs Highfive.
 
-    $ docker build -t highfive .
+```
+$ docker build -t highfive .
+```
 
 To run a container, you must mount a config file. Assuming you are
 launching a container from a directory containing a config file, you
 can do the following.
 
-    $ docker run -d --rm --name highfive -p 8080:80 -v $(pwd)/config:/highfive/highfive/config highfive
+```
+$ docker run -d --rm --name highfive -p 8000:80 -e HIGHFIVE_GITHUB_TOKEN=token -e HIGHFIVE_WEBHOOK_SECRET=secret highfive
+```
 
 At this point, Highfive is accessible at http://localhost:8080.
 

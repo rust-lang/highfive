@@ -1,5 +1,6 @@
 from copy import deepcopy
 from highfive import newpr
+from highfive.config import Config
 from highfive.payload import Payload
 from highfive.tests import fakes
 from highfive.tests.patcherize import patcherize
@@ -8,6 +9,7 @@ import json
 import mock
 import os
 import pytest
+import responses
 from urllib2 import HTTPError
 
 @pytest.mark.unit
@@ -24,19 +26,20 @@ class HighfiveHandlerMock(object):
         self.integration_user = integration_user
         self.integration_token = integration_token
 
-        def config_handler(section, key):
-            if section == 'github':
-                if key == 'user':
-                    return integration_user
-                if key == 'token':
-                    return integration_token
-
         self.patchers_stopped = False
+
+        with responses.RequestsMock() as resp:
+            resp.add(
+                responses.GET, 'https://api.github.com/user',
+                json={'login': integration_user},
+            )
+            if integration_token:
+                config = Config(integration_token)
+            else:
+                config = Config('dummy')
+                config.github_token = ''
+
         self.config_patcher = mock.patch('highfive.newpr.ConfigParser')
-        self.mock_config_parser = self.config_patcher.start()
-        self.mock_config = mock.Mock()
-        self.mock_config.get.side_effect = config_handler
-        self.mock_config_parser.RawConfigParser.return_value = self.mock_config
 
         self.load_repo_config_patcher = mock.patch(
             'highfive.newpr.HighfiveHandler.load_repo_config'
@@ -44,7 +47,7 @@ class HighfiveHandlerMock(object):
         self.mock_load_repo_config = self.load_repo_config_patcher.start()
         self.mock_load_repo_config.return_value = repo_config
 
-        self.handler = newpr.HighfiveHandler(payload)
+        self.handler = newpr.HighfiveHandler(payload, config)
 
     def __enter__(self):
         return self
@@ -58,7 +61,6 @@ class HighfiveHandlerMock(object):
     def stop_patchers(self):
         if not self.patchers_stopped:
             self.patchers_stopped = True
-            self.config_patcher.stop()
             self.load_repo_config_patcher.stop()
 
 class TestHighfiveHandler(TestNewPR):
@@ -67,11 +69,9 @@ class TestHighfiveHandler(TestNewPR):
         payload = Payload({'the': 'payload'})
         with HighfiveHandlerMock(payload, repo_config={'a': 'config!'}) as m:
             assert m.handler.payload == payload
-            assert m.handler.config == m.mock_config
             assert m.handler.integration_user == 'integrationUser'
             assert m.handler.integration_token == 'integrationToken'
             assert m.handler.repo_config == {'a': 'config!'}
-            m.mock_config.read.assert_called_once_with('./config')
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_load_repo_config_supported(self, mock_load_json_file):
@@ -1244,7 +1244,6 @@ class TestRun(TestNewPR):
         cls.mocks = patcherize((
             ('new_pr', 'highfive.newpr.HighfiveHandler.new_pr'),
             ('new_comment', 'highfive.newpr.HighfiveHandler.new_comment'),
-            ('sys', 'highfive.newpr.sys'),
         ))
 
     def handler_mock(self, payload):
@@ -1255,26 +1254,20 @@ class TestRun(TestNewPR):
     def test_newpr(self):
         payload = Payload({'action': 'opened'})
         m = self.handler_mock(payload)
-        m.handler.run()
-        assert m.mock_config.get.call_count == 2
+        assert m.handler.run('pull_request') == 'OK\n'
         self.mocks['new_pr'].assert_called_once_with()
         self.mocks['new_comment'].assert_not_called()
-        self.mocks['sys'].exit.assert_not_called()
 
     def test_new_comment(self):
         payload = Payload({'action': 'created'})
         m = self.handler_mock(payload)
-        m.handler.run()
-        assert m.mock_config.get.call_count == 2
+        assert m.handler.run('issue_comment') == 'OK\n'
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_called_once_with()
-        self.mocks['sys'].exit.assert_not_called()
 
     def test_unsupported_payload(self):
         payload = Payload({'action': 'something-not-supported'})
         m = self.handler_mock(payload)
-        m.handler.run()
-        assert m.mock_config.get.call_count == 2
+        assert m.handler.run('issue_comment') != 'OK\n'
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_not_called()
-        self.mocks['sys'].exit.assert_called_once_with(0)

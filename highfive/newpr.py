@@ -6,7 +6,6 @@ import cgitb
 from copy import deepcopy
 import json
 import random
-import sys
 import ConfigParser
 from StringIO import StringIO
 import gzip
@@ -48,13 +47,11 @@ class UnsupportedRepoError(IOError):
     pass
 
 class HighfiveHandler(object):
-    def __init__(self, payload):
+    def __init__(self, payload, config):
         self.payload = payload
 
-        self.config = ConfigParser.RawConfigParser()
-        self.config.read('./config')
-        self.integration_user = self.config.get('github', 'user')
-        self.integration_token = self.config.get('github', 'token')
+        self.integration_user = config.github_username
+        self.integration_token = config.github_token
 
         self.repo_config = self.load_repo_config()
 
@@ -66,14 +63,17 @@ class HighfiveHandler(object):
         except IOError:
             raise UnsupportedRepoError
 
-    def run(self):
-        if self.payload["action"] == "opened":
+    def run(self, event):
+        if event == "ping":
+            return "Ping received! The webhook is configured correctly!\n"
+        elif event == "pull_request" and self.payload["action"] == "opened":
             self.new_pr()
-        elif self.payload["action"] == "created":
+            return 'OK\n'
+        elif event == "issue_comment" and self.payload["action"] == "created":
             self.new_comment()
+            return 'OK\n'
         else:
-            print self.payload["action"]
-            sys.exit(0)
+            return 'Unsupported webhook event.\n'
 
     def _load_json_file(self, name):
         configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
@@ -419,18 +419,3 @@ class HighfiveHandler(object):
                 reviewer, owner, repo, issue, self.integration_user,
                 author, None
             )
-
-
-if __name__ == "__main__":
-    print "Content-Type: text/html;charset=utf-8"
-    print
-
-    cgitb.enable(display=0, logdir="/var/log/highfive-tracebacks", format="txt")
-
-    post = cgi.FieldStorage()
-    payload_raw = post.getfirst("payload",'')
-    try:
-        handler = HighfiveHandler(payload.Payload(json.loads(payload_raw)))
-        handler.run()
-    except UnsupportedRepoError:
-        print "Unsupported repository"
