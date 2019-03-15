@@ -142,13 +142,21 @@ Local Development
 You can run Highfive on your machine and configure a repository to use
 your local instance. Here is one approach for running a local server:
 
-- Use [serve.py](/serve.py) to run the Highfive service. From the
-  repository root, do:
+- Create a [virtualenv](https://virtualenv.pypa.io/en/stable/) to isolate the
+  Python environment from the rest of the system, and install highfive in it:
   ```
-  $ PYTHONPATH=$PYTHONPATH:$PWD python serve.py
+  $ virtualenv -p python2 env
+  $ env/bin/pip install -e .
   ```
-  Now you have Highfive listening on port 8000 of your machine.
-- Your Highfive instance will need to be reachable from outside of your machine. One way to do this is to use [ngrok](https://ngrok.com/) to get a temporary domain name that proxies to your Highfive instance. Additionally, you will be able to use ngrok's inspector to easily examine and replay the requests.
+- Run the highfive command to start a development server on port 8000:
+  ```
+  $ env/bin/highfive
+  ```
+- Your Highfive instance will need to be reachable from outside of your
+  machine. One way to do this is to use [ngrok](https://ngrok.com/) to get a
+  temporary domain name that proxies to your Highfive instance. Additionally,
+  you will be able to use ngrok's inspector to easily examine and replay the
+  requests.
 - Set up the webhook by following the instructions in [Enabling a
   Repo](#enabling-a-repo), substituting your local Highfive IP address
   or domain name and port number (if necessary).

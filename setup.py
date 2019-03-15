@@ -12,4 +12,15 @@ setup(
     packages = [
         'highfive',
     ],
+    install_requires = [
+        'click',
+        'flask',
+        'waitress',
+    ],
+    entry_points = {
+        'console_scripts': [
+            'highfive=highfive.app:main',
+        ],
+    },
+    zip_safe = False,
 )

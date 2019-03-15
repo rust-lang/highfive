@@ -1244,7 +1244,6 @@ class TestRun(TestNewPR):
         cls.mocks = patcherize((
             ('new_pr', 'highfive.newpr.HighfiveHandler.new_pr'),
             ('new_comment', 'highfive.newpr.HighfiveHandler.new_comment'),
-            ('sys', 'highfive.newpr.sys'),
         ))
 
     def handler_mock(self, payload):
@@ -1255,26 +1254,23 @@ class TestRun(TestNewPR):
     def test_newpr(self):
         payload = Payload({'action': 'opened'})
         m = self.handler_mock(payload)
-        m.handler.run()
+        assert m.handler.run('pull_request') == 'OK\n'
         assert m.mock_config.get.call_count == 2
         self.mocks['new_pr'].assert_called_once_with()
         self.mocks['new_comment'].assert_not_called()
-        self.mocks['sys'].exit.assert_not_called()
 
     def test_new_comment(self):
         payload = Payload({'action': 'created'})
         m = self.handler_mock(payload)
-        m.handler.run()
+        assert m.handler.run('issue_comment') == 'OK\n'
         assert m.mock_config.get.call_count == 2
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_called_once_with()
-        self.mocks['sys'].exit.assert_not_called()
 
     def test_unsupported_payload(self):
         payload = Payload({'action': 'something-not-supported'})
         m = self.handler_mock(payload)
-        m.handler.run()
+        assert m.handler.run('issue_comment') != 'OK\n'
         assert m.mock_config.get.call_count == 2
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_not_called()
-        self.mocks['sys'].exit.assert_called_once_with(0)

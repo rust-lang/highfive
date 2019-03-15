@@ -1,29 +1,22 @@
 FROM ubuntu:bionic
 
-RUN apt-get update && apt-get install -y apache2 \
-  ca-certificates \
-  python
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    ca-certificates \
+    python \
+    python-setuptools \
+    python-wheel \
+    python-pip
 
-# Set up Highfive
 RUN mkdir /highfive
 WORKDIR /highfive
 
 COPY setup.py .
 COPY highfive/*.py highfive/
 COPY highfive/configs/ highfive/configs/
-RUN python setup.py install
+RUN pip install .
 RUN touch highfive/config
-RUN chown -R www-data:www-data .
-
-# Set up Apache
-WORKDIR /etc/apache2
-COPY deployment/highfive.conf conf-available/highfive.conf
-RUN a2enmod cgi
-RUN rm conf-enabled/serve-cgi-bin.conf
-RUN rm sites-enabled/*
-RUN ln -s ../conf-available/highfive.conf conf-enabled
-
-RUN mkdir /var/log/highfive-tracebacks && chown www-data: /var/log/highfive-tracebacks
 
 EXPOSE 80
-CMD apachectl -D FOREGROUND
+ENV HIGHFIVE_PORT 80
+
+CMD highfive
