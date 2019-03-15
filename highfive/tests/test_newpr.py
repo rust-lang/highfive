@@ -84,7 +84,7 @@ class TestHighfiveHandler(TestNewPR):
         m.stop_patchers()
         assert m.handler.load_repo_config() == {'a': 'config!'}
         mock_load_json_file.assert_called_once_with(
-            os.path.join('foo', 'blah.json')
+            os.path.join('foo', 'blah.json'), None,
         )
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
@@ -99,7 +99,7 @@ class TestHighfiveHandler(TestNewPR):
         with pytest.raises(newpr.UnsupportedRepoError):
             m.handler.load_repo_config()
         mock_load_json_file.assert_called_once_with(
-            os.path.join('foo', 'blah.json')
+            os.path.join('foo', 'blah.json'), None
         )
 
 class TestNewPRGeneral(TestNewPR):
