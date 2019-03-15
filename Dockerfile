@@ -17,5 +17,6 @@ RUN pip install .
 
 EXPOSE 80
 ENV HIGHFIVE_PORT 80
+ENV HIGHFIVE_CONFIG_DIR /highfive/highfive/configs
 
 CMD highfive
