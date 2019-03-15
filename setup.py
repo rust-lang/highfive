@@ -15,6 +15,7 @@ setup(
     install_requires = [
         'click',
         'flask',
+        'python-dotenv',
         'waitress',
     ],
     entry_points = {

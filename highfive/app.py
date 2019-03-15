@@ -4,6 +4,7 @@ from .newpr import HighfiveHandler, UnsupportedRepoError
 from .payload import Payload
 
 import click
+import dotenv
 import flask
 import waitress
 
@@ -42,4 +43,5 @@ def cli(port):
 
 
 def main():
+    dotenv.load_dotenv()
     cli(auto_envvar_prefix='HIGHFIVE')
