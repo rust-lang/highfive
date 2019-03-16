@@ -53,13 +53,14 @@ class HighfiveHandler(object):
         self.integration_user = config.github_username
         self.integration_token = config.github_token
 
-        self.repo_config = self.load_repo_config(config_dir)
+        self.config_dir = config_dir
+        self.repo_config = self.load_repo_config()
 
-    def load_repo_config(self, config_dir=None):
+    def load_repo_config(self):
         '''Load the repository configuration.'''
         (org, repo) = self.payload['repository', 'full_name'].split('/')
         try:
-            return self._load_json_file(os.path.join(org, repo) + '.json', config_dir)
+            return self._load_json_file(os.path.join(org, repo) + '.json')
         except IOError:
             raise UnsupportedRepoError
 
@@ -75,8 +76,9 @@ class HighfiveHandler(object):
         else:
             return 'Unsupported webhook event.\n'
 
-    def _load_json_file(self, name, config_dir=None):
-        if not config_dir:
+    def _load_json_file(self, name):
+        config_dir = self.config_dir
+        if not self.config_dir:
             config_dir = os.path.join(os.path.dirname(__file__), 'configs')
 
         with open(os.path.join(config_dir, name)) as config:
