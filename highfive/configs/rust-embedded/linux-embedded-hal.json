@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["rust-embedded/embedded-linux", "rust-embedded/hal"]
+        "all": ["rust-embedded/embedded-linux"]
     },
-    "new_pr_labels": ["S-waiting-on-review", "T-embedded-linux", "T-hal"]
+    "new_pr_labels": ["S-waiting-on-review", "T-embedded-linux"]
 }
