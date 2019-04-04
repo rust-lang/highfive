@@ -24,11 +24,15 @@ def get_repo_configs():
         },
         'individuals_dirs': {
             "groups": { "all": ["@pnkfelix", "@nrc"] },
-            "dirs": { "librustc": ["@aturon"] },
+            "dirs": { "src/librustc": ["@aturon"] },
         },
         'individuals_dirs_2': {
             "groups": { "all": ["@pnkfelix", "@nrc"] },
-            "dirs": { "foobazdir": ["@aturon"] },
+            "dirs": { "src/foobazdir": ["@aturon"] },
+        },
+        'individual_files': {
+            "groups": { "all": ["@pnkfelix", "@nrc"] },
+            "dirs": { ".travis.yml":  ["@aturon"] },
         },
         'circular_groups': {
             "groups": {

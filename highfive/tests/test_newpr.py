@@ -1099,6 +1099,7 @@ class TestChooseReviewer(TestNewPR):
         cls.fakes = {
             'diff': {
                 'normal': load_fake('normal.diff'),
+                'travis-yml': load_fake('travis-yml.diff'),
             },
             'config': fakes.get_repo_configs(),
             'global_': fakes.get_global_configs(),
@@ -1236,6 +1237,17 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['normal'], "nikomatsakis"
         )
         assert set(["pnkfelix", "nrc"]) == chosen_reviewers
+        assert set([()]) == mentions
+
+    def test_with_files(self):
+        """Test choosing a reviewer when a file os changed."""
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['individual_files']
+        ).handler
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.fakes['diff']['travis-yml'], "nikomatsakis"
+        )
+        assert set(["pnkfelix", "nrc", "aturon"]) == chosen_reviewers
         assert set([()]) == mentions
 
 class TestRun(TestNewPR):

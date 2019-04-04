@@ -1,0 +1,12 @@
+diff --git a/.travis.yml b/.travis.yml
+index 7f99678499..c4efa88460 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -1,6 +1,6 @@
+ language: shell
+ sudo: required
+-dist: trusty
++dist: xenial
+ services:
+   - docker
+ addons:
