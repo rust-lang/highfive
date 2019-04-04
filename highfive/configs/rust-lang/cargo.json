@@ -3,7 +3,7 @@
         "all": ["@alexcrichton", "@ehuss", "@dwijnand", "@nrc", "@Eh2406"]
     },
     "dirs": {
-        "doc": ["doc"]
+        "src/doc": ["doc"]
     },
     "contributing": "https://github.com/rust-lang/cargo/blob/master/CONTRIBUTING.md",
     "new_pr_labels": ["S-waiting-on-review"]

@@ -7,37 +7,37 @@
         "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
     "dirs": {
-        "doc":              ["doc"],
-        "liballoc":         ["libs"],
-        "libarena":         ["libs"],
-        "libbacktrace":     [],
-        "libcollections":   ["libs", "@Gankro"],
-        "libcore":          ["libs"],
-        "libcoretest":      ["libs"],
-        "libflate":         ["libs"],
-        "libfmt_macros":    ["libs"],
-        "libgetopts":       ["libs"],
-        "libgraphviz":      ["@pnkfelix"],
-        "liblibc":          ["libs"],
-        "liblog":           ["libs"],
-        "librand":          ["libs"],
-        "librbml":          ["libs", "@erickt"],
-        "librustc":         ["compiler"],
-        "librustdoc":       ["rustdoc"],
-        "libserialize":     ["libs", "@erickt"],
-        "libstd":           ["libs"],
-        "libsyntax":        ["syntax"],
-        "libterm":          ["libs"],
-        "libtest":          ["libs"],
-        "libunicode":       ["libs", "@SimonSapin"],
-        "rustbook":         ["doc"]
+        "src/doc":              ["doc"],
+        "src/liballoc":         ["libs"],
+        "src/libarena":         ["libs"],
+        "src/libbacktrace":     [],
+        "src/libcollections":   ["libs", "@Gankro"],
+        "src/libcore":          ["libs"],
+        "src/libcoretest":      ["libs"],
+        "src/libflate":         ["libs"],
+        "src/libfmt_macros":    ["libs"],
+        "src/libgetopts":       ["libs"],
+        "src/libgraphviz":      ["@pnkfelix"],
+        "src/liblibc":          ["libs"],
+        "src/liblog":           ["libs"],
+        "src/librand":          ["libs"],
+        "src/librbml":          ["libs", "@erickt"],
+        "src/librustc":         ["compiler"],
+        "src/librustdoc":       ["rustdoc"],
+        "src/libserialize":     ["libs", "@erickt"],
+        "src/libstd":           ["libs"],
+        "src/libsyntax":        ["syntax"],
+        "src/libterm":          ["libs"],
+        "src/libtest":          ["libs"],
+        "src/libunicode":       ["libs", "@SimonSapin"],
+        "src/rustbook":         ["doc"]
     },
     "mentions": {
-        "librustdoc/html/static": {
+        "src/librustdoc/html/static": {
             "message": "Some changes occurred in HTML/CSS.",
             "reviewers": ["@GuillaumeGomez"]
         },
-        "src/doc": {
+        "src/src/doc": {
             "message": "Some changes occurred in HTML/CSS.",
             "reviewers": ["@GuillaumeGomez"]
         },
