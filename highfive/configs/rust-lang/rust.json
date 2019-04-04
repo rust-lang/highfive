@@ -4,6 +4,7 @@
         "compiler": ["@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@michaelwoerister", "@varkor", "@matthewjasper", "@davidtwco", "@zackmdavis", "@oli-obk"],
         "syntax": ["@pnkfelix", "@petrochenkov", "@michaelwoerister", "@eddyb"],
         "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"],
+        "infra-ci": ["@alexcrichton", "@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
         "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
     "dirs": {
@@ -30,7 +31,10 @@
         "src/libterm":          ["libs"],
         "src/libtest":          ["libs"],
         "src/libunicode":       ["libs", "@SimonSapin"],
-        "src/rustbook":         ["doc"]
+        "src/rustbook":         ["doc"],
+        "src/ci":               ["infra-ci"],
+        ".travis.yml":          ["infra-ci"],
+        "appveyor.yml":         ["infra-ci"]
     },
     "mentions": {
         "src/librustdoc/html/static": {
