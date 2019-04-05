@@ -1,4 +1,4 @@
-Highfive [![Build Status](https://travis-ci.org/rust-lang-nursery/highfive.svg?branch=master)](https://travis-ci.org/rust-lang-nursery/highfive)
+Highfive [![Build Status](https://travis-ci.com/rust-lang/highfive.svg?branch=master)](https://travis-ci.com/rust-lang/highfive)
 ========
 
 GitHub hooks to provide an encouraging atmosphere for new
