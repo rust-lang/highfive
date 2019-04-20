@@ -38,7 +38,11 @@
     },
     "mentions": {
         "src/librustdoc/html/static": {
-            "message": "Some changes occurred in HTML/CSS.",
+            "message": "Some changes occurred in HTML/CSS/JS.",
+            "reviewers": ["@GuillaumeGomez"]
+        },
+        "src/librustdoc/html/static/themes": {
+            "message": "Some changes occurred in HTML/CSS themes.",
             "reviewers": ["@GuillaumeGomez"]
         },
         "src/src/doc": {
