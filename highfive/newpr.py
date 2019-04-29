@@ -124,6 +124,7 @@ class HighfiveHandler(object):
                 client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
                     .format(irc_name_of_reviewer, owner, repo, issue, author))
 
+        commands = {}
         if to_mention and len(to_mention) > 0:
             message = ''
             for mention in to_mention:
@@ -131,6 +132,13 @@ class HighfiveHandler(object):
                     message += '\n\n'
                 message += "%s\n\ncc %s" % (mention['message'],
                                             ','.join([x for x in mention['reviewers'] if x != user]))
+                cmd = mention.get('command')
+                if cmd is not None:
+                    commands[cmd] = self.payload['pull_request', 'head', 'sha']
+            for cmd in commands:
+                if len(message) > 0:
+                    message += '\n\n'
+                message += "%s %s" % (cmd, commands[cmd])
             self.post_comment(message, owner, repo, issue)
 
     def get_irc_nick(self, gh_name):
