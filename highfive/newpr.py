@@ -130,7 +130,12 @@ class HighfiveHandler(object):
             for mention in to_mention:
                 if len(message) > 0:
                     message += '\n\n'
-                message += "%s\n\ncc %s" % (mention['message'],
+                msg = mention.get('message')
+                if msg is not None:
+                    msg += '\n\n'
+                else:
+                    msg = ''
+                message += "%s\n\ncc %s" % (msg,
                                             ','.join([x for x in mention['reviewers'] if x != user]))
                 cmd = mention.get('command')
                 if cmd is not None:
