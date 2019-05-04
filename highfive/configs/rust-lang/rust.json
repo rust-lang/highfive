@@ -47,10 +47,6 @@
             "command": "@highfive: run-doc-ui",
             "reviewers": ["@GuillaumeGomez"]
         },
-        "src/doc": {
-            "message": "Some changes occurred in HTML/CSS.",
-            "reviewers": ["@GuillaumeGomez"]
-        },
         "src/librustdoc/": {
             "command": "@highfive: run-doc-ui"
         },

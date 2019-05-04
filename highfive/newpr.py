@@ -130,8 +130,12 @@ class HighfiveHandler(object):
             for mention in to_mention:
                 if len(message) > 0:
                     message += '\n\n'
-                message += "%s\n\ncc %s" % (mention['message'],
-                                            ','.join([x for x in mention['reviewers'] if x != user]))
+                msg = mention.get('message')
+                if msg is not None:
+                    msg += '\n\n'
+                else:
+                    msg = ''
+                message += "%scc %s" % (msg, ','.join([x for x in mention['reviewers'] if x != user]))
                 cmd = mention.get('command')
                 if cmd is not None:
                     commands[cmd] = self.payload['pull_request', 'head', 'sha']
