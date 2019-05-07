@@ -52,7 +52,6 @@
         },
         "error_codes.rs": {
             "message": "Some changes occurred in diagnostic error codes",
-            "command": "@highfive: run-doc-ui",
             "reviewers": ["@GuillaumeGomez"]
         }
     },
