@@ -33,6 +33,7 @@
         "src/libunicode":       ["libs", "@SimonSapin"],
         "src/rustbook":         ["doc"],
         "src/ci":               ["infra-ci"],
+        ".azure-pipelines":     ["infra-ci"],
         ".travis.yml":          ["infra-ci"],
         "appveyor.yml":         ["infra-ci"]
     },
