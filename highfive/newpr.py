@@ -123,7 +123,9 @@ class HighfiveHandler(object):
                 client = irc.IrcClient(target="#rust-bots")
                 client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
                     .format(irc_name_of_reviewer, owner, repo, issue, author))
+        self.run_commands(to_mention, owner, repo, issue, user)
 
+    def run_commands(self, to_mention, owner, repo, issue, user):
         commands = {}
         if to_mention and len(to_mention) > 0:
             message = ''
@@ -143,7 +145,8 @@ class HighfiveHandler(object):
                 if len(message) > 0:
                     message += '\n\n'
                 message += "%s %s" % (cmd, commands[cmd])
-            self.post_comment(message, owner, repo, issue)
+            if len(message) > 0:
+                self.post_comment(message, owner, repo, issue)
 
     def get_irc_nick(self, gh_name):
         """ returns None if the request status code is not 200,
@@ -368,13 +371,13 @@ class HighfiveHandler(object):
             msg = self.payload['pull_request', 'body']
             reviewer = self.find_reviewer(msg)
             post_msg = False
-            to_mention = None
 
+            new_reviewer, to_mention = self.choose_reviewer(
+                repo, owner, diff, author
+            )
             if not reviewer:
                 post_msg = True
-                reviewer, to_mention = self.choose_reviewer(
-                    repo, owner, diff, author
-                )
+                reviewer = new_reviewer
 
             self.set_assignee(
                 reviewer, owner, repo, issue, self.integration_user,
