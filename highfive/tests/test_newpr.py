@@ -795,6 +795,7 @@ class TestNewPrFunction(TestNewPR):
             ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
             ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
             ('choose_reviewer', 'highfive.newpr.HighfiveHandler.choose_reviewer'),
+            ('get_to_mention', 'highfive.newpr.HighfiveHandler.get_to_mention'),
             ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
             ('is_new_contributor', 'highfive.newpr.HighfiveHandler.is_new_contributor'),
             ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
@@ -835,9 +836,8 @@ class TestNewPrFunction(TestNewPR):
 
     def test_no_msg_reviewer_new_contributor(self):
         self.mocks['find_reviewer'].return_value = None
-        self.mocks['choose_reviewer'].return_value = (
-            'reviewUser', ['to', 'mention']
-        )
+        self.mocks['choose_reviewer'].return_value = 'reviewUser'
+        self.mocks['get_to_mention'].return_value = ['to', 'mention']
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'
 
@@ -858,9 +858,8 @@ class TestNewPrFunction(TestNewPR):
 
     def test_no_msg_reviewer_repeat_contributor(self):
         self.mocks['find_reviewer'].return_value = None
-        self.mocks['choose_reviewer'].return_value = (
-            'reviewUser', ['to', 'mention']
-        )
+        self.mocks['choose_reviewer'].return_value = 'reviewUser'
+        self.mocks['get_to_mention'].return_value = ['to', 'mention']
         self.mocks['is_new_contributor'].return_value = False
         self.mocks['review_msg'].return_value = 'Review message!'
 
@@ -885,11 +884,13 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = False
         self.mocks['welcome_msg'].return_value = 'Welcome!'
+        self.mocks['get_to_mention'].return_value = ['to']
 
         self.call_new_pr()
 
-        self.assert_set_assignee_branch_calls('foundReviewer', None)
+        self.assert_set_assignee_branch_calls('foundReviewer', ['to'])
         self.mocks['choose_reviewer'].assert_not_called()
+        self.mocks['get_to_mention'].assert_called_once_with('diff')
         self.mocks['welcome_msg'].assert_not_called()
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_not_called()
@@ -927,10 +928,11 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'
+        self.mocks['get_to_mention'].return_value = ['to', 'mention']
 
         self.call_new_pr()
 
-        self.assert_set_assignee_branch_calls('foundReviewer', None)
+        self.assert_set_assignee_branch_calls('foundReviewer', ['to', 'mention'])
         self.mocks['choose_reviewer'].assert_not_called()
         self.mocks['welcome_msg'].assert_called_once_with('foundReviewer')
         self.mocks['review_msg'].assert_not_called()
@@ -946,6 +948,7 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['find_reviewer'].return_value = 'foundReviewer'
         self.mocks['is_new_contributor'].return_value = True
         self.mocks['welcome_msg'].return_value = 'Welcome!'
+        self.mocks['get_to_mention'].return_value = None
 
         self.call_new_pr()
 
@@ -1105,6 +1108,14 @@ class TestChooseReviewer(TestNewPR):
             'global_': fakes.get_global_configs(),
         }
 
+    def get_to_mention(self, diff, global_=None):
+        return self.get_to_mention_inner(diff, global_)
+
+    @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
+    def get_to_mention_inner(self, diff, global_, mock_load_json):
+        mock_load_json.return_value = deepcopy(global_ or { "groups": {} })
+        return self.handler.get_to_mention(diff)
+
     def choose_reviewer(
         self, repo, owner, diff, exclude, global_=None
     ):
@@ -1128,11 +1139,12 @@ class TestChooseReviewer(TestNewPR):
         chosen_reviewers = set()
         mention_list = set()
         for _ in xrange(40):
-            (reviewer, mentions) = self.choose_reviewer(
+            reviewer = self.choose_reviewer(
                 'rust', 'rust-lang', diff, author, global_
             )
+            mentions = self.get_to_mention(diff, global_)
             chosen_reviewers.add(reviewer)
-            mention_list.add(None if mentions is None else tuple(mentions))
+            mention_list.add(tuple(mentions))
         return chosen_reviewers, mention_list
 
     def test_individuals_no_dirs_1(self):
@@ -1206,12 +1218,12 @@ class TestChooseReviewer(TestNewPR):
         self.handler = HighfiveHandlerMock(
             Payload({}), repo_config=self.fakes['config']['empty']
         ).handler
-        (chosen_reviewers, mentions) = self.choose_reviewers(
+        chosen_reviewers, mentions = self.choose_reviewers(
             self.fakes['diff']['normal'], 'alexcrichton',
             self.fakes['global_']['base']
         )
         assert set([None]) == chosen_reviewers
-        assert set([None]) == mentions
+        assert set([()]) == mentions
 
     def test_with_dirs(self):
         """Test choosing a reviewer when directory reviewers are defined that
@@ -1220,7 +1232,7 @@ class TestChooseReviewer(TestNewPR):
         self.handler = HighfiveHandlerMock(
             Payload({}), repo_config=self.fakes['config']['individuals_dirs']
         ).handler
-        (chosen_reviewers, mentions) = self.choose_reviewers(
+        chosen_reviewers, mentions = self.choose_reviewers(
             self.fakes['diff']['normal'], "nikomatsakis"
         )
         assert set(["pnkfelix", "nrc", "aturon"]) == chosen_reviewers
