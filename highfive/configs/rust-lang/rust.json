@@ -1,7 +1,7 @@
 {
     "groups": {
         "all": [],
-        "compiler": ["@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@varkor", "@matthewjasper", "@zackmdavis", "@oli-obk"],
+        "compiler": ["@cramertj", "@pnkfelix", "@eddyb", "@petrochenkov", "@estebank", "@varkor", "@matthewjasper", "@zackmdavis"],
         "syntax": ["@pnkfelix", "@petrochenkov", "@eddyb"],
         "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@bluss", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm", "@aidanhs"],
         "infra-ci": ["@alexcrichton", "@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
