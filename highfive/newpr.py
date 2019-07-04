@@ -123,7 +123,9 @@ class HighfiveHandler(object):
                 client = irc.IrcClient(target="#rust-bots")
                 client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
                     .format(irc_name_of_reviewer, owner, repo, issue, author))
+        self.run_commands(to_mention, owner, repo, issue, user)
 
+    def run_commands(self, to_mention, owner, repo, issue, user):
         commands = {}
         if to_mention and len(to_mention) > 0:
             message = ''
@@ -143,7 +145,8 @@ class HighfiveHandler(object):
                 if len(message) > 0:
                     message += '\n\n'
                 message += "%s %s" % (cmd, commands[cmd])
-            self.post_comment(message, owner, repo, issue)
+            if len(message) > 0:
+                self.post_comment(message, owner, repo, issue)
 
     def get_irc_nick(self, gh_name):
         """ returns None if the request status code is not 200,
@@ -259,7 +262,6 @@ class HighfiveHandler(object):
         # Get JSON data on reviewers.
         dirs = self.repo_config.get('dirs', {})
         groups = deepcopy(self.repo_config['groups'])
-        mentions = self.repo_config.get('mentions', {})
 
         # fill in the default groups, ensuring that overwriting is an
         # error.
@@ -269,7 +271,6 @@ class HighfiveHandler(object):
             groups[name] = people
 
         most_changed = None
-        to_mention = []
         # If there's directories with specially assigned groups/users
         # inspect the diff to find the directory with the most additions
         if dirs:
@@ -283,20 +284,12 @@ class HighfiveHandler(object):
                     if not parts:
                         continue
                     cur_dir = "/".join(parts[:2])
-                    full_dir = "/".join(parts)
 
                     # A few heuristics to get better reviewers
                     if cur_dir.startswith('src/librustc'):
                         cur_dir = 'src/librustc'
                     if cur_dir == 'src/test':
                         cur_dir = None
-                    if len(full_dir) > 0:
-                        for entry in mentions:
-                            if full_dir.startswith(entry) and entry not in to_mention:
-                                to_mention.append(entry)
-                            elif (entry.endswith('.rs') and full_dir.endswith(entry)
-                                  and entry not in to_mention):
-                                to_mention.append(entry)
                     if cur_dir and cur_dir not in counts:
                         counts[cur_dir] = 0
                     continue
@@ -339,12 +332,49 @@ class HighfiveHandler(object):
 
         if reviewers:
             random.seed()
-            mention_list = []
-            for mention in to_mention:
-                mention_list.append(mentions[mention])
-            return (random.choice(reviewers), mention_list)
+            return random.choice(reviewers)
         # no eligible reviewer found
-        return (None, None)
+        return None
+
+    def get_to_mention(self, diff):
+        '''
+        Get the list of people to mention.
+        '''
+        dirs = self.repo_config.get('dirs', {})
+        mentions = self.repo_config.get('mentions', {})
+
+        to_mention = []
+        # If there's directories with specially assigned groups/users
+        # inspect the diff to find the directory with the most additions
+        if dirs:
+            cur_dir = None
+            for line in diff.split('\n'):
+                if line.startswith("diff --git "):
+                    # update cur_dir
+                    cur_dir = None
+                    parts = line[line.find(" b/") + len(" b/"):].split("/")
+                    if not parts:
+                        continue
+                    cur_dir = "/".join(parts[:2])
+                    full_dir = "/".join(parts)
+
+                    # A few heuristics to get better reviewers
+                    if cur_dir.startswith('src/librustc'):
+                        cur_dir = 'src/librustc'
+                    if cur_dir == 'src/test':
+                        cur_dir = None
+                    if len(full_dir) > 0:
+                        for entry in mentions:
+                            if full_dir.startswith(entry) and entry not in to_mention:
+                                to_mention.append(entry)
+                            elif (entry.endswith('.rs') and full_dir.endswith(entry)
+                                  and entry not in to_mention):
+                                to_mention.append(entry)
+
+        mention_list = []
+        for mention in to_mention:
+            mention_list.append(mentions[mention])
+        return mention_list
 
     def add_labels(self, owner, repo, issue):
         self.api_req(
@@ -368,13 +398,13 @@ class HighfiveHandler(object):
             msg = self.payload['pull_request', 'body']
             reviewer = self.find_reviewer(msg)
             post_msg = False
-            to_mention = None
 
             if not reviewer:
                 post_msg = True
-                reviewer, to_mention = self.choose_reviewer(
+                reviewer = self.choose_reviewer(
                     repo, owner, diff, author
                 )
+            to_mention = self.get_to_mention(diff)
 
             self.set_assignee(
                 reviewer, owner, repo, issue, self.integration_user,
