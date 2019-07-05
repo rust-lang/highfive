@@ -4,7 +4,7 @@ python:
 
 env:
   RUSTINFRA_IMAGE_TAG: highfive
-  RUSTINFRA_REGISTRY_NAME: highfive
+  RUSTINFRA_REGISTRY_NAME: rust-highfive
 import:
   - rust-lang/simpleinfra/travis-configs/docker-to-ecr.yml
 
