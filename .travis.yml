@@ -2,6 +2,12 @@ language: python
 python:
   - "2.7"
 
+env:
+  RUSTINFRA_IMAGE_TAG: highfive
+  RUSTINFRA_REGISTRY_NAME: highfive
+import:
+  - rust-lang/simpleinfra/travis-configs/docker-to-ecr.yml
+
 install:
   - "pip install ."
   - "pip install -r test-requirements.txt"
@@ -14,12 +20,4 @@ script:
     else
       pytest -m hermetic
     fi
-
-# Publish the Docker image to the infra AWS registry
-before_deploy:
-  - pip install awscli
-deploy:
-  provider: script
-  script: sh ci/publish-docker.sh
-  on:
-    branch: master
+  - docker build -t highfive .
