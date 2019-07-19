@@ -1,0 +1,8 @@
+{
+    "groups": {
+        "all": ["@sgrif", "@jtgeibel", "@carols10cents"]
+    },
+    "dirs": {},
+    "contributing": "https://github.com/rust-lang/crates.io/blob/master/docs/CONTRIBUTING.md",
+    "new_pr_labels": ["S-waiting-on-review"]
+}
