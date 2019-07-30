@@ -1,13 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import urllib2
+import urllib
 import cgi
 import cgitb
 from copy import deepcopy
 import json
 import random
-import ConfigParser
-from StringIO import StringIO
+from configparser import ConfigParser
+from io import StringIO
 import gzip
 import re
 import os
@@ -90,14 +90,14 @@ class HighfiveHandler(object):
     def api_req(self, method, url, data=None, media_type=None):
         data = None if not data else json.dumps(data)
         headers = {} if not data else {'Content-Type': 'application/json'}
-        req = urllib2.Request(url, data, headers)
+        req = urllib.request.Request(url, data, headers)
         req.get_method = lambda: method
         if self.integration_token:
             req.add_header("Authorization", "token %s" % self.integration_token)
 
         if media_type:
             req.add_header("Accept", media_type)
-        f = urllib2.urlopen(req)
+        f = urllib.request.urlopen(req)
         header = f.info()
         if header.get('Content-Encoding') == 'gzip':
             buf = StringIO(f.read())
@@ -111,7 +111,7 @@ class HighfiveHandler(object):
                 "PATCH", issue_url % (owner, repo, issue),
                 {"assignee": assignee}
             )['body']
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             if e.code == 201:
                 pass
             else:
@@ -154,12 +154,12 @@ class HighfiveHandler(object):
          or if the user has no `irc` field associated with their username
         """
         try:
-            data = urllib2.urlopen(rustaceans_api_url.format(username=gh_name))
+            data = urllib.urlopen(rustaceans_api_url.format(username=gh_name))
             if data.getcode() == 200:
                 rustacean_data = json.loads(data.read())
                 if rustacean_data:
                     return rustacean_data[0].get("irc")
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             pass
 
         return None
@@ -171,7 +171,7 @@ class HighfiveHandler(object):
                 "GET", user_collabo_url % (owner, repo, commenter), None
             )
             return True
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             if e.code == 404:
                 return False
             else:
@@ -195,7 +195,7 @@ class HighfiveHandler(object):
             self.api_req(
                 "POST", post_comment_url % (owner, repo, issue), {"body": body}
             )['body']
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             if e.code == 201:
                 pass
             else:
@@ -242,7 +242,7 @@ class HighfiveHandler(object):
                 'application/vnd.github.cloak-preview'
             )
             return json.loads(result['body'])['total_count'] == 0
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             if e.code == 422:
                 return True
             else:
@@ -266,7 +266,7 @@ class HighfiveHandler(object):
         # fill in the default groups, ensuring that overwriting is an
         # error.
         global_ = self._load_json_file('_global.json')
-        for name, people in global_['groups'].iteritems():
+        for name, people in global_['groups'].items():
             assert name not in groups, "group %s overlaps with _global.json" % name
             groups[name] = people
 
@@ -299,10 +299,10 @@ class HighfiveHandler(object):
 
             # Find the largest count.
             most_changes = 0
-            for dir, changes in counts.iteritems():
+            for directory, changes in counts.items():
                 if changes > most_changes:
                     most_changes = changes
-                    most_changed = dir
+                    most_changed = directory
 
         # lookup that directory in the json file to find the potential reviewers
         potential = groups['all']

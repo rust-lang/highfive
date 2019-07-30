@@ -10,7 +10,7 @@ import mock
 import os
 import pytest
 import responses
-from urllib2 import HTTPError
+from urllib.error import HTTPError
 
 @pytest.mark.unit
 @pytest.mark.hermetic
@@ -159,7 +159,7 @@ Please see [the contribution instructions](%s) for more information.
         mock_dirname.return_value = '/the/path'
         contents = ['some json']
         with mock.patch(
-            '__builtin__.open', mock.mock_open(read_data=json.dumps(contents))
+            'builtins.open', mock.mock_open(read_data=json.dumps(contents))
         ) as mock_file:
             assert handler._load_json_file('a-config.json') == contents
             mock_file.assert_called_with('/the/path/configs/a-config.json')
@@ -340,9 +340,9 @@ Please see [the contribution instructions](%s) for more information.
             assert handler.find_reviewer(msg) is None, \
                 "expected '%s' to have no reviewer extracted" % msg
 
-    def setup_get_irc_nick_mocks(self, mock_urllib2, status_code, data=None):
+    def setup_get_irc_nick_mocks(self, mock_urllib, status_code, data=None):
         if status_code != 200:
-            mock_urllib2.side_effect = HTTPError(
+            mock_urllib.side_effect = HTTPError(
                 None, status_code, None, None, None
             )
             return
@@ -350,41 +350,41 @@ Please see [the contribution instructions](%s) for more information.
         mock_data = mock.Mock()
         mock_data.getcode.return_value = status_code
         mock_data.read.return_value = data
-        mock_urllib2.urlopen.return_value = mock_data
+        mock_urllib.urlopen.return_value = mock_data
         return mock_data
 
-    @mock.patch('highfive.newpr.urllib2')
-    def test_get_irc_nick_non_200(self, mock_urllib2):
+    @mock.patch('highfive.newpr.urllib')
+    def test_get_irc_nick_non_200(self, mock_urllib):
         handler = HighfiveHandlerMock(Payload({})).handler
-        self.setup_get_irc_nick_mocks(mock_urllib2, 503)
+        self.setup_get_irc_nick_mocks(mock_urllib, 503)
         assert handler.get_irc_nick('foo') is None
 
-        mock_urllib2.urlopen.assert_called_with(
+        mock_urllib.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
         )
 
-    @mock.patch('highfive.newpr.urllib2')
-    def test_get_irc_nick_no_data(self, mock_urllib2):
+    @mock.patch('highfive.newpr.urllib')
+    def test_get_irc_nick_no_data(self, mock_urllib):
         handler = HighfiveHandlerMock(Payload({})).handler
-        mock_data = self.setup_get_irc_nick_mocks(mock_urllib2, 200, '[]')
+        mock_data = self.setup_get_irc_nick_mocks(mock_urllib, 200, '[]')
         assert handler.get_irc_nick('foo') is None
 
-        mock_urllib2.urlopen.assert_called_with(
+        mock_urllib.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
         )
         mock_data.getcode.assert_called()
         mock_data.read.assert_called()
 
-    @mock.patch('highfive.newpr.urllib2')
-    def test_get_irc_nick_has_data(self, mock_urllib2):
+    @mock.patch('highfive.newpr.urllib')
+    def test_get_irc_nick_has_data(self, mock_urllib):
         handler = HighfiveHandlerMock(Payload({})).handler
         mock_data = self.setup_get_irc_nick_mocks(
-            mock_urllib2, 200,
+            mock_urllib, 200,
             '[{"username":"nrc","name":"Nick Cameron","irc":"nrc","email":"nrc@ncameron.org","discourse":"nrc","reddit":"nick29581","twitter":"@nick_r_cameron","blog":"https://www.ncameron.org/blog","website":"https://www.ncameron.org","notes":"<p>I work on the Rust compiler, language design, and tooling. I lead the dev tools team and am part of the core team. I&#39;m part of the research team at Mozilla.</p>\\n","avatar":"https://avatars.githubusercontent.com/nrc","irc_channels":["rust-dev-tools","rust","rust-internals","rust-lang","rustc","servo"]}]'
         )
         assert handler.get_irc_nick('nrc') == 'nrc'
 
-        mock_urllib2.urlopen.assert_called_with(
+        mock_urllib.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=nrc'
         )
         mock_data.getcode.assert_called()
@@ -394,8 +394,8 @@ class TestApiReq(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_defaults(cls, patcherize):
         cls.mocks = patcherize((
-            ('urlopen', 'urllib2.urlopen'),
-            ('Request', 'urllib2.Request'),
+            ('urlopen', 'urllib.request.urlopen'),
+            ('Request', 'urllib.request.Request'),
             ('StringIO', 'highfive.newpr.StringIO'),
             ('GzipFile', 'gzip.GzipFile'),
         ))
@@ -1138,7 +1138,7 @@ class TestChooseReviewer(TestNewPR):
         """
         chosen_reviewers = set()
         mention_list = set()
-        for _ in xrange(40):
+        for _ in range(40):
             reviewer = self.choose_reviewer(
                 'rust', 'rust-lang', diff, author, global_
             )

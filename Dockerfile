@@ -2,10 +2,10 @@ FROM ubuntu:bionic
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     ca-certificates \
-    python \
-    python-setuptools \
-    python-wheel \
-    python-pip
+    python3 \
+    python3-setuptools \
+    python3-wheel \
+    python3-pip
 
 RUN mkdir /highfive
 WORKDIR /highfive

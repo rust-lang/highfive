@@ -102,10 +102,11 @@ def config_valid(fname):
 
 @pytest.mark.config
 @pytest.mark.hermetic
-def test_configs():
+@pytest.fixture
+def test_configs(request):
     """Check that the repo config files are valid JSON and contain the expected
     sorts of values."""
-    config_path = os.path.join(str(pytest.config.rootdir), 'highfive/configs')
+    config_path = os.path.join(str(request.config.rootdir), 'highfive/configs')
     for fname in os.listdir(config_path):
         if fname.endswith('.json'):
             assert config_valid(os.path.join(config_path, fname))
