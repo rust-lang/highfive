@@ -38,7 +38,7 @@ def create_app(config, webhook_secret=None, config_dir=None):
 
         # Check the signature only if the secret is configured
         if 'payload' in flask.request.form and webhook_secret is not None:
-            expected = hmac.new(str(webhook_secret), digestmod=hashlib.sha1)
+            expected = hmac.new(webhook_secret.encode("utf-8"), digestmod=hashlib.sha1)
             expected.update(raw_data)
             expected = expected.hexdigest()
             if not hmac.compare_digest('sha1='+expected, signature):

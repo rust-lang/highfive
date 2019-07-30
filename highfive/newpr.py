@@ -88,7 +88,7 @@ class HighfiveHandler(object):
         return submodule_re.match(diff)
 
     def api_req(self, method, url, data=None, media_type=None):
-        data = None if not data else json.dumps(data)
+        data = None if not data else json.dumps(data).encode("utf-8")
         headers = {} if not data else {'Content-Type': 'application/json'}
         req = urllib.request.Request(url, data, headers)
         req.get_method = lambda: method
@@ -102,7 +102,7 @@ class HighfiveHandler(object):
         if header.get('Content-Encoding') == 'gzip':
             buf = StringIO(f.read())
             f = gzip.GzipFile(fileobj=buf)
-        body = f.read()
+        body = f.read().decode("utf-8")
         return { "header": header, "body": body }
 
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
@@ -154,7 +154,7 @@ class HighfiveHandler(object):
          or if the user has no `irc` field associated with their username
         """
         try:
-            data = urllib.urlopen(rustaceans_api_url.format(username=gh_name))
+            data = urllib.request.urlopen(rustaceans_api_url.format(username=gh_name))
             if data.getcode() == 200:
                 rustacean_data = json.loads(data.read())
                 if rustacean_data:

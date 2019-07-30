@@ -350,7 +350,7 @@ Please see [the contribution instructions](%s) for more information.
         mock_data = mock.Mock()
         mock_data.getcode.return_value = status_code
         mock_data.read.return_value = data
-        mock_urllib.urlopen.return_value = mock_data
+        mock_urllib.request.urlopen.return_value = mock_data
         return mock_data
 
     @mock.patch('highfive.newpr.urllib')
@@ -359,7 +359,7 @@ Please see [the contribution instructions](%s) for more information.
         self.setup_get_irc_nick_mocks(mock_urllib, 503)
         assert handler.get_irc_nick('foo') is None
 
-        mock_urllib.urlopen.assert_called_with(
+        mock_urllib.request.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
         )
 
@@ -369,7 +369,7 @@ Please see [the contribution instructions](%s) for more information.
         mock_data = self.setup_get_irc_nick_mocks(mock_urllib, 200, '[]')
         assert handler.get_irc_nick('foo') is None
 
-        mock_urllib.urlopen.assert_called_with(
+        mock_urllib.request.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=foo'
         )
         mock_data.getcode.assert_called()
@@ -384,7 +384,7 @@ Please see [the contribution instructions](%s) for more information.
         )
         assert handler.get_irc_nick('nrc') == 'nrc'
 
-        mock_urllib.urlopen.assert_called_with(
+        mock_urllib.request.urlopen.assert_called_with(
             'http://www.ncameron.org/rustaceans/user?username=nrc'
         )
         mock_data.getcode.assert_called()
@@ -405,10 +405,10 @@ class TestApiReq(TestNewPR):
         cls.res = cls.mocks['urlopen'].return_value
         cls.res.info.return_value = {'Content-Encoding': 'gzip'}
 
-        cls.body = cls.res.read.return_value = 'body1'
+        cls.body = cls.res.read.return_value = b'body1'
 
         cls.gzipped_body = cls.mocks['GzipFile'].return_value.read
-        cls.gzipped_body.return_value = 'body2'
+        cls.gzipped_body.return_value = b'body2'
 
         cls.handler = HighfiveHandlerMock(Payload({})).handler
 
@@ -417,7 +417,7 @@ class TestApiReq(TestNewPR):
 
     def verify_mock_calls(self, header_calls, gzipped):
         self.mocks['Request'].assert_called_with(
-            self.url, json.dumps(self.data) if self.data else self.data,
+            self.url, json.dumps(self.data).encode("utf-8") if self.data else self.data,
             {'Content-Type': 'application/json'} if self.data else {}
         )
         assert self.req.get_method() == 'METHOD'
