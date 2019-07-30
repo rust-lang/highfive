@@ -13,7 +13,7 @@ WORKDIR /highfive
 COPY setup.py .
 COPY highfive/*.py highfive/
 COPY highfive/configs/ highfive/configs/
-RUN pip install .
+RUN pip3 install .
 
 EXPOSE 80
 ENV HIGHFIVE_PORT 80
