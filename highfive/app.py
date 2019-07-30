@@ -46,7 +46,7 @@ def create_app(config, webhook_secret=None, config_dir=None):
 
         try:
             payload = json.loads(flask.request.form['payload'])
-        except (KeyError, ValueError), _:
+        except (KeyError, ValueError):
             return 'Error: missing or invalid payload\n', 400
         try:
             handler = HighfiveHandler(Payload(payload), config, config_dir)
