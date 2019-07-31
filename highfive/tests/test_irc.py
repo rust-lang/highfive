@@ -15,8 +15,11 @@ class TestIrc(object):
 
                 client = irc.IrcClient('#rust-bots')
                 msocket.connect.assert_called_once_with(("irc.mozilla.org", 6667))
-                msocket.reset_mock()
 
-                client.send_then_quit("test")
-                msocket.send.assert_has_calls([mock.call(b"PRIVMSG #rust-bots :test\r\n"),
-                                               mock.call(b"QUIT :bot out\r\n")])
+                client.send_then_quit(b"test")
+                msocket.send.assert_has_calls([
+                    mock.call(b"USER rust-highfive rust-highfive rust-highfive :alert bot!\r\n"),
+                    mock.call(b"NICK rust-highfive\r\n"),
+                    mock.call(b"PRIVMSG #rust-bots :test\r\n"),
+                    mock.call(b"QUIT :bot out\r\n"),
+                ])

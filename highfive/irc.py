@@ -7,17 +7,17 @@ class IrcClient(object):
     responses from the IRC protocol
     """
     def __init__(self, target, nick="rust-highfive", should_join=False):
-        self.target = target
-        self.nick = nick
+        self.target = target.encode("utf-8")
+        self.nick = nick.encode("utf-8")
         self.should_join = should_join
         self.ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ircsock.connect(("irc.mozilla.org", 6667))
-        self.ircsock.send("USER {0} {0} {0} :alert bot!\r\n".format(self.nick).encode("utf-8"))
-        self.ircsock.send("NICK {}\r\n".format(self.nick).encode("utf-8"))
+        self.ircsock.send(b"USER " + self.nick + b" " + self.nick + b" " + self.nick + b" :alert bot!\r\n")
+        self.ircsock.send(b"NICK " + self.nick + b"\r\n")
         time.sleep(2)
 
     def join(self):
-        self.ircsock.send("JOIN {}\r\n".format(self.target).encode("utf-8"))
+        self.ircsock.send(b"JOIN " + self.targert + b"\r\n")
 
     def send(self, msg):
         start = time.time()
@@ -28,8 +28,8 @@ class IrcClient(object):
             ircmsg = self.ircsock.recv(2048).strip()
             #if ircmsg: print(ircmsg)
 
-            if ircmsg.find(self.nick + " +x") != -1:
-                self.ircsock.send("PRIVMSG {} :{}\r\n".format(self.target, msg).encode("utf-8"))
+            if ircmsg.find(self.nick + b" +x") != -1:
+                self.ircsock.send(b"PRIVMSG " + self.target + b" :" + msg + b"\r\n")
                 return
 
     def quit(self):
