@@ -20,6 +20,8 @@ class IrcClient(object):
         self.ircsock.send(b"JOIN " + self.targert + b"\r\n")
 
     def send(self, msg):
+        if type(msg) == str:
+            msg = msg.encode("utf-8")
         start = time.time()
         while True:
             if time.time() - start > 5:
