@@ -18,5 +18,5 @@ class TestIrc(object):
                 msocket.reset_mock()
 
                 client.send_then_quit("test")
-                msocket.send.assert_has_calls([mock.call("PRIVMSG #rust-bots :test\r\n"),
-                                               mock.call("QUIT :bot out\r\n")])
+                msocket.send.assert_has_calls([mock.call(b"PRIVMSG #rust-bots :test\r\n"),
+                                               mock.call(b"QUIT :bot out\r\n")])

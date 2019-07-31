@@ -12,12 +12,12 @@ class IrcClient(object):
         self.should_join = should_join
         self.ircsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ircsock.connect(("irc.mozilla.org", 6667))
-        self.ircsock.send("USER {0} {0} {0} :alert bot!\r\n".format(self.nick))
-        self.ircsock.send("NICK {}\r\n".format(self.nick))
+        self.ircsock.send("USER {0} {0} {0} :alert bot!\r\n".format(self.nick).encode("utf-8"))
+        self.ircsock.send("NICK {}\r\n".format(self.nick).encode("utf-8"))
         time.sleep(2)
 
     def join(self):
-        self.ircsock.send("JOIN {}\r\n".format(self.target))
+        self.ircsock.send("JOIN {}\r\n".format(self.target).encode("utf-8"))
 
     def send(self, msg):
         start = time.time()
@@ -29,11 +29,11 @@ class IrcClient(object):
             #if ircmsg: print(ircmsg)
 
             if ircmsg.find(self.nick + " +x") != -1:
-                self.ircsock.send("PRIVMSG {} :{}\r\n".format(self.target, msg))
+                self.ircsock.send("PRIVMSG {} :{}\r\n".format(self.target, msg).encode("utf-8"))
                 return
 
     def quit(self):
-        self.ircsock.send("QUIT :bot out\r\n")
+        self.ircsock.send(b"QUIT :bot out\r\n")
 
     def send_then_quit(self, msg):
         if self.should_join:
