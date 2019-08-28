@@ -9,6 +9,6 @@
         "rust-embedded/hal": ["@ryankurte", "@thejpster", "@therealprof", "@ithinuel"],
         "rust-embedded/infrastructure": ["@ryankurte", "@nastevens"],
         "rust-embedded/resources": ["@adamgreig", "@andre-richter", "@jamesmunns", "@korken89", "@ryankurte", "@thejpster", "@therealprof"],
-        "rust-embedded/tools": ["@Emilgardis", "@ryankurte", "@therealprof", "@adamgreig", "@Disasm", "@reitermarkus"]
+        "rust-embedded/tools": ["@Emilgardis", "@ryankurte", "@therealprof", "@adamgreig", "@Disasm", "@reitermarkus", "@burrbull"]
     }
 }
