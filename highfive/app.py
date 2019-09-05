@@ -17,7 +17,10 @@ import flask
 import waitress
 
 
-def create_app(config, webhook_secret=None, config_dir=None):
+def create_app(config, webhook_secrets=None, config_dir=None):
+    if webhook_secrets is None:
+        webhook_secrets = []
+
     app = flask.Flask(__name__)
 
     # The canonical URL is /webhook, but other URLs are accepted for backward
@@ -37,13 +40,15 @@ def create_app(config, webhook_secret=None, config_dir=None):
             return 'Error: some required webhook headers are missing\n', 400
 
         # Check the signature only if the secret is configured
-        if 'payload' in flask.request.form and webhook_secret is not None:
-            expected = hmac.new(webhook_secret.encode("utf-8"), digestmod=hashlib.sha1)
-            expected.update(raw_data)
-            expected = expected.hexdigest()
-            if not hmac.compare_digest('sha1='+expected, signature):
+        if 'payload' in flask.request.form and webhook_secrets:
+            for webhook_secret in webhook_secrets:
+                expected = hmac.new(webhook_secret.encode("utf-8"), digestmod=hashlib.sha1)
+                expected.update(raw_data)
+                expected = expected.hexdigest()
+                if hmac.compare_digest('sha1='+expected, signature):
+                    break
+            else:
                 return 'Error: invalid signature\n', 403
-
         try:
             payload = json.loads(flask.request.form['payload'])
         except (KeyError, ValueError):
@@ -73,9 +78,9 @@ def create_app(config, webhook_secret=None, config_dir=None):
 @click.command()
 @click.option('--port', default=8000)
 @click.option('--github-token', required=True)
-@click.option("--webhook-secret")
+@click.option("webhook_secrets", "--webhook-secret", multiple=True)
 @click.option("--config-dir")
-def cli(port, github_token, webhook_secret, config_dir):
+def cli(port, github_token, webhook_secrets, config_dir):
     try:
         config = Config(github_token)
     except InvalidTokenException:
@@ -83,7 +88,7 @@ def cli(port, github_token, webhook_secret, config_dir):
         sys.exit(1)
     print('Found a valid GitHub token for user @' + config.github_username)
 
-    app = create_app(config, webhook_secret, config_dir)
+    app = create_app(config, webhook_secrets, config_dir)
     waitress.serve(app, port=port)
 
 
