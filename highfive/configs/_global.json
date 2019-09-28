@@ -2,7 +2,7 @@
     "groups": {
         "core": ["@nikomatsakis", "@alexcrichton"],
         "crates": ["@alexcrichton"],
-        "doc": ["@steveklabnik", "@GuillaumeGomez", "@frewsxcv", "@QuietMisdreavus"],
+        "doc": ["@steveklabnik", "@GuillaumeGomez", "@QuietMisdreavus"],
         "rust-embedded/cortex-m": ["@adamgreig", "@ithinuel", "@korken89", "@thejpster", "@therealprof"],
         "rust-embedded/cortex-r": ["@japaric", "@paoloteti"],
         "rust-embedded/embedded-linux": ["@posborne", "@nastevens", "@ryankurte"],
