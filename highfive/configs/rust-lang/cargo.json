@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["@alexcrichton", "@ehuss", "@nrc", "@Eh2406"]
+        "all": ["@alexcrichton", "@ehuss", "@Eh2406"]
     },
     "dirs": {
         "src/doc": ["doc"]
