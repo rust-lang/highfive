@@ -3,7 +3,7 @@
         "all": [],
         "compiler": ["@cramertj", "@eddyb", "@petrochenkov", "@estebank", "@varkor", "@matthewjasper", "@zackmdavis", "@davidtwco"],
         "syntax": ["@petrochenkov", "@eddyb"],
-        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@TimNN", "@kennytm"],
+        "libs": ["@KodrAus", "@alexcrichton", "@sfackler", "@dtolnay", "@JoshTriplett", "@rkruppe", "@kimundi", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@kennytm"],
         "infra-ci": ["@alexcrichton", "@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
         "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
