@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["@sgrif", "@jtgeibel", "@carols10cents"]
+        "all": ["@sgrif", "@jtgeibel", "@carols10cents", "@smarnach"]
     },
     "dirs": {},
     "contributing": "https://github.com/rust-lang/crates.io/blob/master/docs/CONTRIBUTING.md",
