@@ -44,5 +44,5 @@ jobs:
           redeploy_ecs_cluster: rust-ecs-prod
           redeploy_ecs_service: highfive
           aws_access_key_id: "${{ env.AWS_ACCESS_KEY_ID }}"
-          aws_secret_access_key: "${{ secrets[format('AWS_SECRET_ACCESS_KEY_{0}', env.ACCESS_KEY_ID)] }}"
+          aws_secret_access_key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
         if: github.ref == 'refs/heads/master'
