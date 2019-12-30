@@ -22,4 +22,7 @@ ENV HIGHFIVE_CONFIG_DIR /highfive/highfive/configs
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
+# Allow logs to show up timely on CloudWatch.
+ENV PYTHONUNBUFFERED=1
+
 CMD highfive
