@@ -1,0 +1,48 @@
+name: CI
+on:
+  push: {}
+  pull_request: {}
+  schedule:
+    - cron: "0 12 * * 1" # Every Monday at 12:00 UTC
+
+env:
+  AWS_ACCESS_KEY_ID: AKIA46X5W6CZIFIMIHXE
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Use Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+
+      - name: Install highfive
+        run: pip install .
+
+      - name: Install test requiremens
+        run: pip install -r test-requirements.txt
+
+      - name: Run the test suite
+        run: pytest
+
+      - name: Build the Docker container
+        run: docker build -t highfive .
+
+      - name: Deploy to production
+        uses: rust-lang/simpleinfra/github-actions/upload-docker-image@master
+        with:
+          image: highfive
+          repository: rust-highfive
+          region: us-west-1
+          redeploy_ecs_cluster: rust-ecs-prod
+          redeploy_ecs_service: highfive
+          aws_access_key_id: "${{ env.AWS_ACCESS_KEY_ID }}"
+          aws_secret_access_key: "${{ secrets[format('AWS_SECRET_ACCESS_KEY_{0}', env.ACCESS_KEY_ID)] }}"
+        if: github.ref == 'master'
