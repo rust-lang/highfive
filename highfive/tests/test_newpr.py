@@ -1,28 +1,32 @@
+import json
+import os
 from copy import deepcopy
+from urllib.error import HTTPError
+
+import mock
+import pytest
+import responses
+
 from highfive import newpr
 from highfive.config import Config
 from highfive.payload import Payload
 from highfive.tests import fakes
-from highfive.tests.patcherize import patcherize
 from highfive.tests.fakes import load_fake
-import json
-import mock
-import os
-import pytest
-import responses
-from urllib.error import HTTPError
+from highfive.tests.patcherize import patcherize
+
 
 @pytest.mark.unit
 @pytest.mark.hermetic
 class TestNewPR(object):
     pass
 
+
 class HighfiveHandlerMock(object):
     def __init__(
-        self, payload, integration_user='integrationUser',
-        integration_token='integrationToken', repo_config={}
+            self, payload, integration_user='integrationUser',
+            integration_token='integrationToken', repo_config={}
     ):
-        assert(type(payload) == Payload)
+        assert (type(payload) == Payload)
         self.integration_user = integration_user
         self.integration_token = integration_token
 
@@ -63,6 +67,7 @@ class HighfiveHandlerMock(object):
             self.patchers_stopped = True
             self.load_repo_config_patcher.stop()
 
+
 class TestHighfiveHandler(TestNewPR):
     @mock.patch('highfive.newpr.HighfiveHandler.load_repo_config')
     def test_init(self, mock_load_repo_config):
@@ -101,6 +106,7 @@ class TestHighfiveHandler(TestNewPR):
         mock_load_json_file.assert_called_once_with(
             os.path.join('foo', 'blah.json'),
         )
+
 
 class TestNewPRGeneral(TestNewPR):
     def test_welcome_msg(self):
@@ -147,11 +153,11 @@ Please see [the contribution instructions](%s) for more information.
         # No reviewer.
         handler = HighfiveHandlerMock(Payload({})).handler
         assert handler.review_msg(None, 'userB') == \
-            '@userB: no appropriate reviewer found, use r? to override'
+               '@userB: no appropriate reviewer found, use r? to override'
 
         # Has reviewer.
         assert handler.review_msg('userA', 'userB') == \
-            'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
+               'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
 
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
@@ -159,7 +165,7 @@ Please see [the contribution instructions](%s) for more information.
         mock_dirname.return_value = '/the/path'
         contents = ['some json']
         with mock.patch(
-            'builtins.open', mock.mock_open(read_data=json.dumps(contents))
+                'builtins.open', mock.mock_open(read_data=json.dumps(contents))
         ) as mock_file:
             assert handler._load_json_file('a-config.json') == contents
             mock_file.assert_called_with('/the/path/configs/a-config.json')
@@ -296,15 +302,15 @@ Please see [the contribution instructions](%s) for more information.
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:master'}}}
         )
-        config = {'expected_branch': 'dev' }
+        config = {'expected_branch': 'dev'}
         with HighfiveHandlerMock(payload, repo_config=config) as m:
             assert m.handler.unexpected_branch() == ('dev', 'master')
 
     def test_expected_branch_custom_expected_match(self):
         payload = Payload(
-            {'pull_request': {'base': {'label':'repo-owner:dev'}}}
+            {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
         )
-        config = {'expected_branch': 'dev' }
+        config = {'expected_branch': 'dev'}
         with HighfiveHandlerMock(payload, repo_config=config) as m:
             assert not m.handler.unexpected_branch()
 
@@ -389,6 +395,7 @@ Please see [the contribution instructions](%s) for more information.
         )
         mock_data.getcode.assert_called()
         mock_data.read.assert_called()
+
 
 class TestApiReq(TestNewPR):
     @pytest.fixture(autouse=True)
@@ -524,6 +531,7 @@ class TestApiReq(TestNewPR):
         ]
         self.verify_mock_calls(calls, False)
 
+
 class TestSetAssignee(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_defaults(cls, patcherize):
@@ -642,6 +650,7 @@ class TestSetAssignee(TestNewPR):
         self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_not_called()
 
+
 class TestIsNewContributor(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_defaults(cls, patcherize):
@@ -698,6 +707,7 @@ class TestIsNewContributor(TestNewPR):
         with pytest.raises(HTTPError):
             self.is_new_contributor()
         self.assert_api_req_call()
+
 
 class TestPostWarnings(TestNewPR):
     @pytest.fixture(autouse=True)
@@ -787,6 +797,7 @@ class TestPostWarnings(TestNewPR):
         self.mocks['post_comment'].assert_called_with(
             expected_warning, self.owner, self.repo, self.issue
         )
+
 
 class TestNewPrFunction(TestNewPR):
     @pytest.fixture(autouse=True)
@@ -961,6 +972,7 @@ class TestNewPrFunction(TestNewPR):
         )
         self.mocks['add_labels'].assert_not_called()
 
+
 class TestNewComment(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_mocks(cls, patcherize):
@@ -972,9 +984,9 @@ class TestNewComment(TestNewPR):
 
     @staticmethod
     def make_handler(
-        state='open', is_pull_request=True, commenter='userA',
-        repo='repo-name', owner='repo-owner', author='userB',
-        comment='comment!', issue_number=7, assignee=None
+            state='open', is_pull_request=True, commenter='userA',
+            repo='repo-name', owner='repo-owner', author='userB',
+            comment='comment!', issue_number=7, assignee=None
     ):
         payload = Payload({
             'issue': {
@@ -1096,6 +1108,7 @@ class TestNewComment(TestNewPR):
             'userA', None
         )
 
+
 class TestChooseReviewer(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_fakes(cls):
@@ -1113,11 +1126,11 @@ class TestChooseReviewer(TestNewPR):
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def get_to_mention_inner(self, diff, global_, mock_load_json):
-        mock_load_json.return_value = deepcopy(global_ or { "groups": {} })
+        mock_load_json.return_value = deepcopy(global_ or {"groups": {}})
         return self.handler.get_to_mention(diff)
 
     def choose_reviewer(
-        self, repo, owner, diff, exclude, global_=None
+            self, repo, owner, diff, exclude, global_=None
     ):
         return self.choose_reviewer_inner(
             repo, owner, diff, exclude, global_
@@ -1125,14 +1138,14 @@ class TestChooseReviewer(TestNewPR):
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def choose_reviewer_inner(
-        self, repo, owner, diff, exclude, global_, mock_load_json
+            self, repo, owner, diff, exclude, global_, mock_load_json
     ):
-        mock_load_json.return_value = deepcopy(global_ or { "groups": {} })
+        mock_load_json.return_value = deepcopy(global_ or {"groups": {}})
         return self.handler.choose_reviewer(
             repo, owner, diff, exclude
         )
 
-    def choose_reviewers(self, diff, author, global_ = None):
+    def choose_reviewers(self, diff, author, global_=None):
         """Helper function that repeatedly calls choose_reviewer to build sets
         of reviewers and mentions for a given diff and author.
         """
@@ -1261,6 +1274,7 @@ class TestChooseReviewer(TestNewPR):
         )
         assert set(["pnkfelix", "nrc", "aturon"]) == chosen_reviewers
         assert set([()]) == mentions
+
 
 class TestRun(TestNewPR):
     @pytest.fixture(autouse=True)

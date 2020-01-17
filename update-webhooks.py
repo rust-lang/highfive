@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+import os
+import requests
+
 #
 # This script goes over all the repositories in the highfive configuration and
 # sets the webhook to point to the highfive instance
@@ -20,9 +24,6 @@ EVENTS = [
     "pull_request",
 ]
 
-import json
-import os
-import requests
 
 class GitHubApi:
     def __init__(self, token):
@@ -39,6 +40,7 @@ class GitHubApi:
         })
         return resp.json()
 
+
 def find_config_files(path):
     """Return all the configuration files in a directory"""
     result = []
@@ -51,6 +53,7 @@ def find_config_files(path):
         elif file.endswith(".json"):
             result.append(file)
     return result
+
 
 def update_webhook(config, api, secret):
     """Update the webhook of a single file"""
@@ -103,6 +106,7 @@ def update_webhook(config, api, secret):
             "active": True,
         })
         print("Fixed: %s/%s" % (org, name))
+
 
 if __name__ == "__main__":
     if "GITHUB_TOKEN" not in os.environ:

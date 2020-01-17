@@ -1,9 +1,9 @@
-from copy import deepcopy
+import json
+
+import pytest
+
 from highfive.payload import Payload
 from highfive.tests.fakes import load_fake
-import json
-import mock
-import pytest
 
 
 @pytest.mark.unit
