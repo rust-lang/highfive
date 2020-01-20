@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 
-import urllib
-import cgi
-import cgitb
-from copy import deepcopy
-import json
-import random
-from configparser import ConfigParser
-from io import StringIO
 import gzip
-import re
+import json
 import os
+import random
+import re
+import urllib
+from configparser import ConfigParser
+from copy import deepcopy
+from io import StringIO
 
-from highfive import irc, payload
+from highfive import irc
 
 # Maximum per page is 100. Sorted by number of commits, so most of the time the
 # contributor will happen early,
@@ -39,12 +37,14 @@ review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, 
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
 reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
-submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL|re.MULTILINE)
+submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
+
 class UnsupportedRepoError(IOError):
     pass
+
 
 class HighfiveHandler(object):
     def __init__(self, payload, config, config_dir=None):
@@ -57,7 +57,7 @@ class HighfiveHandler(object):
         self.repo_config = self.load_repo_config()
 
     def load_repo_config(self):
-        '''Load the repository configuration.'''
+        """Load the repository configuration."""
         (org, repo) = self.payload['repository', 'full_name'].split('/')
         try:
             return self._load_json_file(os.path.join(org, repo) + '.json')
@@ -103,7 +103,7 @@ class HighfiveHandler(object):
             buf = StringIO(f.read())
             f = gzip.GzipFile(fileobj=buf)
         body = f.read().decode("utf-8")
-        return { "header": header, "body": body }
+        return {"header": header, "body": body}
 
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
         try:
@@ -122,7 +122,7 @@ class HighfiveHandler(object):
             if irc_name_of_reviewer:
                 client = irc.IrcClient(target="#rust-bots")
                 client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
-                    .format(irc_name_of_reviewer, owner, repo, issue, author))
+                                      .format(irc_name_of_reviewer, owner, repo, issue, author))
         self.run_commands(to_mention, owner, repo, issue, user)
 
     def run_commands(self, to_mention, owner, repo, issue, user):
@@ -217,8 +217,7 @@ class HighfiveHandler(object):
             else review_with_reviewer % reviewer
 
     def unexpected_branch(self):
-        """ returns (expected_branch, actual_branch) if they differ, else False
-        """
+        """ returns (expected_branch, actual_branch) if they differ, else False"""
 
         # If unspecified, assume master.
         expected_target = self.repo_config.get('expected_branch', 'master')
@@ -249,16 +248,16 @@ class HighfiveHandler(object):
                 raise e
 
     def find_reviewer(self, msg):
-        '''
+        """
         If the user specified a reviewer, return the username, otherwise returns
         None.
-        '''
+        """
         if msg is not None:
             match = reviewer_re.search(msg)
             return match.group(1) if match else None
 
     def choose_reviewer(self, repo, owner, diff, exclude):
-        '''Choose a reviewer for the PR.'''
+        """Choose a reviewer for the PR."""
         # Get JSON data on reviewers.
         dirs = self.repo_config.get('dirs', {})
         groups = deepcopy(self.repo_config['groups'])
@@ -311,7 +310,6 @@ class HighfiveHandler(object):
         if not potential:
             potential = groups['core']
 
-
         # expand the reviewers list by group
         reviewers = []
         seen = {"all"}
@@ -337,9 +335,9 @@ class HighfiveHandler(object):
         return None
 
     def get_to_mention(self, diff):
-        '''
+        """
         Get the list of people to mention.
-        '''
+        """
         dirs = self.repo_config.get('dirs', {})
         mentions = self.repo_config.get('mentions', {})
 
@@ -428,7 +426,7 @@ class HighfiveHandler(object):
     def new_comment(self):
         # Check the issue is a PR and is open.
         if self.payload['issue', 'state'] != 'open' \
-           or 'pull_request' not in self.payload['issue']:
+                or 'pull_request' not in self.payload['issue']:
             return
 
         commenter = self.payload['comment', 'user', 'login']
@@ -442,8 +440,8 @@ class HighfiveHandler(object):
         # Check the commenter is the submitter of the PR or the previous assignee.
         author = self.payload['issue', 'user', 'login']
         if not (author == commenter or (
-                    self.payload['issue', 'assignee'] \
-                    and commenter == self.payload['issue', 'assignee', 'login']
+                self.payload['issue', 'assignee'] \
+                and commenter == self.payload['issue', 'assignee', 'login']
         )):
             # Check if commenter is a collaborator.
             if not self.is_collaborator(commenter, owner, repo):

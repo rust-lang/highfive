@@ -1,11 +1,13 @@
-from highfive import newpr, payload
-from highfive.config import Config
-from highfive.tests import fakes
-from highfive.tests.patcherize import patcherize
-from highfive.tests.test_newpr import HighfiveHandlerMock
 import mock
 import pytest
 import responses
+
+from highfive import newpr, payload
+from highfive.config import Config
+from highfive.tests import fakes
+from highfive.tests.test_newpr import HighfiveHandlerMock
+from highfive.tests.patcherize import patcherize
+
 
 @pytest.mark.integration
 class TestIsNewContributor(object):
@@ -26,6 +28,7 @@ class TestIsNewContributor(object):
             'fjkesfgojsrgljsdgla', 'rust-lang', 'rust'
         )
 
+
 class ApiReqMocker(object):
     def __init__(self, calls_and_returns):
         self.calls = [(c[0],) for c in calls_and_returns]
@@ -43,6 +46,7 @@ class ApiReqMocker(object):
 
         assert self.mock.call_count == len(self.calls)
 
+
 def dummy_config():
     with responses.RequestsMock() as resp:
         resp.add(
@@ -50,6 +54,7 @@ def dummy_config():
             json={'login': 'integration-user'},
         )
         return Config('integration_token')
+
 
 @pytest.mark.integration
 @pytest.mark.hermetic
@@ -100,7 +105,8 @@ class TestNewPr(object):
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"}
+                    {
+                        'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"}
                 ),
                 {'body': {}},
             ),
@@ -141,7 +147,8 @@ class TestNewPr(object):
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"}
+                    {
+                        'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nIf any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.\n\nPlease see [the contribution instructions](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md) for more information.\n"}
                 ),
                 {'body': {}},
             ),
@@ -240,6 +247,7 @@ class TestNewPr(object):
         handler.new_pr()
 
         api_req_mock.verify_calls()
+
 
 @pytest.mark.integration
 @pytest.mark.hermetic

@@ -1,11 +1,13 @@
 import socket
 import time
 
+
 class IrcClient(object):
     """ A simple IRC client to send a message and then leave.
     the calls to `time.sleep` are so the socket has time to recognize
     responses from the IRC protocol
     """
+
     def __init__(self, target, nick="rust-highfive", should_join=False):
         self.target = target.encode("utf-8")
         self.nick = nick.encode("utf-8")
@@ -17,7 +19,7 @@ class IrcClient(object):
         time.sleep(2)
 
     def join(self):
-        self.ircsock.send(b"JOIN " + self.targert + b"\r\n")
+        self.ircsock.send(b"JOIN " + self.target + b"\r\n")
 
     def send(self, msg):
         if type(msg) == str:
@@ -28,7 +30,7 @@ class IrcClient(object):
                 print("Timeout! EXITING")
                 return
             ircmsg = self.ircsock.recv(2048).strip()
-            #if ircmsg: print(ircmsg)
+            # if ircmsg: print(ircmsg)
 
             if ircmsg.find(self.nick + b" +x") != -1:
                 self.ircsock.send(b"PRIVMSG " + self.target + b" :" + msg + b"\r\n")

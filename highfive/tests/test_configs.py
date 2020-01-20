@@ -1,10 +1,10 @@
-from copy import deepcopy
 import json
+import os
+from copy import deepcopy
+
+import pytest
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
-import os
-import pytest
-
 
 CONFIG_SCHEMA = {
     "type": "object",
@@ -12,7 +12,7 @@ CONFIG_SCHEMA = {
         "groups",
     ],
     "properties": {
-        "contributing" : {
+        "contributing": {
             "type": "string",
         },
         "dirs": {
@@ -82,6 +82,7 @@ CONFIG_SCHEMA = {
 GLOBAL_SCHEMA = deepcopy(CONFIG_SCHEMA)
 del GLOBAL_SCHEMA['properties']['groups']['required']
 
+
 def config_valid(fname):
     with open(fname, 'r') as fin:
         try:
@@ -99,6 +100,7 @@ def config_valid(fname):
         raise
 
     return True
+
 
 @pytest.mark.config
 @pytest.mark.hermetic

@@ -7,14 +7,14 @@ import json
 import sys
 import traceback
 
-from .config import Config, InvalidTokenException
-from .newpr import HighfiveHandler, UnsupportedRepoError
-from .payload import Payload
-
 import click
 import dotenv
 import flask
 import waitress
+
+from .config import Config, InvalidTokenException
+from .newpr import HighfiveHandler, UnsupportedRepoError
+from .payload import Payload
 
 
 def create_app(config, webhook_secrets=None, config_dir=None):
@@ -45,7 +45,7 @@ def create_app(config, webhook_secrets=None, config_dir=None):
                 expected = hmac.new(webhook_secret.encode("utf-8"), digestmod=hashlib.sha1)
                 expected.update(raw_data)
                 expected = expected.hexdigest()
-                if hmac.compare_digest('sha1='+expected, signature):
+                if hmac.compare_digest('sha1=' + expected, signature):
                     break
             else:
                 return 'Error: invalid signature\n', 403
