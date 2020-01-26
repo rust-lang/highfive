@@ -1,0 +1,12 @@
+{
+    "groups": {
+        "all": [
+            "rust-embedded/cortex-a",
+            "rust-embedded/cortex-m",
+            "rust-embedded/cortex-r",
+            "rust-embedded/msp430",
+            "rust-embedded/riscv"
+        ]
+    },
+    "new_pr_labels": ["S-waiting-on-review"]
+}
