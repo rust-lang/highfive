@@ -1,6 +1,6 @@
 {
     "groups": {
-        "core": ["@nikomatsakis", "@alexcrichton"],
+        "core": ["@nikomatsakis"],
         "crates": ["@alexcrichton"],
         "doc": ["@steveklabnik", "@GuillaumeGomez", "@QuietMisdreavus"],
         "rust-embedded/cortex-a": ["@andre-richter", "@parched", "@raw-bin", "@wizofe"],
