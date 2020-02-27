@@ -31,7 +31,9 @@
         "src/libterm":          ["libs"],
         "src/libtest":          ["libs"],
         "src/libunicode":       ["libs", "@SimonSapin"],
-        "src/rustbook":         ["doc"],
+        "src/tools/cargo":      ["@ehuss", "@joshtriplett"],
+        "src/tools/linkchecker":["@ehuss"],
+        "src/tools/rustbook":   ["doc", "@ehuss"],
         "src/ci":               ["infra-ci"],
         ".azure-pipelines":     ["infra-ci"],
         ".travis.yml":          ["infra-ci"],
@@ -54,6 +56,10 @@
         "error_codes.rs": {
             "message": "Some changes occurred in diagnostic error codes",
             "reviewers": ["@GuillaumeGomez"]
+        },
+        "src/tools/cargo": {
+            "message": "Updates src/tools/cargo.",
+            "reviewers": ["@ehuss"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
