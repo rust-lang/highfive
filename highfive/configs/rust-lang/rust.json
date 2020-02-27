@@ -21,6 +21,7 @@
         "src/libgraphviz":      ["@pnkfelix"],
         "src/liblibc":          ["libs"],
         "src/liblog":           ["libs"],
+        "src/libproc_macro":    ["@petrochenkov"],
         "src/librand":          ["libs"],
         "src/librbml":          ["libs", "@erickt"],
         "src/librustc":         ["compiler"],
