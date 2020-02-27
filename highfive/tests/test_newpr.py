@@ -1260,6 +1260,31 @@ class TestChooseReviewer(TestNewPR):
         )
         assert set(["@JohnTitor"]) == mentions
 
+    def test_with_team_ping(self):
+        """Test choosing a reviewer when passed a team ping"""
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['teams']
+        ).handler
+
+        found_cases = (
+            ("r? @foo/a", "pnkfelix"),
+            ("r? @b/c", "nrc"),
+        )
+
+        not_found_cases = (
+            "r? @/a",
+            "r? @a/b",
+        )
+
+        for (msg, reviewer) in found_cases:
+            assert handler.find_reviewer(msg, None) == reviewer, \
+                "expected '%s' from '%s'" % (reviewer, msg)
+
+        for msg in not_found_cases:
+            assert handler.find_reviewer(msg, None) is None, \
+                "expected '%s' to have no reviewer extracted" % msg
+
+
 class TestRun(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_mocks(cls, patcherize):
