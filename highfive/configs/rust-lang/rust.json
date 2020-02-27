@@ -39,6 +39,7 @@
         "src/libterm":              ["libs"],
         "src/libtest":              ["libs"],
         "src/libunicode":           ["libs", "@SimonSapin"],
+        "src/rustc":                ["compiler"],
         "src/stage0.txt":           ["@Mark-Simulacrum"],
         "src/stdarch":              ["libs"],
         "src/tools/cargo":          ["@ehuss", "@joshtriplett"],
