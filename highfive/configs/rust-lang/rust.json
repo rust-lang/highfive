@@ -39,7 +39,7 @@
         "src/libunicode":           ["libs", "@SimonSapin"],
         "src/stage0.txt":           ["@Mark-Simulacrum"],
         "src/tools/cargo":          ["@ehuss", "@joshtriplett"],
-        "src/tools/compiletest":    ["@Mark-Simulacrum"],
+        "src/tools/compiletest":    ["@Mark-Simulacrum", "@Centril"],
         "src/tools/linkchecker":    ["@ehuss"],
         "src/tools/rust-installer": ["@Mark-Simulacrum"],
         "src/tools/rustbook":       ["doc", "@ehuss"],
