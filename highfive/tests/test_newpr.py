@@ -346,57 +346,6 @@ Please see [the contribution instructions](%s) for more information.
             assert handler.find_reviewer(msg) is None, \
                 "expected '%s' to have no reviewer extracted" % msg
 
-    def setup_get_irc_nick_mocks(self, mock_urllib, status_code, data=None):
-        if status_code != 200:
-            mock_urllib.side_effect = HTTPError(
-                None, status_code, None, None, None
-            )
-            return
-
-        mock_data = mock.Mock()
-        mock_data.getcode.return_value = status_code
-        mock_data.read.return_value = data
-        mock_urllib.request.urlopen.return_value = mock_data
-        return mock_data
-
-    @mock.patch('highfive.newpr.urllib')
-    def test_get_irc_nick_non_200(self, mock_urllib):
-        handler = HighfiveHandlerMock(Payload({})).handler
-        self.setup_get_irc_nick_mocks(mock_urllib, 503)
-        assert handler.get_irc_nick('foo') is None
-
-        mock_urllib.request.urlopen.assert_called_with(
-            'http://www.ncameron.org/rustaceans/user?username=foo'
-        )
-
-    @mock.patch('highfive.newpr.urllib')
-    def test_get_irc_nick_no_data(self, mock_urllib):
-        handler = HighfiveHandlerMock(Payload({})).handler
-        mock_data = self.setup_get_irc_nick_mocks(mock_urllib, 200, '[]')
-        assert handler.get_irc_nick('foo') is None
-
-        mock_urllib.request.urlopen.assert_called_with(
-            'http://www.ncameron.org/rustaceans/user?username=foo'
-        )
-        mock_data.getcode.assert_called()
-        mock_data.read.assert_called()
-
-    @mock.patch('highfive.newpr.urllib')
-    def test_get_irc_nick_has_data(self, mock_urllib):
-        handler = HighfiveHandlerMock(Payload({})).handler
-        mock_data = self.setup_get_irc_nick_mocks(
-            mock_urllib, 200,
-            '[{"username":"nrc","name":"Nick Cameron","irc":"nrc","email":"nrc@ncameron.org","discourse":"nrc","reddit":"nick29581","twitter":"@nick_r_cameron","blog":"https://www.ncameron.org/blog","website":"https://www.ncameron.org","notes":"<p>I work on the Rust compiler, language design, and tooling. I lead the dev tools team and am part of the core team. I&#39;m part of the research team at Mozilla.</p>\\n","avatar":"https://avatars.githubusercontent.com/nrc","irc_channels":["rust-dev-tools","rust","rust-internals","rust-lang","rustc","servo"]}]'
-        )
-        assert handler.get_irc_nick('nrc') == 'nrc'
-
-        mock_urllib.request.urlopen.assert_called_with(
-            'http://www.ncameron.org/rustaceans/user?username=nrc'
-        )
-        mock_data.getcode.assert_called()
-        mock_data.read.assert_called()
-
-
 class TestApiReq(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_defaults(cls, patcherize):
@@ -537,12 +486,8 @@ class TestSetAssignee(TestNewPR):
     def make_defaults(cls, patcherize):
         cls.mocks = patcherize((
             ('api_req', 'highfive.newpr.HighfiveHandler.api_req'),
-            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
-            ('IrcClient', 'highfive.irc.IrcClient'),
         ))
-
-        cls.mocks['client'] = cls.mocks['IrcClient'].return_value
 
         cls.handler = HighfiveHandlerMock(Payload({})).handler
         cls.assignee = 'assigneeUser'
@@ -570,24 +515,16 @@ class TestSetAssignee(TestNewPR):
         )
 
     def test_api_req_good(self):
-        self.mocks['get_irc_nick'].return_value = None
         self.set_assignee()
 
         self.assert_api_req_call()
-        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
-        self.mocks['IrcClient'].assert_not_called()
-        self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_not_called()
 
     def test_api_req_201(self):
         self.mocks['api_req'].side_effect = HTTPError(None, 201, None, None, None)
-        self.mocks['get_irc_nick'].return_value = None
         self.set_assignee()
 
         self.assert_api_req_call()
-        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
-        self.mocks['IrcClient'].assert_not_called()
-        self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_not_called()
 
     def test_api_req_error(self):
@@ -596,30 +533,15 @@ class TestSetAssignee(TestNewPR):
             self.set_assignee()
 
         self.assert_api_req_call()
-        self.mocks['get_irc_nick'].assert_not_called()
-        self.mocks['IrcClient'].assert_not_called()
-        self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_not_called()
 
     def test_has_nick(self):
-        irc_nick = 'nick'
-        self.mocks['get_irc_nick'].return_value = irc_nick
-
         self.set_assignee()
 
         self.assert_api_req_call()
-        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
-        self.mocks['IrcClient'].assert_called_once_with(target='#rust-bots')
-        self.mocks['client'].send_then_quit.assert_called_once_with(
-            "{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}.".format(
-                irc_nick, self.owner, self.repo, self.issue, self.author
-            )
-        )
         self.mocks['post_comment'].assert_not_called()
 
     def test_has_to_mention(self):
-        self.mocks['get_irc_nick'].return_value = None
-
         to_mention = [
             {
                 'message': 'This is important',
@@ -633,9 +555,6 @@ class TestSetAssignee(TestNewPR):
         self.set_assignee(to_mention=to_mention)
 
         self.assert_api_req_call()
-        self.mocks['get_irc_nick'].assert_called_once_with(self.assignee)
-        self.mocks['IrcClient'].assert_not_called()
-        self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_called_once_with(
             'This is important\n\ncc @userA,@userB,@userC\n\nAlso important\n\ncc @userD',
             self.owner, self.repo, self.issue
@@ -645,9 +564,6 @@ class TestSetAssignee(TestNewPR):
         self.set_assignee(None)
 
         self.assert_api_req_call(None)
-        self.mocks['get_irc_nick'].assert_not_called()
-        self.mocks['IrcClient'].assert_not_called()
-        self.mocks['client'].send_then_quit.assert_not_called()
         self.mocks['post_comment'].assert_not_called()
 
 

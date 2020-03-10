@@ -10,8 +10,6 @@ from configparser import ConfigParser
 from copy import deepcopy
 from io import StringIO
 
-from highfive import irc
-
 # Maximum per page is 100. Sorted by number of commits, so most of the time the
 # contributor will happen early,
 post_comment_url = "https://api.github.com/repos/%s/%s/issues/%s/comments"
@@ -117,12 +115,6 @@ class HighfiveHandler(object):
             else:
                 raise e
 
-        if assignee:
-            irc_name_of_reviewer = self.get_irc_nick(assignee)
-            if irc_name_of_reviewer:
-                client = irc.IrcClient(target="#rust-bots")
-                client.send_then_quit("{}: ping to review issue https://www.github.com/{}/{}/pull/{} by {}."
-                                      .format(irc_name_of_reviewer, owner, repo, issue, author))
         self.run_commands(to_mention, owner, repo, issue, user)
 
     def run_commands(self, to_mention, owner, repo, issue, user):
@@ -147,22 +139,6 @@ class HighfiveHandler(object):
                 message += "%s %s" % (cmd, commands[cmd])
             if len(message) > 0:
                 self.post_comment(message, owner, repo, issue)
-
-    def get_irc_nick(self, gh_name):
-        """ returns None if the request status code is not 200,
-         if the user does not exist on the rustacean database,
-         or if the user has no `irc` field associated with their username
-        """
-        try:
-            data = urllib.request.urlopen(rustaceans_api_url.format(username=gh_name))
-            if data.getcode() == 200:
-                rustacean_data = json.loads(data.read())
-                if rustacean_data:
-                    return rustacean_data[0].get("irc")
-        except urllib.error.HTTPError:
-            pass
-
-        return None
 
     def is_collaborator(self, commenter, owner, repo):
         """Returns True if `commenter` is a collaborator in the repo."""

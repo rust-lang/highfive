@@ -62,12 +62,9 @@ class TestNewPr(object):
     @pytest.fixture(autouse=True)
     def make_mocks(cls, patcherize):
         cls.mocks = patcherize((
-            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
             ('load_json_file', 'highfive.newpr.HighfiveHandler._load_json_file'),
         ))
-
-        cls.mocks['get_irc_nick'].return_value = None
 
         cls.mocks['load_json_file'].side_effect = (
             fakes.get_repo_configs()['individuals_no_dirs'],
@@ -255,11 +252,8 @@ class TestNewComment(object):
     @pytest.fixture(autouse=True)
     def make_mocks(cls, patcherize):
         cls.mocks = patcherize((
-            ('get_irc_nick', 'highfive.newpr.HighfiveHandler.get_irc_nick'),
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
         ))
-
-        cls.mocks['get_irc_nick'].return_value = None
 
         config_mock = mock.Mock()
         config_mock.get.side_effect = ('integration-user', 'integration-token')
