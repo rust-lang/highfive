@@ -1,8 +1,16 @@
 {
     "groups": {
-        "all": ["@sgrif", "@jtgeibel", "@carols10cents", "@smarnach"]
+        "all": ["@sgrif", "@jtgeibel", "@carols10cents", "@smarnach"],
+        "ember": ["@locks", "@Turbo87"]
     },
-    "dirs": {},
+    "dirs": {
+        "package.json": ["ember"],
+        "package-lock.json": ["ember"],
+        "app": ["ember"],
+        "mirage": ["ember"],
+        "public": ["ember"],
+        "tests": ["ember"]
+    },
     "contributing": "https://github.com/rust-lang/crates.io/blob/master/docs/CONTRIBUTING.md",
     "new_pr_labels": ["S-waiting-on-review"]
 }
