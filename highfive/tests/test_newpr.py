@@ -889,142 +889,6 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['add_labels'].assert_not_called()
 
 
-class TestNewComment(TestNewPR):
-    @pytest.fixture(autouse=True)
-    def make_mocks(cls, patcherize):
-        cls.mocks = patcherize((
-            ('is_collaborator', 'highfive.newpr.HighfiveHandler.is_collaborator'),
-            ('find_reviewer', 'highfive.newpr.HighfiveHandler.find_reviewer'),
-            ('set_assignee', 'highfive.newpr.HighfiveHandler.set_assignee'),
-        ))
-
-    @staticmethod
-    def make_handler(
-            state='open', is_pull_request=True, commenter='userA',
-            repo='repo-name', owner='repo-owner', author='userB',
-            comment='comment!', issue_number=7, assignee=None
-    ):
-        payload = Payload({
-            'issue': {
-                'state': state,
-                'number': issue_number,
-                'assignee': None,
-                'user': {
-                    'login': author,
-                },
-            },
-            'comment': {
-                'user': {
-                    'login': commenter,
-                },
-                'body': comment,
-            },
-            'repository': {
-                'name': repo,
-                'owner': {
-                    'login': owner,
-                },
-            },
-        })
-
-        if is_pull_request:
-            payload._payload['issue']['pull_request'] = {}
-        if assignee is not None:
-            payload._payload['issue']['assignee'] = {'login': assignee}
-
-        return HighfiveHandlerMock(payload).handler
-
-    def test_not_open(self):
-        handler = self.make_handler(state='closed')
-
-        assert handler.new_comment() is None
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_not_called()
-        self.mocks['set_assignee'].assert_not_called()
-
-    def test_not_pr(self):
-        handler = self.make_handler(is_pull_request=False)
-
-        handler.new_comment() is None
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_not_called()
-        self.mocks['set_assignee'].assert_not_called()
-
-    def test_commenter_is_integration_user(self):
-        handler = self.make_handler(commenter='integrationUser')
-
-        assert handler.new_comment() is None
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_not_called()
-        self.mocks['set_assignee'].assert_not_called()
-
-    def test_unauthorized_assigner(self):
-        handler = self.make_handler(
-            author='userA', commenter='userB', assignee='userC'
-        )
-
-        self.mocks['is_collaborator'].return_value = False
-        assert handler.new_comment() is None
-        self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name'
-        )
-        self.mocks['find_reviewer'].assert_not_called()
-        self.mocks['set_assignee'].assert_not_called()
-
-    # There are three ways to make it past the authorized assigner
-    # check. The next three methods excercise those paths.
-    def test_authorized_assigner_author_is_commenter(self):
-        handler = self.make_handler(
-            author='userA', commenter='userA', assignee='userC'
-        )
-
-        handler.new_comment()
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_called()
-
-    def test_authorized_assigner_commenter_is_assignee(self):
-        handler = self.make_handler(
-            author='userA', commenter='userB', assignee='userB'
-        )
-
-        handler.new_comment()
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_called()
-
-    def test_authorized_assigner_commenter_is_collaborator(self):
-        handler = self.make_handler(
-            author='userA', commenter='userB', assignee='userC'
-        )
-
-        self.mocks['is_collaborator'].return_value = True
-        handler.new_comment()
-        self.mocks['is_collaborator'].assert_called_with(
-            'userB', 'repo-owner', 'repo-name'
-        )
-        self.mocks['find_reviewer'].assert_called()
-
-    def test_no_reviewer(self):
-        handler = self.make_handler(author='userA', commenter='userA')
-
-        self.mocks['find_reviewer'].return_value = None
-        handler.new_comment()
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_called_with('comment!')
-        self.mocks['set_assignee'].assert_not_called()
-
-    def test_has_reviewer(self):
-        handler = self.make_handler(author='userA', commenter='userA')
-
-        self.mocks['find_reviewer'].return_value = 'userD'
-        handler.new_comment()
-        self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_called_with('comment!')
-        self.mocks['set_assignee'].assert_called_with(
-            'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
-            'userA', None
-        )
-
-
 class TestChooseReviewer(TestNewPR):
     @pytest.fixture(autouse=True)
     def make_fakes(cls):
@@ -1197,7 +1061,6 @@ class TestRun(TestNewPR):
     def make_mocks(cls, patcherize):
         cls.mocks = patcherize((
             ('new_pr', 'highfive.newpr.HighfiveHandler.new_pr'),
-            ('new_comment', 'highfive.newpr.HighfiveHandler.new_comment'),
         ))
 
     def handler_mock(self, payload):
@@ -1210,18 +1073,9 @@ class TestRun(TestNewPR):
         m = self.handler_mock(payload)
         assert m.handler.run('pull_request') == 'OK\n'
         self.mocks['new_pr'].assert_called_once_with()
-        self.mocks['new_comment'].assert_not_called()
-
-    def test_new_comment(self):
-        payload = Payload({'action': 'created'})
-        m = self.handler_mock(payload)
-        assert m.handler.run('issue_comment') == 'OK\n'
-        self.mocks['new_pr'].assert_not_called()
-        self.mocks['new_comment'].assert_called_once_with()
 
     def test_unsupported_payload(self):
         payload = Payload({'action': 'something-not-supported'})
         m = self.handler_mock(payload)
         assert m.handler.run('issue_comment') != 'OK\n'
         self.mocks['new_pr'].assert_not_called()
-        self.mocks['new_comment'].assert_not_called()

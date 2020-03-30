@@ -68,9 +68,6 @@ class HighfiveHandler(object):
         elif event == "pull_request" and self.payload["action"] == "opened":
             self.new_pr()
             return 'OK\n'
-        elif event == "issue_comment" and self.payload["action"] == "created":
-            self.new_comment()
-            return 'OK\n'
         else:
             return 'Unsupported webhook event.\n'
 
@@ -398,37 +395,3 @@ class HighfiveHandler(object):
 
         if self.repo_config.get("new_pr_labels"):
             self.add_labels(owner, repo, issue)
-
-    def new_comment(self):
-        # Check the issue is a PR and is open.
-        if self.payload['issue', 'state'] != 'open' \
-                or 'pull_request' not in self.payload['issue']:
-            return
-
-        commenter = self.payload['comment', 'user', 'login']
-        # Ignore our own comments.
-        if commenter == self.integration_user:
-            return
-
-        owner = self.payload['repository', 'owner', 'login']
-        repo = self.payload['repository', 'name']
-
-        # Check the commenter is the submitter of the PR or the previous assignee.
-        author = self.payload['issue', 'user', 'login']
-        if not (author == commenter or (
-                self.payload['issue', 'assignee'] \
-                and commenter == self.payload['issue', 'assignee', 'login']
-        )):
-            # Check if commenter is a collaborator.
-            if not self.is_collaborator(commenter, owner, repo):
-                return
-
-        # Check for r? and set the assignee.
-        msg = self.payload['comment', 'body']
-        reviewer = self.find_reviewer(msg)
-        if reviewer:
-            issue = str(self.payload['issue', 'number'])
-            self.set_assignee(
-                reviewer, owner, repo, issue, self.integration_user,
-                author, None
-            )
