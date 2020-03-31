@@ -185,7 +185,7 @@ class TestNewPr(object):
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'}
+                    {'body': '@nrc has been chosen as the reviewer.\n\n(We\'ve picked a reviewer for you, use `r? @user` to override)'}
                 ),
                 {'body': {}},
             ),
@@ -229,7 +229,7 @@ class TestNewPr(object):
             (
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
-                    {'body': 'r? @nrc\n\n(rust_highfive has picked a reviewer for you, use r? to override)'}
+                    {'body': '@nrc has been chosen as the reviewer.\n\n(We\'ve picked a reviewer for you, use `r? @user` to override)'}
                 ),
                 {'body': {}},
             ),

@@ -153,11 +153,11 @@ Please see [the contribution instructions](%s) for more information.
         # No reviewer.
         handler = HighfiveHandlerMock(Payload({})).handler
         assert handler.review_msg(None, 'userB') == \
-               '@userB: no appropriate reviewer found, use r? to override'
+               '@userB: no appropriate reviewer found, use `r? @user` to set one.'
 
         # Has reviewer.
         assert handler.review_msg('userA', 'userB') == \
-               'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
+               '@userA has been chosen as the reviewer.\n\n(We\'ve picked a reviewer for you, use `r? @user` to override)'
 
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
