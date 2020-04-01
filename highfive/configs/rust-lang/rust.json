@@ -8,6 +8,7 @@
         "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
     "dirs": {
+        ".github/workflows":        ["infra-ci"],
         "Cargo.lock":               ["@Mark-Simulacrum"],
         "Cargo.toml":               ["@Mark-Simulacrum"],
         "src/bootstrap":            ["@Mark-Simulacrum"],
