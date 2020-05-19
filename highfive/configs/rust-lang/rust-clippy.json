@@ -1,0 +1,11 @@
+{
+    "groups": {
+        "all": ["@flip1995", "@Manishearth", "@matthiaskrgr", "@phansch", "@yaahc"]
+    },
+    "dirs": {
+        ".github": ["@flip1995"],
+        "clippy_dev": ["@phansch"]
+    },
+    "contributing": "https://github.com/rust-lang/rust-clippy/blob/master/CONTRIBUTING.md",
+    "new_pr_labels": ["S-waiting-on-review"]
+}
