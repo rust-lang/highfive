@@ -5,7 +5,7 @@
         "syntax": ["@petrochenkov", "@eddyb"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett", "@hanna-kruppe", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@kennytm", "@LukasKalbertodt"],
         "infra-ci": ["@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
-        "rustdoc": ["@QuietMisdreavus", "@steveklabnik", "@GuillaumeGomez", "@ollie27"]
+        "rustdoc": ["@steveklabnik", "@GuillaumeGomez", "@ollie27"]
     },
     "dirs": {
         ".github/workflows":        ["infra-ci"],
