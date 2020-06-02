@@ -50,16 +50,11 @@
     "mentions": {
         "src/librustdoc/html/static": {
             "message": "Some changes occurred in HTML/CSS/JS.",
-            "command": "@highfive: run-doc-ui",
             "reviewers": ["@GuillaumeGomez"]
         },
         "src/librustdoc/html/static/themes": {
             "message": "Some changes occurred in HTML/CSS themes.",
-            "command": "@highfive: run-doc-ui",
             "reviewers": ["@GuillaumeGomez"]
-        },
-        "src/librustdoc/": {
-            "command": "@highfive: run-doc-ui"
         },
         "error_codes.rs": {
             "message": "Some changes occurred in diagnostic error codes",
