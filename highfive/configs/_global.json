@@ -9,7 +9,7 @@
         "rust-embedded/msp430": ["@awygle", "@cr1901", "@pftbest"],
         "rust-embedded/riscv": ["@almindor", "@bradjc", "@danc86", "@dvc94ch", "@Disasm", "@laanwj"],
         "rust-embedded/embedded-linux": ["@posborne", "@nastevens", "@ryankurte"],
-        "rust-embedded/hal": ["@ryankurte", "@thejpster", "@therealprof", "@ithinuel"],
+        "rust-embedded/hal": ["@ryankurte", "@thejpster", "@therealprof", "@ithinuel", "@eldruin"],
         "rust-embedded/infrastructure": ["@ryankurte", "@nastevens"],
         "rust-embedded/resources": ["@adamgreig", "@andre-richter", "@jamesmunns", "@korken89", "@ryankurte", "@thejpster", "@therealprof"],
         "rust-embedded/tools": ["@Emilgardis", "@ryankurte", "@therealprof", "@adamgreig", "@Disasm", "@reitermarkus", "@burrbull"]
