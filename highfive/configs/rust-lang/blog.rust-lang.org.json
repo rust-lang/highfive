@@ -1,8 +1,0 @@
-{
-    "groups": {
-        "all": ["core"]
-    },
-    "expected_branch": "master",
-    "dirs": {
-    }
-}
