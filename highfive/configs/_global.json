@@ -3,15 +3,15 @@
         "core": ["@nikomatsakis"],
         "crates": ["@alexcrichton"],
         "doc": ["@steveklabnik", "@GuillaumeGomez"],
-        "rust-embedded/cortex-a": ["@andre-richter", "@parched", "@raw-bin", "@wizofe"],
-        "rust-embedded/cortex-m": ["@adamgreig", "@ithinuel", "@korken89", "@thejpster", "@therealprof", "@jonas-schievink"],
-        "rust-embedded/cortex-r": ["@japaric", "@paoloteti"],
-        "rust-embedded/msp430": ["@awygle", "@cr1901", "@pftbest"],
-        "rust-embedded/riscv": ["@almindor", "@bradjc", "@danc86", "@dvc94ch", "@Disasm", "@laanwj"],
+        "rust-embedded/cortex-a": ["@andre-richter", "@raw-bin"],
+        "rust-embedded/cortex-m": ["@adamgreig", "@therealprof", "@jonas-schievink", "@thalesfragoso"],
+        "rust-embedded/cortex-r": ["@japaric"],
+        "rust-embedded/msp430": ["@cr1901"],
+        "rust-embedded/riscv": ["@almindor", "@Disasm"],
         "rust-embedded/embedded-linux": ["@posborne", "@nastevens", "@ryankurte"],
-        "rust-embedded/hal": ["@ryankurte", "@thejpster", "@therealprof", "@ithinuel", "@eldruin"],
+        "rust-embedded/hal": ["@ryankurte", "@therealprof", "@eldruin"],
         "rust-embedded/infrastructure": ["@ryankurte", "@nastevens"],
-        "rust-embedded/resources": ["@adamgreig", "@andre-richter", "@jamesmunns", "@korken89", "@ryankurte", "@thejpster", "@therealprof"],
-        "rust-embedded/tools": ["@Emilgardis", "@ryankurte", "@therealprof", "@adamgreig", "@Disasm", "@reitermarkus", "@burrbull"]
+        "rust-embedded/resources": ["@adamgreig", "@andre-richter", "@jamesmunns", "@therealprof"],
+        "rust-embedded/tools": ["@Emilgardis", "@ryankurte", "@therealprof", "@adamgreig", "@reitermarkus", "@burrbull"]
     }
 }
