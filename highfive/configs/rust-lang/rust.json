@@ -56,6 +56,10 @@
             "message": "Some changes occurred in HTML/CSS themes.",
             "reviewers": ["@GuillaumeGomez"]
         },
+        "src/librustdoc/html/static/themes/ayu.css": {
+            "message": "A change occured to the Ayu theme.",
+            "reviewers": ["@Cldfire"]
+        },
         "error_codes.rs": {
             "message": "Some changes occurred in diagnostic error codes",
             "reviewers": ["@GuillaumeGomez"]
