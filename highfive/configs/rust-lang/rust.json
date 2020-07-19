@@ -57,7 +57,7 @@
             "reviewers": ["@GuillaumeGomez"]
         },
         "src/librustdoc/html/static/themes/ayu.css": {
-            "message": "A change occured in the Ayu theme.",
+            "message": "A change occurred in the Ayu theme.",
             "reviewers": ["@Cldfire"]
         },
         "error_codes.rs": {
