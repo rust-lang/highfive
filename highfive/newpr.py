@@ -185,7 +185,7 @@ class HighfiveHandler(object):
         # Default to the Rust contribution guide if "contributing" wasn't set
         link = self.repo_config.get('contributing')
         if not link:
-            link = "https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md"
+            link = "https://rustc-dev-guide.rust-lang.org/contributing.html"
         return raw_welcome % (text, link)
 
     def review_msg(self, reviewer, submitter):

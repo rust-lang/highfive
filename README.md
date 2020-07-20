@@ -102,7 +102,8 @@ blank.
 
 `contributing` specifies the contribution guide link in the message which
 welcomes new contributors to the repository. If `contributing` is not
-present, the [Rust contributing.md][rustcontrib] will be linked instead. 
+present, [the contributing chapter of the rustc-dev-guide][rustcontrib]
+will be linked instead.
 
 If PRs should be filed against a branch other than `master`, specify the
 correct destination in the `expected_branch` field. If `expected_branch` is
@@ -179,7 +180,7 @@ Here are some details to be aware of:
 - Highfive ignores comments from the integration user near the top of
   `new_commment` in [highfive/newpr.py](/highfive/newpr.py).
 
-[rustcontrib]: https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md 
+[rustcontrib]: https://rustc-dev-guide.rust-lang.org/contributing.html
 
 Docker
 ------
