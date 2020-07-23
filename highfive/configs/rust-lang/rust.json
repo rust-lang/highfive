@@ -56,6 +56,10 @@
             "message": "Some changes occurred in HTML/CSS themes.",
             "reviewers": ["@GuillaumeGomez"]
         },
+        "src/librustdoc/html/static/themes/ayu.css": {
+            "message": "A change occurred in the Ayu theme.",
+            "reviewers": ["@Cldfire"]
+        },
         "src/librustdoc/passes/collect_intra_doc_links.rs": {
             "message": "Some changes occurred in intra-doc-links.",
             "reviewers": ["@jyn514"]
