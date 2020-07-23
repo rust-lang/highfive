@@ -121,14 +121,14 @@ Please see [the contribution instructions](%s) for more information.
         handler = HighfiveHandlerMock(Payload({})).handler
         assert handler.welcome_msg(None) == base_msg % (
             '@nrc (NB. this repo may be misconfigured)',
-            'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
+            'https://rustc-dev-guide.rust-lang.org/contributing.html'
         )
 
         # Has reviewer, no config contributing link.
         handler = HighfiveHandlerMock(Payload({})).handler
         assert handler.welcome_msg('userA') == base_msg % (
             '@userA (or someone else)',
-            'https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md'
+            'https://rustc-dev-guide.rust-lang.org/contributing.html'
         )
 
         # No reviewer, has config contributing link.
