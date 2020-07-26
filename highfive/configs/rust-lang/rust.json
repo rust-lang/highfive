@@ -1,7 +1,8 @@
 {
     "groups": {
         "all": [],
-        "compiler": ["@eddyb", "@petrochenkov", "@estebank", "@varkor", "@lcnr", "@matthewjasper", "@davidtwco", "@ecstatic-morse", "@oli-obk"],
+        "compiler-team": ["@eddyb", "@estebank", "@matthewjasper", "@oli-obk", "@petrochenkov", "@varkor"],
+        "compiler-team-contributors": ["@davidtwco", "@ecstatic-morse", "@lcnr"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett", "@hanna-kruppe", "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum", "@kennytm", "@LukasKalbertodt", "@KodrAus"],
         "infra-ci": ["@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
         "rustdoc": ["@steveklabnik", "@GuillaumeGomez", "@ollie27"]
@@ -20,13 +21,13 @@
         "src/libpanic_abort":       ["libs"],
         "src/libpanic_unwind":      ["libs"],
         "src/libproc_macro":        ["@petrochenkov"],
-        "src/librustc":             ["compiler"],
+        "src/librustc":             ["compiler-team", "compiler-team-contributors"],
         "src/librustdoc":           ["rustdoc"],
         "src/libstd":               ["libs"],
         "src/libterm":              ["libs"],
         "src/libtest":              ["libs"],
         "src/llvm-project":         ["@cuviper"],
-        "src/rustc":                ["compiler"],
+        "src/rustc":                ["compiler-team", "compiler-team-contributors"],
         "src/rustllvm":             ["@cuviper"],
         "src/stage0.txt":           ["@Mark-Simulacrum"],
         "src/stdarch":              ["libs"],
