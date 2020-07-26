@@ -1,9 +1,12 @@
 {
     "groups": {
         "all": [],
-        "compiler-team": ["@eddyb", "@estebank", "@matthewjasper",
-                          "@oli-obk", "@petrochenkov", "@varkor"],
-        "compiler-team-contributors": ["@davidtwco", "@ecstatic-morse", "@lcnr"],
+        "compiler-team": ["@eddyb", "@estebank", "@matthewjasper", "@nagisa", "@nikomatsakis",
+                          "@oli-obk", "@petrochenkov", "@pnkfelix", "@varkor", "@wesleywiser"],
+        "compiler-team-contributors": ["@Aaron1011", "@davidtwco", "@ecstatic-morse",
+                                       "@jonas-schievink", "@lcnr", "@Mark-Simulacrum",
+                                       "@nikic", "@nnethercote", "@RalfJung",
+                                       "@spastorino", "@tmandry", "@Xanewok"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett", "@hanna-kruppe",
                  "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum",
                  "@kennytm", "@LukasKalbertodt", "@KodrAus"],
