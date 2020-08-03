@@ -317,7 +317,7 @@ class HighfiveHandler(object):
         dirs = self.repo_config.get('dirs', {})
         mentions = self.repo_config.get('mentions', {})
 
-        to_mention = []
+        to_mention = set()
         # If there's directories with specially assigned groups/users
         # inspect the diff to find the directory with the most additions
         if dirs:
@@ -339,11 +339,10 @@ class HighfiveHandler(object):
                         cur_dir = None
                     if len(full_dir) > 0:
                         for entry in mentions:
-                            if full_dir.startswith(entry) and entry not in to_mention:
-                                to_mention.append(entry)
-                            elif (entry.endswith('.rs') and full_dir.endswith(entry)
-                                  and entry not in to_mention):
-                                to_mention.append(entry)
+                            if full_dir.startswith(entry):
+                                to_mention.add(entry)
+                            elif entry.endswith('.rs') and full_dir.endswith(entry):
+                                to_mention.add(entry)
 
         mention_list = []
         for mention in to_mention:
