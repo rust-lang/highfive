@@ -310,7 +310,7 @@ class HighfiveHandler(object):
         # no eligible reviewer found
         return None
 
-    def get_to_mention(self, diff):
+    def get_to_mention(self, diff, author):
         """
         Get the list of people to mention.
         """
@@ -346,7 +346,9 @@ class HighfiveHandler(object):
 
         mention_list = []
         for mention in to_mention:
-            mention_list.append(mentions[mention])
+            entry = mentions[mention]
+            if entry["reviewers"] != author:
+                mention_list.append(entry)
         return mention_list
 
     def add_labels(self, owner, repo, issue):
@@ -377,7 +379,7 @@ class HighfiveHandler(object):
                 reviewer = self.choose_reviewer(
                     repo, owner, diff, author
                 )
-            to_mention = self.get_to_mention(diff)
+            to_mention = self.get_to_mention(diff, author)
 
             self.set_assignee(
                 reviewer, owner, repo, issue, self.integration_user,
