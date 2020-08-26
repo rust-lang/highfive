@@ -113,6 +113,7 @@ class HighfiveHandler(object):
             if e.code == 201:
                 pass
             else:
+                print(f"failed to assign {assignee} to {owner}/{repo}#{issue}")
                 raise e
 
         self.run_commands(to_mention, owner, repo, issue, user)
