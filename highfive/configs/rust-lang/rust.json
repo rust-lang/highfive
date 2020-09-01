@@ -29,7 +29,7 @@
         "library/term":              ["libs"],
         "library/test":              ["libs"],
         "src/llvm-project":         ["@cuviper"],
-        "compiler/":                ["compiler-team", "compiler-team-contributors"],
+        "compiler":                ["compiler-team", "compiler-team-contributors"],
         "src/rustllvm":             ["@cuviper"],
         "src/stage0.txt":           ["@Mark-Simulacrum"],
         "library/stdarch":              ["libs"],
