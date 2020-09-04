@@ -262,8 +262,8 @@ class HighfiveHandler(object):
                     cur_dir = "/".join(parts[:2])
 
                     # A few heuristics to get better reviewers
-                    if cur_dir.startswith('src/librustc'):
-                        cur_dir = 'src/librustc'
+                    if cur_dir.startswith('compiler/'):
+                        cur_dir = 'compiler'
                     if cur_dir == 'src/test':
                         cur_dir = None
                     if cur_dir and cur_dir not in counts:
