@@ -1164,7 +1164,7 @@ class TestChooseReviewer(TestNewPR):
         chosen_reviewers, mentions = self.choose_reviewers(
             self.fakes['diff']['normal'], "nikomatsakis"
         )
-        assert set(["pnkfelix", "nrc", "aturon"]) == chosen_reviewers
+        assert set(["pnkfelix", "nrc"]) == chosen_reviewers
         assert set([()]) == mentions
 
     def test_with_dirs_no_intersection(self):
