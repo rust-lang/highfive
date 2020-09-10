@@ -30,7 +30,7 @@
         "library/test":              ["libs"],
         "src/llvm-project":         ["@cuviper"],
         "compiler":                ["compiler-team", "compiler-team-contributors"],
-        "src/rustllvm":             ["@cuviper"],
+        "compiler/rustc_llvm":      ["@cuviper"],
         "src/stage0.txt":           ["@Mark-Simulacrum"],
         "library/stdarch":              ["libs"],
         "src/tools/cargo":          ["@ehuss", "@joshtriplett"],
