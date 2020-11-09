@@ -6,7 +6,7 @@
         "compiler-team-contributors": ["@davidtwco", "@ecstatic-morse", "@lcnr"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett",
                  "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum",
-                 "@kennytm", "@LukasKalbertodt", "@KodrAus", "@m-ou-se"],
+                 "@kennytm", "@KodrAus", "@m-ou-se"],
         "infra-ci": ["@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
         "rustdoc": ["@jyn514", "@GuillaumeGomez", "@ollie27"]
     },
