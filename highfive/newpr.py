@@ -311,14 +311,14 @@ class HighfiveHandler(object):
         # no eligible reviewer found
         return None
 
-    def get_to_mention(self, diff):
+    def get_to_mention(self, diff, author):
         """
         Get the list of people to mention.
         """
         dirs = self.repo_config.get('dirs', {})
         mentions = self.repo_config.get('mentions', {})
 
-        to_mention = []
+        to_mention = set()
         # If there's directories with specially assigned groups/users
         # inspect the diff to find the directory with the most additions
         if dirs:
@@ -340,15 +340,16 @@ class HighfiveHandler(object):
                         cur_dir = None
                     if len(full_dir) > 0:
                         for entry in mentions:
-                            if full_dir.startswith(entry) and entry not in to_mention:
-                                to_mention.append(entry)
-                            elif (entry.endswith('.rs') and full_dir.endswith(entry)
-                                  and entry not in to_mention):
-                                to_mention.append(entry)
+                            if full_dir.startswith(entry):
+                                to_mention.add(entry)
+                            elif entry.endswith('.rs') and full_dir.endswith(entry):
+                                to_mention.add(entry)
 
         mention_list = []
         for mention in to_mention:
-            mention_list.append(mentions[mention])
+            entry = mentions[mention]
+            if entry["reviewers"] != author:
+                mention_list.append(entry)
         return mention_list
 
     def add_labels(self, owner, repo, issue):
@@ -379,7 +380,7 @@ class HighfiveHandler(object):
                 reviewer = self.choose_reviewer(
                     repo, owner, diff, author
                 )
-            to_mention = self.get_to_mention(diff)
+            to_mention = self.get_to_mention(diff, author)
 
             self.set_assignee(
                 reviewer, owner, repo, issue, self.integration_user,

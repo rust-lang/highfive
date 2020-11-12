@@ -817,7 +817,7 @@ class TestNewPrFunction(TestNewPR):
 
         self.assert_set_assignee_branch_calls('foundReviewer', ['to'])
         self.mocks['choose_reviewer'].assert_not_called()
-        self.mocks['get_to_mention'].assert_called_once_with('diff')
+        self.mocks['get_to_mention'].assert_called_once_with('diff', 'prAuthor')
         self.mocks['welcome_msg'].assert_not_called()
         self.mocks['review_msg'].assert_not_called()
         self.mocks['post_comment'].assert_not_called()
@@ -1037,13 +1037,13 @@ class TestChooseReviewer(TestNewPR):
             'global_': fakes.get_global_configs(),
         }
 
-    def get_to_mention(self, diff, global_=None):
-        return self.get_to_mention_inner(diff, global_)
+    def get_to_mention(self, diff, author, global_=None):
+        return self.get_to_mention_inner(diff, author, global_)
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
-    def get_to_mention_inner(self, diff, global_, mock_load_json):
+    def get_to_mention_inner(self, diff, author, global_, mock_load_json):
         mock_load_json.return_value = deepcopy(global_ or {"groups": {}})
-        return self.handler.get_to_mention(diff)
+        return self.handler.get_to_mention(diff, author)
 
     def choose_reviewer(
             self, repo, owner, diff, exclude, global_=None
