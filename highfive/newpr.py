@@ -31,8 +31,8 @@ warning_summary = ':warning: **Warning** :warning:\n\n%s'
 submodule_warning_msg = 'These commits modify **submodules**.'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
 
-review_with_reviewer = 'r? @%s\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
-review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
+review_with_reviewer = '@%s has been chosen as the reviewer.\n\n(We\'ve picked a reviewer for you, use `r? @user` to override)'
+review_without_reviewer = '@%s: no appropriate reviewer found, use `r? @user` to set one.'
 
 reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
@@ -67,9 +67,6 @@ class HighfiveHandler(object):
             return "Ping received! The webhook is configured correctly!\n"
         elif event == "pull_request" and self.payload["action"] == "opened":
             self.new_pr()
-            return 'OK\n'
-        elif event == "issue_comment" and self.payload["action"] == "created":
-            self.new_comment()
             return 'OK\n'
         else:
             return 'Unsupported webhook event.\n'
@@ -400,37 +397,3 @@ class HighfiveHandler(object):
 
         if self.repo_config.get("new_pr_labels"):
             self.add_labels(owner, repo, issue)
-
-    def new_comment(self):
-        # Check the issue is a PR and is open.
-        if self.payload['issue', 'state'] != 'open' \
-                or 'pull_request' not in self.payload['issue']:
-            return
-
-        commenter = self.payload['comment', 'user', 'login']
-        # Ignore our own comments.
-        if commenter == self.integration_user:
-            return
-
-        owner = self.payload['repository', 'owner', 'login']
-        repo = self.payload['repository', 'name']
-
-        # Check the commenter is the submitter of the PR or the previous assignee.
-        author = self.payload['issue', 'user', 'login']
-        if not (author == commenter or (
-                self.payload['issue', 'assignee'] \
-                and commenter == self.payload['issue', 'assignee', 'login']
-        )):
-            # Check if commenter is a collaborator.
-            if not self.is_collaborator(commenter, owner, repo):
-                return
-
-        # Check for r? and set the assignee.
-        msg = self.payload['comment', 'body']
-        reviewer = self.find_reviewer(msg)
-        if reviewer:
-            issue = str(self.payload['issue', 'number'])
-            self.set_assignee(
-                reviewer, owner, repo, issue, self.integration_user,
-                author, None
-            )
