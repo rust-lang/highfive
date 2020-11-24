@@ -157,7 +157,7 @@ Please see [the contribution instructions](%s) for more information.
 
         # Has reviewer.
         assert handler.review_msg('userA', 'userB') == \
-               'r? @userA\n\n(rust_highfive has picked a reviewer for you, use r? to override)'
+               'r? @userA\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
 
     @mock.patch('os.path.dirname')
     def test_load_json_file(self, mock_dirname):
