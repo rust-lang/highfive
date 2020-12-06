@@ -105,16 +105,21 @@ class HighfiveHandler(object):
 
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
         try:
+            assignees = [] if assignee == 'ghost' else [assignee]
+
             self.api_req(
                 "PATCH", issue_url % (owner, repo, issue),
-                {"assignee": assignee}
+                {"assignees": assignees}
             )['body']
         except urllib.error.HTTPError as e:
             if e.code == 201:
                 pass
             else:
                 print(f"failed to assign {assignee} to {owner}/{repo}#{issue}")
-                raise e
+                print(f"error was: {e}")
+                print("posting error comment")
+                error_msg = f":stop_sign: @{assignee} could not be assigned"
+                self.post_comment(error_msg, owner, repo, issue)
 
         self.run_commands(to_mention, owner, repo, issue, user)
 
