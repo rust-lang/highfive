@@ -428,7 +428,7 @@ class HighfiveHandler(object):
         author = self.payload['issue', 'user', 'login']
         if not (author == commenter or (
                 self.payload['issue', 'assignees'] \
-                and commenter == self.payload['issue', 'assignees', 0, 'login']
+                and commenter in self.payload['issue', 'assignees', 'login']
         )):
             # Check if commenter is a collaborator.
             if not self.is_collaborator(commenter, owner, repo):
