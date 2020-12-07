@@ -120,7 +120,9 @@ class HighfiveHandler(object):
                 if assignee == 'ghost':
                     raise Exception('assigned ghost')
                 print("posting error comment")
-                error_msg = f":stop_sign: @{assignee} could not be assigned"
+                error_msg = f":stop_sign: @{assignee} could not be assigned. " \
+                             "(They may not be a member of **`@rust-lang`**!) " \
+                             "Please assign someone else with `r? @person`."
                 self.post_comment(error_msg, owner, repo, issue)
 
         self.run_commands(to_mention, owner, repo, issue, user)
