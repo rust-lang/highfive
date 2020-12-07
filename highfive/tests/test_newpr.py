@@ -908,7 +908,7 @@ class TestNewComment(TestNewPR):
             'issue': {
                 'state': state,
                 'number': issue_number,
-                'assignee': None,
+                'assignees': [],
                 'user': {
                     'login': author,
                 },
@@ -930,7 +930,7 @@ class TestNewComment(TestNewPR):
         if is_pull_request:
             payload._payload['issue']['pull_request'] = {}
         if assignee is not None:
-            payload._payload['issue']['assignee'] = {'login': assignee}
+            payload._payload['issue']['assignees'] = [{'login': assignee}]
 
         return HighfiveHandlerMock(payload).handler
 

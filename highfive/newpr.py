@@ -427,8 +427,8 @@ class HighfiveHandler(object):
         # Check the commenter is the submitter of the PR or the previous assignee.
         author = self.payload['issue', 'user', 'login']
         if not (author == commenter or (
-                self.payload['issue', 'assignee'] \
-                and commenter == self.payload['issue', 'assignee', 'login']
+                self.payload['issue', 'assignees'] \
+                and commenter == self.payload['issue', 'assignees', 'login']
         )):
             # Check if commenter is a collaborator.
             if not self.is_collaborator(commenter, owner, repo):
