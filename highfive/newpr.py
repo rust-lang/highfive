@@ -428,7 +428,7 @@ class HighfiveHandler(object):
         author = self.payload['issue', 'user', 'login']
         if not (author == commenter or (
                 self.payload['issue', 'assignees'] \
-                and commenter in self.payload['issue', 'assignees', 'login']
+                and commenter in map(lambda user: user['login'], self.payload['issue', 'assignees'])
         )):
             # Check if commenter is a collaborator.
             if not self.is_collaborator(commenter, owner, repo):
