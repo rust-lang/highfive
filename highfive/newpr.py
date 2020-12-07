@@ -340,7 +340,11 @@ class HighfiveHandler(object):
                         cur_dir = None
                     if len(full_dir) > 0:
                         for entry in mentions:
-                            if full_dir.startswith(entry):
+                            # Check if this entry is a prefix
+                            eparts = entry.split("/")
+                            if (len(eparts) <= len(parts) and
+                                all(a==b for a,b in zip(parts, eparts))
+                            ):
                                 to_mention.add(entry)
                             elif entry.endswith('.rs') and full_dir.endswith(entry):
                                 to_mention.add(entry)

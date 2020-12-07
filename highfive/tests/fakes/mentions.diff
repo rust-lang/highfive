@@ -1,0 +1,34 @@
+diff --git a/compiler/rustc/src/main.rs b/compiler/rustc/src/main.rs
+index 6bc5aa6382c..4fc3e397508 100644
+--- a/compiler/rustc/src/main.rs
++++ b/compiler/rustc/src/main.rs
+@@ -1,3 +1,4 @@
++// Hello!
+ fn main() {
+     // Pull in jemalloc when enabled.
+     //
+diff --git a/compiler/rustc_error_codes/src/error_codes.rs b/compiler/rustc_error_codes/src/error_codes.rs
+index 636c37142ad..2172d8eaec9 100644
+--- a/compiler/rustc_error_codes/src/error_codes.rs
++++ b/compiler/rustc_error_codes/src/error_codes.rs
+@@ -463,6 +463,7 @@
+ E0777: include_str!("./error_codes/E0777.md"),
+ E0778: include_str!("./error_codes/E0778.md"),
+ E0779: include_str!("./error_codes/E0779.md"),
++E0779: include_str!("./error_codes/E0780.md"),
+ ;
+ //  E0006, // merged with E0005
+ //  E0008, // cannot bind by-move into a pattern guard
+diff --git a/src/tools/cargotest/main.rs b/src/tools/cargotest/main.rs
+index 8aabe077cf1..0a6bac48ebb 100644
+--- a/src/tools/cargotest/main.rs
++++ b/src/tools/cargotest/main.rs
+@@ -36,7 +36,7 @@ struct Test {
+     Test {
+         name: "xsv",
+         repo: "https://github.com/BurntSushi/xsv",
+-        sha: "66956b6bfd62d6ac767a6b6499c982eae20a2c9f",
++        sha: "3de6c04269a7d315f7e9864b9013451cd9580a08",
+         lock: None,
+         packages: &[],
+     },
