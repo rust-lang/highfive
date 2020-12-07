@@ -117,6 +117,8 @@ class HighfiveHandler(object):
             else:
                 print(f"failed to assign {assignee} to {owner}/{repo}#{issue}")
                 print(f"error was: {e}")
+                if assignee == 'ghost':
+                    raise Exception('assigned ghost')
                 print("posting error comment")
                 error_msg = f":stop_sign: @{assignee} could not be assigned"
                 self.post_comment(error_msg, owner, repo, issue)
