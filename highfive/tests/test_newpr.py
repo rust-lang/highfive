@@ -511,7 +511,7 @@ class TestSetAssignee(TestNewPR):
             'PATCH',
             'https://api.github.com/repos/%s/%s/issues/%s' % (
                 self.owner, self.repo, self.issue
-            ), {"assignee": assignee}
+            ), {"assignees": [assignee]}
         )
 
     def test_api_req_good(self):
