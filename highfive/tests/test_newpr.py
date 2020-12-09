@@ -1032,6 +1032,7 @@ class TestChooseReviewer(TestNewPR):
             'diff': {
                 'normal': load_fake('normal.diff'),
                 'travis-yml': load_fake('travis-yml.diff'),
+                'mentions': load_fake('mentions.diff'),
             },
             'config': fakes.get_repo_configs(),
             'global_': fakes.get_global_configs(),
@@ -1073,7 +1074,9 @@ class TestChooseReviewer(TestNewPR):
             )
             mentions = self.get_to_mention(diff, global_)
             chosen_reviewers.add(reviewer)
-            mention_list.add(tuple(mentions))
+            for mention in mentions:
+                for reviewer in mention['reviewers']:
+                    mention_list.add(reviewer)
         return chosen_reviewers, mention_list
 
     def test_individuals_no_dirs_1(self):
@@ -1087,7 +1090,7 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['normal'], "nikomatsakis"
         )
         assert set(["pnkfelix", "nrc"]) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
 
     def test_individuals_no_dirs_2(self):
         """Test choosing a reviewer from a list of individual reviewers, no
@@ -1100,7 +1103,7 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['normal'], "nrc"
         )
         assert set(["pnkfelix"]) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
 
     def test_circular_groups(self):
         """Test choosing a reviewer from groups that have circular references.
@@ -1125,7 +1128,7 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['global_']['base']
         )
         assert set(['alexcrichton']) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
 
     @mock.patch('highfive.newpr.HighfiveHandler._load_json_file')
     def test_global_group_overlap(self, mock_load_json):
@@ -1152,7 +1155,7 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['global_']['base']
         )
         assert set([None]) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
 
     def test_with_dirs(self):
         """Test choosing a reviewer when directory reviewers are defined that
@@ -1165,7 +1168,7 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['normal'], "nikomatsakis"
         )
         assert set(["pnkfelix", "nrc"]) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
 
     def test_with_dirs_no_intersection(self):
         """Test choosing a reviewer when directory reviewers are defined that
@@ -1178,7 +1181,7 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['normal'], "nikomatsakis"
         )
         assert set(["pnkfelix", "nrc"]) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
 
     def test_with_files(self):
         """Test choosing a reviewer when a file os changed."""
@@ -1189,7 +1192,19 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['travis-yml'], "nikomatsakis"
         )
         assert set(["pnkfelix", "nrc", "aturon"]) == chosen_reviewers
-        assert set([()]) == mentions
+        assert set() == mentions
+
+    def test_mentions(self):
+        """Test tagging people listed in the mentions list."""
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['mentions']
+        ).handler
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.fakes['diff']['mentions'], "nikomatsakis",
+        )
+        assert set(["pnkfelix"]) == chosen_reviewers
+        # @ehuss should not be listed here
+        assert set(["@pnkfelix", "@GuillaumeGomez"]) == mentions
 
 
 class TestRun(TestNewPR):

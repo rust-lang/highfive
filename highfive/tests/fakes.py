@@ -48,6 +48,24 @@ def get_repo_configs():
             "groups": {"all": []},
             "dirs": {},
         },
+        'mentions': {
+            "groups": {"all": []},
+            "dirs": {"compiler": ["@pnkfelix"]},
+            "mentions": {
+                "src/tools/cargo": {
+                    "message": "this should not match startswith",
+                    "reviewers": ["@ehuss"],
+                },
+                "error_codes.rs": {
+                    "message": "bare .rs file should match endswith",
+                    "reviewers": ["@GuillaumeGomez"],
+                },
+                "compiler/rustc": {
+                    "message": "directory should match all files within",
+                    "reviewers": ["@pnkfelix"],
+                }
+            }
+        }
     }
 
 
