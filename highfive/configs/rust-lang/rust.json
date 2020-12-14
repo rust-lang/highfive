@@ -1,7 +1,7 @@
 {
     "groups": {
         "all": [],
-        "compiler-team": ["@eddyb", "@estebank", "@matthewjasper",
+        "compiler-team": ["@estebank", "@matthewjasper",
                           "@oli-obk", "@petrochenkov", "@varkor"],
         "compiler-team-contributors": ["@davidtwco", "@ecstatic-morse", "@lcnr"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett",
