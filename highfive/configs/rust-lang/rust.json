@@ -68,6 +68,10 @@
         "src/tools/cargo": {
             "message": "Updates src/tools/cargo.",
             "reviewers": ["@ehuss"]
+        },
+        "compiler/rustc_codegen_cranelift": {
+            "message": "Some changes occured to rustc_codegen_cranelift",
+            "reviewers": ["@bjorn3"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
