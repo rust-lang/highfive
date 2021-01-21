@@ -2,8 +2,8 @@
     "groups": {
         "all": [],
         "compiler-team": ["@estebank", "@matthewjasper",
-                          "@oli-obk", "@petrochenkov", "@varkor"],
-        "compiler-team-contributors": ["@davidtwco", "@ecstatic-morse", "@lcnr"],
+                          "@oli-obk", "@petrochenkov", "@varkor", "@lcnr"],
+        "compiler-team-contributors": ["@davidtwco"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett",
                  "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum",
                  "@kennytm", "@m-ou-se"],
