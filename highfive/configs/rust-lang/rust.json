@@ -1,37 +1,60 @@
 {
     "groups": {
         "all": [],
-        "compiler-team": ["@estebank", "@matthewjasper",
-                          "@oli-obk", "@petrochenkov", "@varkor", "@lcnr"],
-        "compiler-team-contributors": ["@davidtwco"],
-        "libs": ["@sfackler", "@dtolnay", "@JoshTriplett",
-                 "@Mark-Simulacrum","@kennytm", "@m-ou-se", "@KodrAus"],
-        "infra-ci": ["@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
-        "rustdoc": ["@jyn514", "@GuillaumeGomez", "@ollie27"]
+        "compiler-team": [
+            "@estebank",
+            "@matthewjasper",
+            "@oli-obk",
+            "@petrochenkov",
+            "@varkor",
+            "@lcnr"
+        ],
+        "compiler-team-contributors": [
+            "@davidtwco"
+        ],
+        "libs": [
+            "@sfackler",
+            "@dtolnay",
+            "@JoshTriplett",
+            "@Mark-Simulacrum",
+            "@kennytm",
+            "@m-ou-se",
+            "@KodrAus"
+        ],
+        "infra-ci": [
+            "@Mark-Simulacrum",
+            "@kennytm",
+            "@pietroalbini"
+        ],
+        "rustdoc": [
+            "@jyn514",
+            "@GuillaumeGomez",
+            "@ollie27"
+        ]
     },
     "dirs": {
         ".github/workflows":        ["infra-ci"],
         "Cargo.lock":               ["@Mark-Simulacrum"],
         "Cargo.toml":               ["@Mark-Simulacrum"],
+        "compiler":                 ["compiler-team", "compiler-team-contributors"],
+        "compiler/rustc_llvm":      ["@cuviper"],
+        "library/alloc":            ["libs"],
+        "library/core":             ["libs"],
+        "library/panic_abort":      ["libs"],
+        "library/panic_unwind":     ["libs"],
+        "library/proc_macro":       ["@petrochenkov"],
+        "library/std":              ["libs"],
+        "library/stdarch":          ["libs"],
+        "library/term":             ["libs"],
+        "library/test":             ["libs"],
         "src/bootstrap":            ["@Mark-Simulacrum"],
         "src/build_helper":         ["@Mark-Simulacrum"],
         "src/ci":                   ["infra-ci"],
         "src/doc":                  ["doc"],
         "src/etc":                  ["@Mark-Simulacrum"],
-        "library/alloc":             ["libs"],
-        "library/core":              ["libs"],
-        "library/panic_abort":       ["libs"],
-        "library/panic_unwind":      ["libs"],
-        "library/proc_macro":        ["@petrochenkov"],
         "src/librustdoc":           ["rustdoc"],
-        "library/std":               ["libs"],
-        "library/term":              ["libs"],
-        "library/test":              ["libs"],
         "src/llvm-project":         ["@cuviper"],
-        "compiler":                ["compiler-team", "compiler-team-contributors"],
-        "compiler/rustc_llvm":      ["@cuviper"],
         "src/stage0.txt":           ["@Mark-Simulacrum"],
-        "library/stdarch":              ["libs"],
         "src/tools/cargo":          ["@ehuss", "@joshtriplett"],
         "src/tools/compiletest":    ["@Mark-Simulacrum", "@Centril"],
         "src/tools/linkchecker":    ["@ehuss"],
