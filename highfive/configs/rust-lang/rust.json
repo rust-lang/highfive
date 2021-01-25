@@ -5,8 +5,7 @@
                           "@oli-obk", "@petrochenkov", "@varkor", "@lcnr"],
         "compiler-team-contributors": ["@davidtwco"],
         "libs": ["@sfackler", "@dtolnay", "@JoshTriplett",
-                 "@withoutboats", "@cramertj", "@shepmaster", "@Mark-Simulacrum",
-                 "@kennytm", "@m-ou-se"],
+                 "@Mark-Simulacrum","@kennytm", "@m-ou-se", "@KodrAus"],
         "infra-ci": ["@Mark-Simulacrum", "@kennytm", "@pietroalbini"],
         "rustdoc": ["@jyn514", "@GuillaumeGomez", "@ollie27"]
     },
