@@ -5,9 +5,6 @@ on:
   schedule:
     - cron: "0 12 * * 1" # Every Monday at 12:00 UTC
 
-env:
-  AWS_ACCESS_KEY_ID: AKIA46X5W6CZIFIMIHXE
-
 jobs:
   ci:
     name: CI
@@ -43,6 +40,6 @@ jobs:
           region: us-west-1
           redeploy_ecs_cluster: rust-ecs-prod
           redeploy_ecs_service: highfive
-          aws_access_key_id: "${{ env.AWS_ACCESS_KEY_ID }}"
+          aws_access_key_id: "${{ secrets.AWS_ACCESS_KEY_ID }}"
           aws_secret_access_key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
         if: github.ref == 'refs/heads/master'
