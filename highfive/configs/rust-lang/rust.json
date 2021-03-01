@@ -94,6 +94,10 @@
         "compiler/rustc_codegen_cranelift": {
             "message": "Some changes occured to rustc_codegen_cranelift",
             "reviewers": ["@bjorn3"]
+        },
+        "src/tools/rustfmt": {
+            "message": "Some changes occurred in src/tools/rustfmt.",
+            "reviewers": ["@calebcartwright"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
