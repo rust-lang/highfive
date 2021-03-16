@@ -37,6 +37,7 @@
         "Cargo.lock":               ["@Mark-Simulacrum"],
         "Cargo.toml":               ["@Mark-Simulacrum"],
         "compiler":                 ["compiler-team", "compiler-team-contributors"],
+        "compiler/rustc_apfloat":   ["@eddyb"],
         "compiler/rustc_llvm":      ["@cuviper"],
         "library/alloc":            ["libs"],
         "library/core":             ["libs"],
@@ -90,6 +91,10 @@
         "src/tools/cargo": {
             "message": "Updates src/tools/cargo.",
             "reviewers": ["@ehuss"]
+        },
+        "compiler/rustc_apfloat": {
+            "message": "Changes rustc_apfloat. rustc_apfloat is currently in limbo and you almost certainly don't want to change it (see #55993).",
+            "reviewers": ["@eddyb"]
         },
         "compiler/rustc_codegen_cranelift": {
             "message": "Some changes occured to rustc_codegen_cranelift",
