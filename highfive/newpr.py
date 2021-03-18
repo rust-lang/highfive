@@ -29,6 +29,7 @@ Please see [the contribution instructions](%s) for more information.
 
 warning_summary = ':warning: **Warning** :warning:\n\n%s'
 submodule_warning_msg = 'These commits modify **submodules**.'
+apfloat_warning_msg = 'These commits modify **software floating point**. (cc @eddyb)'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
 
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
@@ -36,6 +37,7 @@ review_without_reviewer = '@%s: no appropriate reviewer found, use r? to overrid
 
 reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
+apfloat_re = re.compile("^[+-]{3} [ab]/compiler/rustc_apfloat/", re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
@@ -84,6 +86,9 @@ class HighfiveHandler(object):
 
     def modifies_submodule(self, diff):
         return submodule_re.match(diff)
+
+    def modifies_apfloat(self, diff):
+        return apfloat_re.search(diff)
 
     def api_req(self, method, url, data=None, media_type=None):
         data = None if not data else json.dumps(data).encode("utf-8")
@@ -163,6 +168,9 @@ class HighfiveHandler(object):
 
         if self.modifies_submodule(diff):
             warnings.append(submodule_warning_msg)
+
+        if self.modifies_apfloat(diff):
+            warnings.append(apfloat_warning_msg)
 
         if warnings:
             self.post_comment(warning_summary % '\n'.join(map(lambda x: '* ' + x, warnings)), owner, repo, issue)
