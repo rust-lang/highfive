@@ -102,6 +102,10 @@
         "src/tools/rustfmt": {
             "message": "Some changes occurred in src/tools/rustfmt.",
             "reviewers": ["@calebcartwright"]
+        },
+        "src/tools/clippy": {
+            "message": "Some changes occurred in src/tools/clippy.",
+            "reviewers": ["@rust-lang/clippy"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
