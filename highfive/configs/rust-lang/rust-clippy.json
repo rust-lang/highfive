@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["@flip1995", "@Manishearth", "@llogiq", "@phansch"]
+        "all": ["@flip1995", "@Manishearth", "@llogiq", "@phansch", "@camsteffen"]
     },
     "dirs": {
         ".github": ["@flip1995"],
