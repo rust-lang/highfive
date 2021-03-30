@@ -12,7 +12,6 @@
             "@davidtwco"
         ],
         "libs": [
-            "@sfackler",
             "@dtolnay",
             "@JoshTriplett",
             "@Mark-Simulacrum",
