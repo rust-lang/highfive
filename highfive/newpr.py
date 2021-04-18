@@ -22,8 +22,6 @@ welcome_with_reviewer = '@%s (or someone else)'
 welcome_without_reviewer = "@nrc (NB. this repo may be misconfigured)"
 raw_welcome = """Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from %s soon.
 
-If any changes to this PR are deemed necessary, please add them as extra commits. This ensures that the reviewer can see what has changed since they last reviewed the code. Due to the way GitHub handles out-of-date commits, this should also make it reasonably obvious what issues have or haven't been addressed. Large or tricky changes may require several passes of review and changes.
-
 Please see [the contribution instructions](%s) for more information.
 """
 
