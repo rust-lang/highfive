@@ -168,7 +168,7 @@ Please see [the contribution instructions](%s) for more information.
                 'builtins.open', mock.mock_open(read_data=json.dumps(contents))
         ) as mock_file:
             assert handler._load_json_file('a-config.json') == contents
-            mock_file.assert_called_with('/the/path/configs/a-config.json')
+            mock_file.assert_called_with(os.path.join(mock_dirname.return_value, 'configs', 'a-config.json'))
 
     @mock.patch('highfive.newpr.HighfiveHandler.api_req')
     def test_post_comment_success(self, mock_api_req):
