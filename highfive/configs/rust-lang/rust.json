@@ -6,10 +6,11 @@
             "@matthewjasper",
             "@petrochenkov",
             "@varkor",
-            "@lcnr"
+            "@lcnr",
+            "@davidtwco"
         ],
         "compiler-team-contributors": [
-            "@davidtwco"
+            "@jackh726"
         ],
         "libs": [
             "@dtolnay",
