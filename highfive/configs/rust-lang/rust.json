@@ -68,6 +68,10 @@
         "src/tools/tidy":           ["@Mark-Simulacrum"]
     },
     "mentions": {
+        "src/rustdoc-json-types": {
+          "message": "rustdoc-json-types is a **public** (although nightly-only) API. Consider changing `src/librustdoc/json/conversions.rs` instead; otherwise, make sure you update `format_version`.",
+          "reviewers": ["@CraftSpider", "@aDotInTheVoid"]
+        },
         "src/librustdoc/html/static": {
             "message": "Some changes occurred in HTML/CSS/JS.",
             "reviewers": ["@GuillaumeGomez"]
