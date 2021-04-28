@@ -29,7 +29,7 @@ Please see [the contribution instructions](%s) for more information.
 
 warning_summary = ':warning: **Warning** :warning:\n\n%s'
 submodule_warning_msg = 'These commits modify **submodules**.'
-targets_warning_msg = 'These commits modify **compiler targets**. ([Target Support Tier Policy](https://github.com/joshtriplett/rfcs/blob/target-tier-policy/text/0000-target-tier-policy.md))'
+targets_warning_msg = 'These commits modify **compiler targets**. (See the [Target Tier Policy](https://doc.rust-lang.org/nightly/rustc/target-tier-policy.html).)'
 surprise_branch_warning = "Pull requests are usually filed against the %s branch for this repo, but this one is against %s. Please double check that you specified the right target!"
 
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
