@@ -754,7 +754,7 @@ class TestPostWarnings(TestNewPR):
 
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
 * These commits modify **submodules**.
-* These commits modify **compiler targets**. ([Target Support Tier Policy](https://github.com/joshtriplett/rfcs/blob/target-tier-policy/text/0000-target-tier-policy.md))"""
+* These commits modify **compiler targets**. (See the [Target Tier Policy](https://doc.rust-lang.org/nightly/rustc/target-tier-policy.html).)"""
         self.mocks['post_comment'].assert_called_with(
             expected_warning, self.owner, self.repo, self.issue
         )
