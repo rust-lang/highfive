@@ -40,7 +40,7 @@
         "compiler/rustc_apfloat":   ["@eddyb"],
         "compiler/rustc_llvm":      ["@cuviper"],
         "library/alloc":            ["libs"],
-        "library/core":             ["libs"],
+        "library/core":             ["libs", "@scottmcm"],
         "library/panic_abort":      ["libs"],
         "library/panic_unwind":     ["libs"],
         "library/proc_macro":       ["@petrochenkov"],
