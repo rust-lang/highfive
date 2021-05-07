@@ -111,6 +111,14 @@
         "src/tools/clippy": {
             "message": "Some changes occurred in src/tools/clippy.",
             "reviewers": ["@rust-lang/clippy"]
+        },
+        "compiler/rustc_mir/src/interpret": {
+            "message": "Some changes occured to the CTFE / Miri engine",
+            "reviewers": ["@rust-lang/miri"]
+        },
+        "compiler/rustc_middle/src/mir/interpret": {
+            "message": "Some changes occured to the CTFE / Miri engine",
+            "reviewers": ["@rust-lang/miri"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
