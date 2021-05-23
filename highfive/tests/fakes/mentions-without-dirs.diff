@@ -1,0 +1,12 @@
+diff --git a/README.md b/README.md
+index 5ec94e189f8..b35fbba3fcd 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # The Rust Programming Language
+ 
+-This is the main source code repository for [Rust]. It contains the compiler,
++Hey! This is the main source code repository for [Rust]. It contains the compiler,
+ standard library, and documentation.
+ 
+ [Rust]: https://www.rust-lang.org

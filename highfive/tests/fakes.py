@@ -65,6 +65,16 @@ def get_repo_configs():
                     "reviewers": ["@pnkfelix"],
                 }
             }
+        },
+        'mentions_without_dirs': {
+            "groups": {"all": ["@JohnTitor"]},
+            "dirs": {},
+            "mentions": {
+                "README.md": {
+                    "message": "should be pinged",
+                    "reviewers": ["@JohnTitor"],
+                }
+            }
         }
     }
 
