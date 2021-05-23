@@ -315,39 +315,39 @@ class HighfiveHandler(object):
         """
         Get the list of people to mention.
         """
-        dirs = self.repo_config.get('dirs', {})
         mentions = self.repo_config.get('mentions', {})
+        if not mentions:
+            return []
 
         to_mention = set()
         # If there's directories with specially assigned groups/users
         # inspect the diff to find the directory with the most additions
-        if dirs:
-            cur_dir = None
-            for line in diff.split('\n'):
-                if line.startswith("diff --git "):
-                    # update cur_dir
-                    cur_dir = None
-                    parts = line[line.find(" b/") + len(" b/"):].split("/")
-                    if not parts:
-                        continue
-                    cur_dir = "/".join(parts[:2])
-                    full_dir = "/".join(parts)
+        cur_dir = None
+        for line in diff.split('\n'):
+            if line.startswith("diff --git "):
+                # update cur_dir
+                cur_dir = None
+                parts = line[line.find(" b/") + len(" b/"):].split("/")
+                if not parts:
+                    continue
+                cur_dir = "/".join(parts[:2])
+                full_dir = "/".join(parts)
 
-                    # A few heuristics to get better reviewers
-                    if cur_dir.startswith('src/librustc'):
-                        cur_dir = 'src/librustc'
-                    if cur_dir == 'src/test':
-                        cur_dir = None
-                    if len(full_dir) > 0:
-                        for entry in mentions:
-                            # Check if this entry is a prefix
-                            eparts = entry.split("/")
-                            if (len(eparts) <= len(parts) and
-                                all(a==b for a,b in zip(parts, eparts))
-                            ):
-                                to_mention.add(entry)
-                            elif entry.endswith('.rs') and full_dir.endswith(entry):
-                                to_mention.add(entry)
+                # A few heuristics to get better reviewers
+                if cur_dir.startswith('src/librustc'):
+                    cur_dir = 'src/librustc'
+                if cur_dir == 'src/test':
+                    cur_dir = None
+                if len(full_dir) > 0:
+                    for entry in mentions:
+                        # Check if this entry is a prefix
+                        eparts = entry.split("/")
+                        if (len(eparts) <= len(parts) and
+                            all(a==b for a,b in zip(parts, eparts))
+                        ):
+                            to_mention.add(entry)
+                        elif entry.endswith('.rs') and full_dir.endswith(entry):
+                            to_mention.add(entry)
 
         mention_list = []
         for mention in to_mention:
