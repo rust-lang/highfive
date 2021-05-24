@@ -352,7 +352,7 @@ class HighfiveHandler(object):
         mention_list = []
         for mention in to_mention:
             entry = mentions[mention]
-            if entry["reviewers"] != author:
+            if author not in entry["reviewers"]:
                 mention_list.append(entry)
         return mention_list
 
