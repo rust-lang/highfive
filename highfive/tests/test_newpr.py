@@ -1033,6 +1033,7 @@ class TestChooseReviewer(TestNewPR):
                 'normal': load_fake('normal.diff'),
                 'travis-yml': load_fake('travis-yml.diff'),
                 'mentions': load_fake('mentions.diff'),
+                'mentions-without-dirs': load_fake('mentions-without-dirs.diff'),
             },
             'config': fakes.get_repo_configs(),
             'global_': fakes.get_global_configs(),
@@ -1206,6 +1207,15 @@ class TestChooseReviewer(TestNewPR):
         # @ehuss should not be listed here
         assert set(["@pnkfelix", "@GuillaumeGomez"]) == mentions
 
+    def test_mentions_without_dirs(self):
+        """Test pinging people even if the dirs key is empty."""
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['mentions_without_dirs']
+        ).handler
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.fakes['diff']['mentions-without-dirs'], "@JohnTitor",
+        )
+        assert set(["@JohnTitor"]) == mentions
 
 class TestRun(TestNewPR):
     @pytest.fixture(autouse=True)
