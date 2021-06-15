@@ -9,7 +9,8 @@
             "@davidtwco"
         ],
         "compiler-team-contributors": [
-            "@jackh726"
+            "@jackh726",
+            "@LeSeulArtichaut"
         ],
         "libs": [
             "@dtolnay",
