@@ -88,7 +88,7 @@ class TestNewPr(object):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}
+                    {'assignees': ['nrc']}
                 ),
                 {'body': {}},
             ),
@@ -130,7 +130,7 @@ class TestNewPr(object):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}
+                    {'assignees': ['nrc']}
                 ),
                 {'body': {}},
             ),
@@ -171,7 +171,7 @@ class TestNewPr(object):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}
+                    {'assignees': ['nrc']}
                 ),
                 {'body': {}},
             ),
@@ -215,7 +215,7 @@ class TestNewPr(object):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '7'),
-                    {'assignee': 'nrc'}
+                    {'assignees': ['nrc']}
                 ),
                 {'body': {}},
             ),
@@ -266,7 +266,7 @@ class TestNewComment(object):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
-                    {'assignee': 'davidalber'}
+                    {'assignees': ['davidalber']}
                 ),
                 {'body': {}},
             ),
@@ -293,7 +293,7 @@ class TestNewComment(object):
             (
                 (
                     'PATCH', newpr.issue_url % ('rust-lang', 'rust', '1'),
-                    {'assignee': 'davidalber'}
+                    {'assignees': ['davidalber']}
                 ),
                 {'body': {}},
             ),

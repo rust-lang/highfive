@@ -34,8 +34,8 @@ surprise_branch_warning = "Pull requests are usually filed against the %s branch
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
-reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
-submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
+reviewer_re = re.compile(r"\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
+submodule_re = re.compile(r".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
 
@@ -105,16 +105,25 @@ class HighfiveHandler(object):
 
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
         try:
+            assignees = [] if assignee == 'ghost' else [assignee]
+
             self.api_req(
                 "PATCH", issue_url % (owner, repo, issue),
-                {"assignee": assignee}
+                {"assignees": assignees}
             )['body']
         except urllib.error.HTTPError as e:
             if e.code == 201:
                 pass
             else:
                 print(f"failed to assign {assignee} to {owner}/{repo}#{issue}")
-                raise e
+                print(f"error was: {e}")
+                if assignee == 'ghost':
+                    raise Exception('assigned ghost')
+                print("posting error comment")
+                error_msg = f":stop_sign: @{assignee} could not be assigned. " \
+                             "(They may not be a member of **`@rust-lang`**!) " \
+                             "Please assign someone else with `r? @person`."
+                self.post_comment(error_msg, owner, repo, issue)
 
         self.run_commands(to_mention, owner, repo, issue, user)
 
@@ -422,8 +431,8 @@ class HighfiveHandler(object):
         # Check the commenter is the submitter of the PR or the previous assignee.
         author = self.payload['issue', 'user', 'login']
         if not (author == commenter or (
-                self.payload['issue', 'assignee'] \
-                and commenter == self.payload['issue', 'assignee', 'login']
+                self.payload['issue', 'assignees'] \
+                and commenter in map(lambda user: user['login'], self.payload['issue', 'assignees'])
         )):
             # Check if commenter is a collaborator.
             if not self.is_collaborator(commenter, owner, repo):
