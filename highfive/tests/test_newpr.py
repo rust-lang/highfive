@@ -284,6 +284,20 @@ Please see [the contribution instructions](%s) for more information.
         normal_diff = load_fake('normal.diff')
         assert not handler.modifies_submodule(normal_diff)
 
+        targets_diff = load_fake('target.diff')
+        assert not handler.modifies_submodule(targets_diff)
+
+    def test_targets(self):
+        handler = HighfiveHandlerMock(Payload({})).handler
+        targets_diff = load_fake('target.diff')
+        assert handler.modifies_targets(targets_diff)
+
+        normal_diff = load_fake('normal.diff')
+        assert not handler.modifies_targets(normal_diff)
+
+        submodule_diff = load_fake('submodule.diff')
+        assert not handler.modifies_targets(submodule_diff)
+
     def test_expected_branch_default_expected_no_match(self):
         payload = Payload(
             {'pull_request': {'base': {'label': 'repo-owner:dev'}}}
@@ -631,6 +645,7 @@ class TestPostWarnings(TestNewPR):
         cls.mocks = patcherize((
             ('unexpected_branch', 'highfive.newpr.HighfiveHandler.unexpected_branch'),
             ('modifies_submodule', 'highfive.newpr.HighfiveHandler.modifies_submodule'),
+            ('modifies_targets', 'highfive.newpr.HighfiveHandler.modifies_targets'),
             ('post_comment', 'highfive.newpr.HighfiveHandler.post_comment'),
         ))
 
@@ -654,11 +669,13 @@ class TestPostWarnings(TestNewPR):
     def test_no_warnings(self):
         self.mocks['unexpected_branch'].return_value = False
         self.mocks['modifies_submodule'].return_value = False
+        self.mocks['modifies_targets'].return_value = False
 
         self.post_warnings()
 
         self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
+        self.mocks['modifies_targets'].assert_called_with(self.diff)
         self.mocks['post_comment'].assert_not_called()
 
     def test_unexpected_branch(self):
@@ -666,11 +683,13 @@ class TestPostWarnings(TestNewPR):
             'master', 'something-else'
         )
         self.mocks['modifies_submodule'].return_value = False
+        self.mocks['modifies_targets'].return_value = False
 
         self.post_warnings()
 
         self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
+        self.mocks['modifies_targets'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
 
@@ -682,11 +701,13 @@ class TestPostWarnings(TestNewPR):
     def test_modifies_submodule(self):
         self.mocks['unexpected_branch'].return_value = False
         self.mocks['modifies_submodule'].return_value = True
+        self.mocks['modifies_targets'].return_value = False
 
         self.post_warnings()
 
         self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
+        self.mocks['modifies_targets'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
 
@@ -700,16 +721,40 @@ class TestPostWarnings(TestNewPR):
             'master', 'something-else'
         )
         self.mocks['modifies_submodule'].return_value = True
+        self.mocks['modifies_targets'].return_value = False
 
         self.post_warnings()
 
         self.mocks['unexpected_branch'].assert_called_once_with()
         self.mocks['modifies_submodule'].assert_called_with(self.diff)
+        self.mocks['modifies_targets'].assert_called_with(self.diff)
 
         expected_warning = """:warning: **Warning** :warning:
 
 * Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
 * These commits modify **submodules**."""
+        self.mocks['post_comment'].assert_called_with(
+            expected_warning, self.owner, self.repo, self.issue
+        )
+
+    def test_unexpected_branch_modifies_submodule_and_targets(self):
+        self.mocks['unexpected_branch'].return_value = (
+            'master', 'something-else'
+        )
+        self.mocks['modifies_submodule'].return_value = True
+        self.mocks['modifies_targets'].return_value = True
+
+        self.post_warnings()
+
+        self.mocks['unexpected_branch'].assert_called_once_with()
+        self.mocks['modifies_submodule'].assert_called_with(self.diff)
+        self.mocks['modifies_targets'].assert_called_with(self.diff)
+
+        expected_warning = """:warning: **Warning** :warning:
+
+* Pull requests are usually filed against the master branch for this repo, but this one is against something-else. Please double check that you specified the right target!
+* These commits modify **submodules**.
+* These commits modify **compiler targets**. (See the [Target Tier Policy](https://doc.rust-lang.org/nightly/rustc/target-tier-policy.html).)"""
         self.mocks['post_comment'].assert_called_with(
             expected_warning, self.owner, self.repo, self.issue
         )

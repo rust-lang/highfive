@@ -1,0 +1,12 @@
+diff --git a/compiler/rustc_target/src/spec/mod.rs b/compiler/rustc_target/src/spec/mod.rs
+index 039e9a8b274..43a8c5e415d 100644
+--- a/compiler/rustc_target/src/spec/mod.rs
++++ b/compiler/rustc_target/src/spec/mod.rs
+@@ -680,6 +680,7 @@ fn to_json(&self) -> Json {
+     ("aarch64-linux-android", aarch64_linux_android),
+ 
+     ("x86_64-linux-kernel", x86_64_linux_kernel),
++    ("x86_64-freebsd-kernel", x86_64_freebsd_kernel),
+ 
+     ("aarch64-unknown-freebsd", aarch64_unknown_freebsd),
+     ("armv6-unknown-freebsd", armv6_unknown_freebsd),
