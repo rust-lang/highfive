@@ -1,10 +1,9 @@
 {
     "groups": {
-        "all": ["@flip1995", "@Manishearth", "@llogiq", "@phansch", "@camsteffen", "@giraffate"]
+        "all": ["@flip1995", "@Manishearth", "@llogiq", "@camsteffen", "@giraffate"]
     },
     "dirs": {
         ".github": ["@flip1995"],
-        "clippy_dev": ["@phansch"]
     },
     "contributing": "https://github.com/rust-lang/rust-clippy/blob/master/CONTRIBUTING.md",
     "new_pr_labels": ["S-waiting-on-review"]
