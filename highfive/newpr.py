@@ -33,7 +33,7 @@ surprise_branch_warning = "Pull requests are usually filed against the %s branch
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
-reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
+reviewer_re = re.compile("\\b[rR]\?[:\- ]*@(?:([a-zA-Z0-9\-]+)/)?([a-zA-Z0-9\-]+)")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 target_re = re.compile("^[+-]{3} [ab]/compiler/rustc_target/src/spec/", re.MULTILINE)
 
@@ -230,19 +230,7 @@ class HighfiveHandler(object):
             else:
                 raise e
 
-    def find_reviewer(self, msg):
-        """
-        If the user specified a reviewer, return the username, otherwise returns
-        None.
-        """
-        if msg is not None:
-            match = reviewer_re.search(msg)
-            return match.group(1) if match else None
-
-    def choose_reviewer(self, repo, owner, diff, exclude):
-        """Choose a reviewer for the PR."""
-        # Get JSON data on reviewers.
-        dirs = self.repo_config.get('dirs', {})
+    def get_groups(self):
         groups = deepcopy(self.repo_config['groups'])
 
         # fill in the default groups, ensuring that overwriting is an
@@ -251,6 +239,37 @@ class HighfiveHandler(object):
         for name, people in global_['groups'].items():
             assert name not in groups, "group %s overlaps with _global.json" % name
             groups[name] = people
+
+        return groups
+
+    def find_reviewer(self, msg, exclude):
+        """
+        If the user specified a reviewer, return the username, otherwise returns
+        None.
+        """
+        if msg is not None:
+            match = reviewer_re.search(msg)
+            if match:
+                if match.group(1):
+                    # assign someone from the specified team
+                    groups = self.get_groups()
+                    potential = groups.get(match.group(2))
+                    if potential is None:
+                        potential = groups.get("%s/%s" % (match.group(1), match.group(2)))
+                    if potential is None:
+                        potential = groups["all"]
+                    else:
+                        potential.extend(groups["all"])
+
+                    return self.pick_reviewer(groups, potential, exclude)
+                else:
+                    return match.group(2)
+
+    def choose_reviewer(self, repo, owner, diff, exclude):
+        """Choose a reviewer for the PR."""
+        # Get JSON data on reviewers.
+        dirs = self.repo_config.get('dirs', {})
+        groups = self.get_groups()
 
         most_changed = None
         # If there's directories with specially assigned groups/users
@@ -293,6 +312,9 @@ class HighfiveHandler(object):
         if not potential:
             potential = groups['core']
 
+        return self.pick_reviewer(groups, potential, exclude)
+
+    def pick_reviewer(self, groups, potential, exclude):
         # expand the reviewers list by group
         reviewers = []
         seen = {"all"}
@@ -382,7 +404,7 @@ class HighfiveHandler(object):
         if not self.payload['pull_request', 'assignees']:
             # Only try to set an assignee if one isn't already set.
             msg = self.payload['pull_request', 'body']
-            reviewer = self.find_reviewer(msg)
+            reviewer = self.find_reviewer(msg, author)
             post_msg = False
 
             if not reviewer:
@@ -437,7 +459,7 @@ class HighfiveHandler(object):
 
         # Check for r? and set the assignee.
         msg = self.payload['comment', 'body']
-        reviewer = self.find_reviewer(msg)
+        reviewer = self.find_reviewer(msg, author)
         if reviewer:
             issue = str(self.payload['issue', 'number'])
             self.set_assignee(

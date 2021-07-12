@@ -75,6 +75,9 @@ def get_repo_configs():
                     "reviewers": ["@JohnTitor"],
                 }
             }
+        },
+        'teams': {
+            "groups": {"all": [], "a": ["@pnkfelix"], "b/c": ["@nrc"]}
         }
     }
 

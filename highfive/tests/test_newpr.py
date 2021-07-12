@@ -351,11 +351,11 @@ Please see [the contribution instructions](%s) for more information.
         handler = HighfiveHandlerMock(Payload({})).handler
 
         for (msg, reviewer) in found_cases:
-            assert handler.find_reviewer(msg) == reviewer, \
+            assert handler.find_reviewer(msg, None) == reviewer, \
                 "expected '%s' from '%s'" % (reviewer, msg)
 
         for msg in not_found_cases:
-            assert handler.find_reviewer(msg) is None, \
+            assert handler.find_reviewer(msg, None) is None, \
                 "expected '%s' to have no reviewer extracted" % msg
 
 class TestApiReq(TestNewPR):
@@ -792,7 +792,7 @@ class TestNewPrFunction(TestNewPR):
         self.mocks['api_req'].assert_called_once_with(
             'GET', 'https://the.url/', None, 'application/vnd.github.v3.diff'
         )
-        self.mocks['find_reviewer'].assert_called_once_with('The PR comment.')
+        self.mocks['find_reviewer'].assert_called_once_with('The PR comment.', 'prAuthor')
         self.mocks['set_assignee'].assert_called_once_with(
             reviewer, 'repo-owner', 'repo-name', '7', self.user, 'prAuthor',
             to_mention
@@ -1052,7 +1052,7 @@ class TestNewComment(TestNewPR):
         self.mocks['find_reviewer'].return_value = None
         handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_called_with('comment!')
+        self.mocks['find_reviewer'].assert_called_with('comment!', 'userA')
         self.mocks['set_assignee'].assert_not_called()
 
     def test_has_reviewer(self):
@@ -1061,7 +1061,7 @@ class TestNewComment(TestNewPR):
         self.mocks['find_reviewer'].return_value = 'userD'
         handler.new_comment()
         self.mocks['is_collaborator'].assert_not_called()
-        self.mocks['find_reviewer'].assert_called_with('comment!')
+        self.mocks['find_reviewer'].assert_called_with('comment!', 'userA')
         self.mocks['set_assignee'].assert_called_with(
             'userD', 'repo-owner', 'repo-name', '7', 'integrationUser',
             'userA', None
@@ -1259,6 +1259,31 @@ class TestChooseReviewer(TestNewPR):
             self.fakes['diff']['mentions-without-dirs'], "@JohnTitor",
         )
         assert set(["@JohnTitor"]) == mentions
+
+    def test_with_team_ping(self):
+        """Test choosing a reviewer when passed a team ping"""
+        handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['teams']
+        ).handler
+
+        found_cases = (
+            ("r? @foo/a", "pnkfelix"),
+            ("r? @b/c", "nrc"),
+        )
+
+        not_found_cases = (
+            "r? @/a",
+            "r? @a/b",
+        )
+
+        for (msg, reviewer) in found_cases:
+            assert handler.find_reviewer(msg, None) == reviewer, \
+                "expected '%s' from '%s'" % (reviewer, msg)
+
+        for msg in not_found_cases:
+            assert handler.find_reviewer(msg, None) is None, \
+                "expected '%s' to have no reviewer extracted" % msg
+
 
 class TestRun(TestNewPR):
     @pytest.fixture(autouse=True)
