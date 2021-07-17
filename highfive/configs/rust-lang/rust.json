@@ -13,7 +13,8 @@
         ],
         "compiler-team-contributors": [
             "@jackh726",
-            "@LeSeulArtichaut"
+            "@LeSeulArtichaut",
+            "@cjgillot"
         ],
         "libs": [
             "@dtolnay",
