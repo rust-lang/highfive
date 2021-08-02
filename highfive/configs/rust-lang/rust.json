@@ -121,6 +121,10 @@
         "compiler/rustc_middle/src/mir/interpret": {
             "message": "Some changes occured to the CTFE / Miri engine",
             "reviewers": ["@rust-lang/miri"]
+        },
+        "src/tools/miri": {
+            "message": "Some changes occured to the Miri submodule",
+            "reviewers": ["@rust-lang/miri"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
