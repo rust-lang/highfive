@@ -33,7 +33,8 @@ surprise_branch_warning = "Pull requests are usually filed against the %s branch
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
-reviewer_re = re.compile("\\b[rR]\?[:\- ]*@(?:([a-zA-Z0-9\-]+)/)?([a-zA-Z0-9\-]+)")
+reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
+reviewer_group_re = re.compile("\\b[rR]\?[:\- ]*@?(?:([a-zA-Z0-9\-]+)/)([a-zA-Z0-9\-]+)")
 submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 target_re = re.compile("^[+-]{3} [ab]/compiler/rustc_target/src/spec/", re.MULTILINE)
 
@@ -248,22 +249,17 @@ class HighfiveHandler(object):
         None.
         """
         if msg is not None:
+            match = reviewer_group_re.search(msg)
+            if match:
+                groups = self.get_groups()
+                potential = groups.get(match.group(2)) or groups.get("%s/%s" % (match.group(1), match.group(2))) or []
+                potential.extend(groups["all"])
+                return self.pick_reviewer(groups, potential, exclude)
+
             match = reviewer_re.search(msg)
             if match:
-                if match.group(1):
-                    # assign someone from the specified team
-                    groups = self.get_groups()
-                    potential = groups.get(match.group(2))
-                    if potential is None:
-                        potential = groups.get("%s/%s" % (match.group(1), match.group(2)))
-                    if potential is None:
-                        potential = groups["all"]
-                    else:
-                        potential.extend(groups["all"])
+                return match.group(1)
 
-                    return self.pick_reviewer(groups, potential, exclude)
-                else:
-                    return match.group(2)
 
     def choose_reviewer(self, repo, owner, diff, exclude):
         """Choose a reviewer for the PR."""

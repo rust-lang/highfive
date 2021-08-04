@@ -1268,12 +1268,15 @@ class TestChooseReviewer(TestNewPR):
 
         found_cases = (
             ("r? @foo/a", "pnkfelix"),
+            ("r? foo/a", "pnkfelix"),
             ("r? @b/c", "nrc"),
+            ("r? b/c", "nrc"),
         )
 
         not_found_cases = (
             "r? @/a",
             "r? @a/b",
+            "r? pnkfelix",
         )
 
         for (msg, reviewer) in found_cases:
