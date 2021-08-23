@@ -16,6 +16,10 @@
             "@LeSeulArtichaut",
             "@cjgillot"
         ],
+        "compiler": [
+            "compiler-team",
+            "compiler-team-contributors"
+        ],
         "libs": [
             "@dtolnay",
             "@joshtriplett",
@@ -33,42 +37,95 @@
             "@GuillaumeGomez",
             "@ollie27",
             "@CraftSpider"
+        ],
+        "query-system": [
+            "@cjgillot"
+        ],
+        "incremental": [
+            "@michaelwoerister",
+            "@wesleywiser"
+        ],
+        "typeck": [],
+        "diagnostics": [
+            "@davidtwco",
+            "@estebank",
+            "@oli-obk"
+        ],
+        "parser": [
+            "@davidtwco",
+            "@estebank",
+            "@petrochenkov"
+        ],
+        "lexer": [
+            "@petrochenkov"
+        ],
+        "mir": [
+            "@davidtwco",
+            "@oli-obk"
+        ],
+        "mir-opt": [
+            "@nagisa",
+            "@oli-obk",
+            "@wesleywiser"
+        ],
+        "traits": [
+            "@jackh726",
+            "@matthewjasper"
+        ],
+        "borrowck": [
+            "@davidtwco",
+            "@matthewjasper",
+            "@pnkfelix"
         ]
     },
     "dirs": {
-        ".github/workflows":        ["infra-ci"],
-        "Cargo.lock":               ["@Mark-Simulacrum"],
-        "Cargo.toml":               ["@Mark-Simulacrum"],
-        "compiler":                 ["compiler-team", "compiler-team-contributors"],
-        "compiler/rustc_apfloat":   ["@eddyb"],
-        "compiler/rustc_llvm":      ["@cuviper"],
-        "library/alloc":            ["libs"],
-        "library/core":             ["libs", "@scottmcm"],
-        "library/panic_abort":      ["libs"],
-        "library/panic_unwind":     ["libs"],
-        "library/proc_macro":       ["@petrochenkov"],
-        "library/std":              ["libs"],
-        "library/stdarch":          ["libs"],
-        "library/term":             ["libs"],
-        "library/test":             ["libs"],
-        "src/bootstrap":            ["@Mark-Simulacrum"],
-        "src/build_helper":         ["@Mark-Simulacrum"],
-        "src/ci":                   ["infra-ci"],
-        "src/doc":                  ["doc"],
-        "src/etc":                  ["@Mark-Simulacrum"],
-        "src/librustdoc":           ["rustdoc"],
-        "src/llvm-project":         ["@cuviper"],
-        "src/stage0.txt":           ["@Mark-Simulacrum"],
-        "src/tools/cargo":          ["@ehuss", "@joshtriplett"],
-        "src/tools/compiletest":    ["@Mark-Simulacrum", "@Centril"],
-        "src/tools/linkchecker":    ["@ehuss"],
-        "src/tools/rust-installer": ["@Mark-Simulacrum"],
-        "src/tools/rustbook":       ["doc", "@ehuss"],
-        "src/tools/rustdoc":        ["rustdoc"],
-        "src/tools/rustdoc-js":     ["rustdoc"],
-        "src/tools/rustdoc-js-std": ["rustdoc"],
-        "src/tools/rustdoc-themes": ["rustdoc"],
-        "src/tools/tidy":           ["@Mark-Simulacrum"]
+        ".github/workflows":                     ["infra-ci"],
+        "Cargo.lock":                            ["@Mark-Simulacrum"],
+        "Cargo.toml":                            ["@Mark-Simulacrum"],
+        "compiler":                              ["compiler"],
+        "compiler/rustc_apfloat":                ["@eddyb"],
+        "compiler/rustc_ast/":                   ["compiler", "parser"],
+        "compiler/rustc_lexer":                  ["compiler", "lexer"],
+        "compiler/rustc_llvm":                   ["@cuviper"],
+        "compiler/rustc_middle/src/mir":         ["compiler", "mir"],
+        "compiler/rustc_middle/src/traits":      ["compiler", "traits"],
+        "compiler/rustc_mir/src/interpret":      ["compiler", "mir"],
+        "compiler/rustc_mir/src/transform":      ["compiler", "mir-opt"],
+        "compiler/rustc_mir_build/src/build":    ["compiler", "mir"],
+        "compiler/rustc_typeck":                 ["compiler", "typeck"],
+        "compiler/rustc_traits":                 ["compiler", "traits"],
+        "compiler/rustc_trait_selection":        ["compiler", "traits"],
+        "compiler/rustc_parse":                  ["compiler", "parser"],
+        "compiler/rustc_parse/src/parse/lexer/": ["compiler", "lexer"],
+        "compiler/rustc_query_impl":             ["compiler", "query-system"],
+        "compiler/rustc_query_system":           ["compiler", "query-system"],
+        "library/alloc":                         ["libs"],
+        "library/core":                          ["libs", "@scottmcm"],
+        "library/panic_abort":                   ["libs"],
+        "library/panic_unwind":                  ["libs"],
+        "library/proc_macro":                    ["@petrochenkov"],
+        "library/std":                           ["libs"],
+        "library/stdarch":                       ["libs"],
+        "library/term":                          ["libs"],
+        "library/test":                          ["libs"],
+        "src/bootstrap":                         ["@Mark-Simulacrum"],
+        "src/build_helper":                      ["@Mark-Simulacrum"],
+        "src/ci":                                ["infra-ci"],
+        "src/doc":                               ["doc"],
+        "src/etc":                               ["@Mark-Simulacrum"],
+        "src/librustdoc":                        ["rustdoc"],
+        "src/llvm-project":                      ["@cuviper"],
+        "src/stage0.txt":                        ["@Mark-Simulacrum"],
+        "src/tools/cargo":                       ["@ehuss", "@joshtriplett"],
+        "src/tools/compiletest":                 ["@Mark-Simulacrum"],
+        "src/tools/linkchecker":                 ["@ehuss"],
+        "src/tools/rust-installer":              ["@Mark-Simulacrum"],
+        "src/tools/rustbook":                    ["doc", "@ehuss"],
+        "src/tools/rustdoc":                     ["rustdoc"],
+        "src/tools/rustdoc-js":                  ["rustdoc"],
+        "src/tools/rustdoc-js-std":              ["rustdoc"],
+        "src/tools/rustdoc-themes":              ["rustdoc"],
+        "src/tools/tidy":                        ["@Mark-Simulacrum"]
     },
     "mentions": {
         "src/rustdoc-json-types": {

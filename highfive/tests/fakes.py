@@ -44,6 +44,15 @@ def get_repo_configs():
                 "some": ["all"],
             },
         },
+        'nested_groups': {
+            "groups": {
+                "all": [],
+                "a": ["@pnkfelix"],
+                "b": ["@nrc"],
+                "c": ["a", "b"]
+            },
+            "dirs": {"src/librustc_typeck": ["c"]},
+        },
         'empty': {
             "groups": {"all": []},
             "dirs": {},
