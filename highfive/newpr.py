@@ -325,7 +325,7 @@ class HighfiveHandler(object):
                     reviewers.append(username)
 
                 # ensure we don't assign someone to their own PR due with a case-insensitive test
-                if username.lower() != exclude.lower():
+                elif username.lower() != exclude.lower():
                     reviewers.append(username)
             elif p in groups:
                 # avoid infinite loops
