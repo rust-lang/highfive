@@ -320,6 +320,10 @@ class HighfiveHandler(object):
                 # remove the '@' prefix from each username
                 username = p[1:]
 
+                # If no one should be excluded add the reviewer
+                if exclude == None:
+                    reviewers.append(username)
+
                 # ensure we don't assign someone to their own PR due with a case-insensitive test
                 if username.lower() != exclude.lower():
                     reviewers.append(username)
