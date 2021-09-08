@@ -1,7 +1,7 @@
 {
     "groups": {
-        "all": ["@jtgeibel", "@carols10cents", "@smarnach"],
-        "ember": ["@locks", "@Turbo87"]
+        "all": ["@jtgeibel", "@carols10cents", "@smarnach", "@Turbo87"],
+        "ember": ["@locks"]
     },
     "dirs": {
         "package.json": ["ember"],
