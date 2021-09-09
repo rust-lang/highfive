@@ -1160,6 +1160,17 @@ class TestChooseReviewer(TestNewPR):
                 'rust', 'rust-lang', self.fakes['diff']['normal'], 'fooauthor'
             )
 
+    def test_nested_groups(self):
+        """Test choosing a reviewer from group with nested groups.
+        """
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['nested_groups']
+        ).handler
+        (chosen_reviewers, mentions) = self.choose_reviewers(
+            self.fakes['diff']['normal'], "nikomatsakis"
+        )
+        assert set(["pnkfelix", "nrc"]) == chosen_reviewers
+
     def test_global_core(self):
         """Test choosing a reviewer from the core group in the global
         configuration.
