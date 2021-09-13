@@ -171,7 +171,7 @@
             "message": "Some changes occurred in src/tools/clippy.",
             "reviewers": ["@rust-lang/clippy"]
         },
-        "compiler/rustc_mir/src/interpret": {
+        "compiler/rustc_const_eval/src/interpret": {
             "message": "Some changes occured to the CTFE / Miri engine",
             "reviewers": ["@rust-lang/miri"]
         },
