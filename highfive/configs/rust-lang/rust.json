@@ -163,6 +163,10 @@
             "message": "Some changes occured to rustc_codegen_cranelift",
             "reviewers": ["@bjorn3"]
         },
+        "compiler/rustc_codegen_gcc": {
+            "message": "Some changes occured to rustc_codegen_gcc",
+            "reviewers": ["@antoyo"]
+        },
         "src/tools/rustfmt": {
             "message": "Some changes occurred in src/tools/rustfmt.",
             "reviewers": ["@calebcartwright"]
