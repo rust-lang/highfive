@@ -1,4 +1,4 @@
-{
+j{
     "groups": {
         "all": [],
         "compiler-team": [
@@ -147,10 +147,6 @@
         "src/librustdoc/html/static/themes/ayu.css": {
             "message": "A change occurred in the Ayu theme.",
             "reviewers": ["@Cldfire"]
-        },
-        "src/librustdoc/passes/collect_intra_doc_links.rs": {
-            "message": "Some changes occurred in intra-doc-links.",
-            "reviewers": ["@jyn514"]
         },
         "error_codes.rs": {
             "message": "Some changes occurred in diagnostic error codes",
