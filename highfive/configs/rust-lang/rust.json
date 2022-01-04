@@ -1,4 +1,4 @@
-{
+l{
     "groups": {
         "all": [],
         "compiler-team": [
@@ -35,7 +35,6 @@
         ],
         "rustdoc": [
             "@GuillaumeGomez",
-            "@ollie27",
             "@CraftSpider"
         ],
         "query-system": [
