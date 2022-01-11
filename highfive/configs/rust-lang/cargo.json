@@ -1,6 +1,6 @@
 {
     "groups": {
-        "all": ["@alexcrichton", "@ehuss", "@Eh2406"]
+        "all": ["@alexcrichton", "@ehuss"]
     },
     "contributing": "https://github.com/rust-lang/cargo/blob/master/CONTRIBUTING.md",
     "new_pr_labels": ["S-waiting-on-review"]
