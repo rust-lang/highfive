@@ -36,7 +36,8 @@
         "rustdoc": [
             "@jsha",
             "@GuillaumeGomez",
-            "@CraftSpider"
+            "@CraftSpider",
+            "@notriddle"
         ],
         "query-system": [
             "@cjgillot"
