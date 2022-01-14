@@ -38,9 +38,6 @@ reviewer_group_re = re.compile(r"\b[rR]\?[:\- ]*@?(?:([a-zA-Z0-9\-]+)/)([a-zA-Z0
 submodule_re = re.compile(r".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 target_re = re.compile("^[+-]{3} [ab]/compiler/rustc_target/src/spec/", re.MULTILINE)
 
-rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
-
-
 class UnsupportedRepoError(IOError):
     pass
 
