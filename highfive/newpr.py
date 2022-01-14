@@ -33,8 +33,7 @@ surprise_branch_warning = "Pull requests are usually filed against the %s branch
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
-reviewer_re = re.compile(r"\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
-reviewer_group_re = re.compile(r"\b[rR]\?[:\- ]*@?(?:([a-zA-Z0-9\-]+)/)([a-zA-Z0-9\-]+)")
+reviewer_re = re.compile(r"\b[rR]\?[:\- ]*(?:@?([a-zA-Z0-9\-]+)/)?(@?[a-zA-Z0-9\-]+)")
 submodule_re = re.compile(r".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 target_re = re.compile("^[+-]{3} [ab]/compiler/rustc_target/src/spec/", re.MULTILINE)
 
@@ -232,7 +231,7 @@ class HighfiveHandler(object):
                 raise e
 
     def get_groups(self):
-        groups = deepcopy(self.repo_config['groups'])
+        groups = deepcopy(self.repo_config['groups'] if 'groups' in self.repo_config else {})
 
         # fill in the default groups, ensuring that overwriting is an
         # error.
@@ -249,16 +248,18 @@ class HighfiveHandler(object):
         None.
         """
         if msg is not None:
-            match = reviewer_group_re.search(msg)
+            match = reviewer_re.search(msg)
             if match:
                 groups = self.get_groups()
                 potential = groups.get(match.group(2)) or groups.get("%s/%s" % (match.group(1), match.group(2))) or []
-                potential.extend(groups["all"])
-                return self.pick_reviewer(groups, potential, exclude)
-
-            match = reviewer_re.search(msg)
-            if match:
-                return match.group(1)
+                if 'all' in groups:
+                    potential.extend(groups["all"])
+                picked = self.pick_reviewer(groups, potential, exclude)
+                if picked:
+                    return picked
+                if match.group(1) is None and match.group(2):
+                    if match.group(2).startswith('@'):
+                        return match.group(2)[1:]
 
 
     def choose_reviewer(self, repo, owner, diff, exclude):

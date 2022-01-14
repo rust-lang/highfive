@@ -348,7 +348,8 @@ Please see [the contribution instructions](%s) for more information.
             # https://github.com/rust-lang-nursery/highfive/issues/184
             None,
         )
-        handler = HighfiveHandlerMock(Payload({})).handler
+        config = {}
+        handler = HighfiveHandlerMock(Payload({}), repo_config=config).handler
 
         for (msg, reviewer) in found_cases:
             assert handler.find_reviewer(msg, None) == reviewer, \
@@ -1280,8 +1281,15 @@ class TestChooseReviewer(TestNewPR):
         found_cases = (
             ("r? @foo/a", "pnkfelix"),
             ("r? foo/a", "pnkfelix"),
+            ("r? rust-lang/compiler-team", "niko"),
+            ("r? compiler-team", "niko"),
             ("r? @b/c", "nrc"),
             ("r? b/c", "nrc"),
+
+            # @d goes to the user
+            ("r? @d", "d"),
+            # d goes to the team
+            ("r? d", "e"),
         )
 
         not_found_cases = (
