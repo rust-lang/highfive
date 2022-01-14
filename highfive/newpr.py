@@ -33,9 +33,9 @@ surprise_branch_warning = "Pull requests are usually filed against the %s branch
 review_with_reviewer = 'r? @%s\n\n(rust-highfive has picked a reviewer for you, use r? to override)'
 review_without_reviewer = '@%s: no appropriate reviewer found, use r? to override'
 
-reviewer_re = re.compile("\\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
-reviewer_group_re = re.compile("\\b[rR]\?[:\- ]*@?(?:([a-zA-Z0-9\-]+)/)([a-zA-Z0-9\-]+)")
-submodule_re = re.compile(".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
+reviewer_re = re.compile(r"\b[rR]\?[:\- ]*@([a-zA-Z0-9\-]+)")
+reviewer_group_re = re.compile(r"\b[rR]\?[:\- ]*@?(?:([a-zA-Z0-9\-]+)/)([a-zA-Z0-9\-]+)")
+submodule_re = re.compile(r".*\+Subproject\scommit\s.*", re.DOTALL | re.MULTILINE)
 target_re = re.compile("^[+-]{3} [ab]/compiler/rustc_target/src/spec/", re.MULTILINE)
 
 rustaceans_api_url = "http://www.ncameron.org/rustaceans/user?username={username}"
