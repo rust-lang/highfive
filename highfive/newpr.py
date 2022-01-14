@@ -65,10 +65,13 @@ class HighfiveHandler(object):
             return "Ping received! The webhook is configured correctly!\n"
         elif event == "pull_request" and self.payload["action"] == "opened":
             self.new_pr()
-            return 'OK\n'
+            return 'OK, handled new PR\n'
         elif event == "issue_comment" and self.payload["action"] == "created":
-            self.new_comment()
-            return 'OK\n'
+            msg = self.new_comment()
+            if msg is None:
+                return 'OK\n'
+            else:
+                return f"OK: {msg}\n"
         else:
             return 'Unsupported webhook event.\n'
 
@@ -430,12 +433,12 @@ class HighfiveHandler(object):
         # Check the issue is a PR and is open.
         if self.payload['issue', 'state'] != 'open' \
                 or 'pull_request' not in self.payload['issue']:
-            return
+            return "skipped - closed issue"
 
         commenter = self.payload['comment', 'user', 'login']
         # Ignore our own comments.
         if commenter == self.integration_user:
-            return
+            return "skipped - our own comment"
 
         owner = self.payload['repository', 'owner', 'login']
         repo = self.payload['repository', 'name']
@@ -448,7 +451,7 @@ class HighfiveHandler(object):
         )):
             # Check if commenter is a collaborator.
             if not self.is_collaborator(commenter, owner, repo):
-                return
+                return "skipped, comment not by author, collaborator, or assignee"
 
         # Check for r? and set the assignee.
         msg = self.payload['comment', 'body']
@@ -459,3 +462,6 @@ class HighfiveHandler(object):
                 reviewer, owner, repo, issue, self.integration_user,
                 author, None
             )
+            return f"set assignee to {reviewer}"
+        else:
+            return "no reviewer found"

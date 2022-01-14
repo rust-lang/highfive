@@ -980,7 +980,7 @@ class TestNewComment(TestNewPR):
     def test_not_open(self):
         handler = self.make_handler(state='closed')
 
-        assert handler.new_comment() is None
+        assert handler.new_comment() == 'skipped - closed issue'
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
@@ -996,7 +996,7 @@ class TestNewComment(TestNewPR):
     def test_commenter_is_integration_user(self):
         handler = self.make_handler(commenter='integrationUser')
 
-        assert handler.new_comment() is None
+        assert handler.new_comment() == 'skipped - our own comment'
         self.mocks['is_collaborator'].assert_not_called()
         self.mocks['find_reviewer'].assert_not_called()
         self.mocks['set_assignee'].assert_not_called()
@@ -1007,7 +1007,7 @@ class TestNewComment(TestNewPR):
         )
 
         self.mocks['is_collaborator'].return_value = False
-        assert handler.new_comment() is None
+        assert handler.new_comment() == 'skipped, comment not by author, collaborator, or assignee'
         self.mocks['is_collaborator'].assert_called_with(
             'userB', 'repo-owner', 'repo-name'
         )
@@ -1315,14 +1315,14 @@ class TestRun(TestNewPR):
     def test_newpr(self):
         payload = Payload({'action': 'opened'})
         m = self.handler_mock(payload)
-        assert m.handler.run('pull_request') == 'OK\n'
+        assert m.handler.run('pull_request') == 'OK, handled new PR\n'
         self.mocks['new_pr'].assert_called_once_with()
         self.mocks['new_comment'].assert_not_called()
 
     def test_new_comment(self):
         payload = Payload({'action': 'created'})
         m = self.handler_mock(payload)
-        assert m.handler.run('issue_comment') == 'OK\n'
+        assert m.handler.run('issue_comment').startswith('OK')
         self.mocks['new_pr'].assert_not_called()
         self.mocks['new_comment'].assert_called_once_with()
 
