@@ -86,7 +86,7 @@ def get_repo_configs():
             }
         },
         'teams': {
-            "groups": {"all": [], "a": ["@pnkfelix"], "d": ["@e"], "compiler-team": ["@niko"], "b/c": ["@nrc"]}
+            "groups": {"all": ["@ehuss"], "a": ["@pnkfelix"], "d": ["@e"], "compiler-team": ["@niko"], "b/c": ["@nrc"]}
         }
     }
 
