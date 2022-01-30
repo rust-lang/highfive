@@ -252,8 +252,6 @@ class HighfiveHandler(object):
             if match:
                 groups = self.get_groups()
                 potential = groups.get(match.group(2)) or groups.get("%s/%s" % (match.group(1), match.group(2))) or []
-                if 'all' in groups:
-                    potential.extend(groups["all"])
                 picked = self.pick_reviewer(groups, potential, exclude)
                 if picked:
                     return picked
