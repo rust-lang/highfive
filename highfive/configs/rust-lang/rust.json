@@ -139,7 +139,7 @@
         },
         "src/librustdoc/html/static": {
             "message": "Some changes occurred in HTML/CSS/JS.",
-            "reviewers": ["@GuillaumeGomez", "@Folyd"]
+            "reviewers": ["@GuillaumeGomez", "@Folyd", "@jsha"]
         },
         "src/librustdoc/html/static/themes": {
             "message": "Some changes occurred in HTML/CSS themes.",
