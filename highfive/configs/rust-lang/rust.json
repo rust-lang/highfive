@@ -130,7 +130,7 @@
     },
     "mentions": {
         "src/rustdoc-json-types": {
-          "message": "rustdoc-json-types is a **public** (although nightly-only) API. Consider changing `src/librustdoc/json/conversions.rs` instead; otherwise, make sure you update `format_version`.",
+          "message": "rustdoc-json-types is a **public** (although nightly-only) API. If possible, consider changing `src/librustdoc/json/conversions.rs`; otherwise, make sure you bump the `FORMAT_VERSION` constant.",
           "reviewers": ["@CraftSpider", "@aDotInTheVoid"]
         },
         "src/librustdoc/clean/types.rs": {
