@@ -1,7 +1,7 @@
 {
     "groups": {
         "core": ["@Mark-Simulacrum"],
-        "crates": ["@alexcrichton"],
+        "crates": [],
         "doc": ["@steveklabnik", "@GuillaumeGomez"],
         "rust-embedded/cortex-a": ["@andre-richter", "@raw-bin"],
         "rust-embedded/cortex-m": ["@adamgreig", "@therealprof", "@jonas-schievink", "@thalesfragoso"],
