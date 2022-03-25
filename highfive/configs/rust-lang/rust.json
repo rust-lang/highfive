@@ -188,6 +188,10 @@
         "src/tools/miri": {
             "message": "Some changes occured to the Miri submodule",
             "reviewers": ["@rust-lang/miri"]
+        },
+        "library/proc_macro": {
+            "message": "Some changes occurred in src/library/proc_macro.",
+            "reviewers": ["@Veykril"]
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
