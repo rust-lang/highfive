@@ -564,12 +564,16 @@ class TestSetAssignee(TestNewPR):
                 'message': 'Also important',
                 'reviewers': ['@userD'],
             },
+            {
+                'message': 'last message but this one has nobody to mention associated with it',
+                'reviewers': [],
+            },
         ]
         self.set_assignee(to_mention=to_mention)
 
         self.assert_api_req_call()
         self.mocks['post_comment'].assert_called_once_with(
-            'This is important\n\ncc @userA,@userB,@userC\n\nAlso important\n\ncc @userD',
+            'This is important\n\ncc @userA,@userB,@userC\n\nAlso important\n\ncc @userD\n\nlast message but this one has nobody to mention associated with it',
             self.owner, self.repo, self.issue
         )
 
