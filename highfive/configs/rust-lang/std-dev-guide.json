@@ -1,11 +1,10 @@
 {
     "groups": {
         "all": [
-            "@dtolnay",
             "@joshtriplett",
-            "@Mark-Simulacrum",
-            "@kennytm",
             "@yaahc",
+            "cuviper",
+            "Amanieu",
             "@m-ou-se"
         ]
     },
