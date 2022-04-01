@@ -1,0 +1,12 @@
+{
+    "groups": {
+        "all": [
+            "@joshtriplett",
+            "@yaahc",
+            "cuviper",
+            "Amanieu",
+            "@m-ou-se"
+        ]
+    },
+    "new_pr_labels": ["S-waiting-on-review"]
+}
