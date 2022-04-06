@@ -108,6 +108,7 @@
         "library/panic_unwind":                  ["libs"],
         "library/proc_macro":                    ["@petrochenkov"],
         "library/std":                           ["libs"],
+        "library/std/src/sys/windows":           ["@ChrisDenton"],
         "library/stdarch":                       ["libs"],
         "library/term":                          ["libs"],
         "library/test":                          ["libs"],
