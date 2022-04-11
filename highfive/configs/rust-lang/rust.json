@@ -180,7 +180,7 @@
         },
         "src/tools/rustfmt": {
             "message": "Some changes occurred in src/tools/rustfmt.",
-            "reviewers": ["@calebcartwright"]
+            "reviewers": ["@rust-lang/rustfmt"]
         },
         "src/tools/clippy": {
             "message": "Some changes occurred in src/tools/clippy.",
