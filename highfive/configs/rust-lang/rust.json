@@ -23,13 +23,18 @@
             "compiler-team-contributors"
         ],
         "libs": [
-            "@dtolnay",
             "@joshtriplett",
             "@Mark-Simulacrum",
             "@kennytm",
             "@yaahc",
             "@m-ou-se",
             "@thomcc"
+        ],
+        "libs-api": [
+            "@dtolnay",
+            "@joshtriplett",
+            "@yaahc",
+            "@m-ou-se"
         ],
         "infra-ci": [
             "@Mark-Simulacrum",
@@ -192,6 +197,10 @@
         "src/tools/miri": {
             "message": "Some changes occured to the Miri submodule",
             "reviewers": ["@rust-lang/miri"]
+        },
+        "library": {
+            "message": "Thank you for submitting a new PR for the library teams! If this PR contains a stabilization of a library feature that has not already completed FCP in its tracking issue, introduces new or changes existing unstable library APIs, or changes our public documentation in ways that create new stability guarantees then please comment with `r? rust-lang/libs-api @rustbot label +T-libs-api` to request review from a libs-api team reviewer. If you're unsure where your change falls no worries, just leave it as is and the reviewer will take a look and make a decision to forward on if necessary",
+            "reviewers": []
         }
     },
     "new_pr_labels": ["S-waiting-on-review"]
