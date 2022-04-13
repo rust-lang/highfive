@@ -325,16 +325,21 @@ class HighfiveHandler(object):
             p = potential.pop()
             if p.startswith('@'):
                 # remove the '@' prefix from each username
-                reviewers.append(p[1:])
+                username = p[1:]
+
+                # If no one should be excluded add the reviewer
+                if exclude == None:
+                    reviewers.append(username)
+
+                # ensure we don't assign someone to their own PR due with a case-insensitive test
+                elif username.lower() != exclude.lower():
+                    reviewers.append(username)
             elif p in groups:
                 # avoid infinite loops
                 assert p not in seen, "group %s refers to itself" % p
                 seen.add(p)
                 # we allow groups in groups, so they need to be queued to be resolved
                 potential.extend(groups[p])
-
-        if exclude in reviewers:
-            reviewers.remove(exclude)
 
         if reviewers:
             random.seed()
