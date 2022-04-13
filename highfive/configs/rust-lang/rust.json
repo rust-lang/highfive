@@ -199,7 +199,7 @@
             "reviewers": ["@rust-lang/miri"]
         },
         "library": {
-            "message": "Hey! It looks like you've submitted a new PR for the library teams!\n\nIf this PR contains changes to any `rust-lang/rust` public library APIs then please comment with `r? rust-lang/libs-api @rustbot label +T-libs-api` to request review from a libs-api team reviewer. If you're unsure where your change falls no worries, just leave it as is and the reviewer will take a look and make a decision to forward on if necessary.\n\nExamples of `T-libs-api` changes:\n\n* a stabilization of a library feature\n* introducing new or changes existing unstable library APIs\n* changes to  public documentation in ways that create new stability guarantees",
+            "message": "Hey! It looks like you've submitted a new PR for the library teams!\n\nIf this PR contains changes to any `rust-lang/rust` public library APIs then please comment with `r? rust-lang/libs-api @rustbot label +T-libs-api -T-libs` to request review from a libs-api team reviewer. If you're unsure where your change falls no worries, just leave it as is and the reviewer will take a look and make a decision to forward on if necessary.\n\nExamples of `T-libs-api` changes:\n\n* Stabilizing library features\n* Introducing insta-stable changes such as new implementations of existing stable traits on existing stable types\n* Introducing new or changing existing unstable library APIs (excluding permanently unstable features / features without a tracking issue)\n* Changing public documentation in ways that create new stability guarantees\n* Changing observable runtime behavior of library APIs",
             "reviewers": []
         }
     },
