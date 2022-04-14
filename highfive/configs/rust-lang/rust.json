@@ -3,7 +3,6 @@
         "all": [],
         "compiler-team": [
             "@estebank",
-            "@matthewjasper",
             "@petrochenkov",
             "@davidtwco",
             "@oli-obk",
@@ -78,12 +77,10 @@
             "@wesleywiser"
         ],
         "traits": [
-            "@jackh726",
-            "@matthewjasper"
+            "@jackh726"
         ],
         "borrowck": [
             "@davidtwco",
-            "@matthewjasper",
             "@pnkfelix"
         ]
     },
