@@ -24,14 +24,12 @@
             "@joshtriplett",
             "@Mark-Simulacrum",
             "@kennytm",
-            "@yaahc",
             "@m-ou-se",
             "@thomcc"
         ],
         "libs-api": [
             "@dtolnay",
             "@joshtriplett",
-            "@yaahc",
             "@m-ou-se"
         ],
         "infra-ci": [
