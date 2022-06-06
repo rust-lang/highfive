@@ -27,11 +27,6 @@
             "@m-ou-se",
             "@thomcc"
         ],
-        "libs-api": [
-            "@dtolnay",
-            "@joshtriplett",
-            "@m-ou-se"
-        ],
         "infra-ci": [
             "@Mark-Simulacrum",
             "@kennytm",
