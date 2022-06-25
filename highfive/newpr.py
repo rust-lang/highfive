@@ -304,7 +304,8 @@ class HighfiveHandler(object):
                     ]
                     continue
 
-                if (not line.startswith('+++')) and line.startswith('+'):
+                if ((not line.startswith('+++')) and line.startswith('+')) or \
+                   ((not line.startswith('---')) and line.startswith('-')):
                     for path in longest_dir_paths:
                         counts[path] = counts.get(path, 0) + 1
 

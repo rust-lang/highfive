@@ -1350,6 +1350,15 @@ class TestChooseReviewer(TestNewPR):
         (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
         assert set(['parser']) == chosen_reviewers
 
+    def test_deleted_file(self):
+        """Test dirs matching for a deleted file."""
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['prefixed-dirs']
+        ).handler
+        diff = fakes.make_fake_diff([('compiler/rustc_parse/src/foo.rs', 0, 10)])
+        (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
+        assert set(['parser']) == chosen_reviewers
+
 
 class TestRun(TestNewPR):
     @pytest.fixture(autouse=True)
