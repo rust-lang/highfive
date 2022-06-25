@@ -87,7 +87,19 @@ def get_repo_configs():
         },
         'teams': {
             "groups": {"all": ["@ehuss"], "a": ["@pnkfelix"], "d": ["@e"], "compiler-team": ["@niko"], "b/c": ["@nrc"]}
-        }
+        },
+        'prefixed-dirs': {
+            "groups": {
+                "all": [],
+                "compiler": ["@compiler"],
+            },
+            "dirs": {
+                "compiler": ["compiler"],
+                "compiler/rustc_llvm": ["@llvm"],
+                "compiler/rustc_parse": ["@parser"],
+                "compiler/rustc_parse/src/parse/lexer": ["@lexer"],
+            }
+        },
     }
 
 
@@ -127,3 +139,28 @@ class Payload(object):
         p['pull_request']['user']['login'] = pr_author
 
         return payload.Payload(p)
+
+
+def make_fake_diff(paths):
+    """Generates a fake diff that touches the given files.
+
+    :param paths: A sequence of `(path, added, removed)` tuples where `added`
+        is the number of lines added, and `removed` is the number of lines
+        removed.
+    :returns: A string of the fake diff.
+    """
+    # This isn't a properly structured diff, but it has approximately enough
+    # information for what highfive looks at.
+    result = []
+    for (path, added, removed) in paths:
+        result.append(f'diff --git a/{path} b/{path}')
+        result.append('index 1677422122e..1108c1f4d4c 100644')
+        result.append(f'--- a/{path}')
+        result.append(f'+++ b/{path}')
+        result.append('@@ -0,0 +1 @@')
+        for n in range(added):
+            result.append(f'+Added line {n}')
+        for n in range(removed):
+            result.append(f'-Removed line {n}')
+    result.append('')
+    return '\n'.join(result)

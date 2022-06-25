@@ -1310,6 +1310,46 @@ class TestChooseReviewer(TestNewPR):
             assert handler.find_reviewer(msg, None) is None, \
                 "expected '%s' to have no reviewer extracted" % msg
 
+    def test_prefixed_dirs(self):
+        """Test dirs with multiple overlapping prefixes."""
+        self.handler = HighfiveHandlerMock(
+            Payload({}), repo_config=self.fakes['config']['prefixed-dirs']
+        ).handler
+        # Base compiler rule should catch anything in compiler/
+        diff = fakes.make_fake_diff([('compiler/foo', 1, 1)])
+        (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
+        assert set(['compiler']) == chosen_reviewers
+
+        # Anything in rustc_llvm should go to llvm.
+        diff = fakes.make_fake_diff([('compiler/rustc_llvm/foo', 1, 1)])
+        (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
+        assert set(['llvm']) == chosen_reviewers
+
+        # 1 change in rustc_llvm, multiple changes in other directories, the
+        # other directories win because they have more changes.
+        diff = fakes.make_fake_diff([
+            ('compiler/rustc_llvm/foo', 1, 1),
+            ('compiler/rustc_traits/src/foo.rs', 0, 1),
+            ('compiler/rustc_macros//src/foo.rs', 2, 3),
+        ])
+        (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
+        assert set(['compiler']) == chosen_reviewers
+
+        # Change in a deeply nested directory should win over its parent.
+        diff = fakes.make_fake_diff([
+            ('compiler/rustc_parse/src/parse/lexer/foo.rs', 1, 1)
+        ])
+        (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
+        assert set(['lexer']) == chosen_reviewers
+
+        # Most changes in one component should win over the base compiler.
+        diff = fakes.make_fake_diff([
+            ('compiler/rustc_parse/src/foo.rs', 5, 10),
+            ('compiler/rustc_llvm/src/foo.rs', 1, 1),
+        ])
+        (chosen_reviewers, _) = self.choose_reviewers(diff, 'ehuss')
+        assert set(['parser']) == chosen_reviewers
+
 
 class TestRun(TestNewPR):
     @pytest.fixture(autouse=True)
