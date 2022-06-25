@@ -362,22 +362,13 @@ class HighfiveHandler(object):
         to_mention = set()
         # If there's directories with specially assigned groups/users
         # inspect the diff to find the directory with the most additions
-        cur_dir = None
         for line in diff.split('\n'):
             if line.startswith("diff --git "):
-                # update cur_dir
-                cur_dir = None
                 parts = line[line.find(" b/") + len(" b/"):].split("/")
                 if not parts:
                     continue
-                cur_dir = "/".join(parts[:2])
                 full_dir = "/".join(parts)
 
-                # A few heuristics to get better reviewers
-                if cur_dir.startswith('src/librustc'):
-                    cur_dir = 'src/librustc'
-                if cur_dir == 'src/test':
-                    cur_dir = None
                 if len(full_dir) > 0:
                     for entry in mentions:
                         # Check if this entry is a prefix
