@@ -27,6 +27,10 @@
             "@m-ou-se",
             "@thomcc"
         ],
+        "bootstrap": [
+          "@Mark-Simulacrum",
+          "@jyn514"
+        ],
         "infra-ci": [
             "@Mark-Simulacrum",
             "@kennytm",
@@ -111,22 +115,22 @@
         "library/stdarch":                       ["libs"],
         "library/term":                          ["libs"],
         "library/test":                          ["libs"],
-        "src/bootstrap":                         ["@Mark-Simulacrum"],
+        "src/bootstrap":                         ["bootstrap"],
         "src/ci":                                ["infra-ci"],
         "src/etc":                               ["@Mark-Simulacrum"],
         "src/librustdoc":                        ["rustdoc"],
         "src/llvm-project":                      ["@cuviper"],
-        "src/stage0.txt":                        ["@Mark-Simulacrum"],
+        "src/stage0.json":                       ["bootstrap"],
         "src/tools/cargo":                       ["@ehuss", "@joshtriplett"],
-        "src/tools/compiletest":                 ["@Mark-Simulacrum"],
+        "src/tools/compiletest":                 ["bootstrap"],
         "src/tools/linkchecker":                 ["@ehuss"],
-        "src/tools/rust-installer":              ["@Mark-Simulacrum"],
+        "src/tools/rust-installer":              ["bootstrap"],
         "src/tools/rustbook":                    ["@ehuss"],
         "src/tools/rustdoc":                     ["rustdoc"],
         "src/tools/rustdoc-js":                  ["rustdoc"],
         "src/tools/rustdoc-js-std":              ["rustdoc"],
         "src/tools/rustdoc-themes":              ["rustdoc"],
-        "src/tools/tidy":                        ["@Mark-Simulacrum"]
+        "src/tools/tidy":                        ["bootstrap"]
     },
     "mentions": {
         "src/rustdoc-json-types": {
