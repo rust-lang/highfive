@@ -274,44 +274,48 @@ class HighfiveHandler(object):
         dirs = self.repo_config.get('dirs', {})
         groups = self.get_groups()
 
-        most_changed = None
+        # Map of `dirs` path to the number of changes found in that path.
+        counts = {}
         # If there's directories with specially assigned groups/users
         # inspect the diff to find the directory with the most additions
         if dirs:
-            counts = {}
-            cur_dir = None
+            # List of the longest `dirs` paths that match the current path.
+            # This is a list to handle the situation if multiple paths of the
+            # same length match.
+            longest_dir_paths = []
             for line in diff.split('\n'):
                 if line.startswith("diff --git "):
-                    # update cur_dir
-                    cur_dir = None
+                    # update longest_dir_paths
+                    longest_dir_paths = []
                     parts = line[line.find(" b/") + len(" b/"):].split("/")
                     if not parts:
                         continue
-                    cur_dir = "/".join(parts[:2])
 
-                    # A few heuristics to get better reviewers
-                    if cur_dir.startswith('compiler/'):
-                        cur_dir = 'compiler'
-                    if cur_dir == 'src/test':
-                        cur_dir = None
-                    if cur_dir and cur_dir not in counts:
-                        counts[cur_dir] = 0
+                    # Find the longest `dirs` entries that match this path.
+                    longest = {}
+                    for dir_path in dirs:
+                        dir_parts = dir_path.split('/')
+                        if parts[:len(dir_parts)] == dir_parts:
+                            longest[dir_path] = len(dir_parts)
+                    max_count = max(longest.values(), default=0)
+                    longest_dir_paths = [
+                        path for (path, count) in longest.items()
+                            if count == max_count
+                    ]
                     continue
 
-                if cur_dir and (not line.startswith('+++')) and line.startswith('+'):
-                    counts[cur_dir] += 1
+                if ((not line.startswith('+++')) and line.startswith('+')) or \
+                   ((not line.startswith('---')) and line.startswith('-')):
+                    for path in longest_dir_paths:
+                        counts[path] = counts.get(path, 0) + 1
 
-            # Find the largest count.
-            most_changes = 0
-            for directory, changes in counts.items():
-                if changes > most_changes:
-                    most_changes = changes
-                    most_changed = directory
-
-        # lookup that directory in the json file to find the potential reviewers
+        # `all` is always included.
         potential = groups['all']
-        if most_changed and most_changed in dirs:
-            potential.extend(dirs[most_changed])
+        # Include the `dirs` entries with the maximum number of matches.
+        max_count = max(counts.values(), default=0)
+        max_paths = [path for (path, count) in counts.items() if count == max_count]
+        for path in max_paths:
+            potential.extend(dirs[path])
         if not potential:
             potential = groups['core']
 
