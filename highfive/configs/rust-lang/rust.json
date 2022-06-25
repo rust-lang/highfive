@@ -42,6 +42,10 @@
             "@CraftSpider",
             "@notriddle"
         ],
+        "docs": [
+            "@ehuss",
+            "@GuillaumeGomez"
+        ],
         "query-system": [
             "@cjgillot"
         ],
@@ -130,7 +134,9 @@
         "src/tools/rustdoc-js":                  ["rustdoc"],
         "src/tools/rustdoc-js-std":              ["rustdoc"],
         "src/tools/rustdoc-themes":              ["rustdoc"],
-        "src/tools/tidy":                        ["bootstrap"]
+        "src/tools/tidy":                        ["bootstrap"],
+        "src/doc":                               ["docs"],
+        "src/doc/rustdoc":                       ["rustdoc"]
     },
     "mentions": {
         "src/rustdoc-json-types": {
