@@ -141,6 +141,10 @@
         "src/doc/rustdoc":                       ["rustdoc"]
     },
     "mentions": {
+        "library/portable-simd": {
+            "message": "library/portable-simd is a subtree of https://github.com/rust-lang/portable-simd and changes here will have to be cherry-picked upstream.",
+            "reviewers": ["@rust-lang/project-portable-simd"]
+        },
         "src/rustdoc-json-types": {
           "message": "rustdoc-json-types is a **public** (although nightly-only) API. If possible, consider changing `src/librustdoc/json/conversions.rs`; otherwise, make sure you bump the `FORMAT_VERSION` constant.",
           "reviewers": ["@CraftSpider", "@aDotInTheVoid"]
