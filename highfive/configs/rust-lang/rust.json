@@ -14,7 +14,8 @@
         ],
         "compiler-team-contributors": [
             "@compiler-errors",
-            "@jackh726"
+            "@jackh726",
+            "@fee1-dead"
         ],
         "compiler": [
             "compiler-team",
