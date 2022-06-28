@@ -107,6 +107,9 @@ class HighfiveHandler(object):
         return {"header": header, "body": body}
 
     def set_assignee(self, assignee, owner, repo, issue, user, author, to_mention):
+        if assignee == 'ghost':
+            raise Exception("Skipping assignment: ghost user disables automation").with_traceback(None)
+
         try:
             self.api_req(
                 "PATCH", issue_url % (owner, repo, issue),
