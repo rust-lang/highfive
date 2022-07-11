@@ -88,6 +88,9 @@
         "borrowck": [
             "@davidtwco",
             "@pnkfelix"
+        ],
+        "ast_lowering": [
+            "@spastorino"
         ]
     },
     "dirs": {
@@ -97,6 +100,7 @@
         "compiler":                              ["compiler"],
         "compiler/rustc_apfloat":                ["@eddyb"],
         "compiler/rustc_ast/":                   ["compiler", "parser"],
+        "compiler/rustc_ast_lowering/":          ["compiler", "ast_lowering"],
         "compiler/rustc_lexer":                  ["compiler", "lexer"],
         "compiler/rustc_llvm":                   ["@cuviper"],
         "compiler/rustc_middle/src/mir":         ["compiler", "mir"],
