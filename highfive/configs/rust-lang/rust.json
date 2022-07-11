@@ -82,7 +82,8 @@
             "@compiler-errors",
             "@jackh726",
             "@lcnr",
-            "@oli-obk"
+            "@oli-obk",
+            "@spastorino"
         ],
         "borrowck": [
             "@davidtwco",
