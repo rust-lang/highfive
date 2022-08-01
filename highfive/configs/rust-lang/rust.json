@@ -34,7 +34,8 @@
         ],
         "infra-ci": [
             "@Mark-Simulacrum",
-            "@pietroalbini"
+            "@pietroalbini",
+            "@jyn514"
         ],
         "rustdoc": [
             "@jsha",
