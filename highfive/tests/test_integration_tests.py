@@ -103,7 +103,7 @@ class TestNewPr(object):
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
                     {
-                        'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nPlease see [the contribution instructions](https://rustc-dev-guide.rust-lang.org/contributing.html) for more information.\n"}
+                        'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nPlease see [the contribution instructions](https://rustc-dev-guide.rust-lang.org/contributing.html) for more information.\n\nTip: when your PR is ready for review, don't forget to fire up the command `@rustbot ready` to put your PR in the review queue of your assigned reviewer: this will help speed up the overall review process.\n"}
                 ),
                 {'body': {}},
             ),
@@ -145,7 +145,7 @@ class TestNewPr(object):
                 (
                     'POST', newpr.post_comment_url % ('rust-lang', 'rust', '7'),
                     {
-                        'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nPlease see [the contribution instructions](https://rustc-dev-guide.rust-lang.org/contributing.html) for more information.\n"}
+                        'body': "Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from @nrc (or someone else) soon.\n\nPlease see [the contribution instructions](https://rustc-dev-guide.rust-lang.org/contributing.html) for more information.\n\nTip: when your PR is ready for review, don't forget to fire up the command `@rustbot ready` to put your PR in the review queue of your assigned reviewer: this will help speed up the overall review process.\n"}
                 ),
                 {'body': {}},
             ),
