@@ -15,7 +15,8 @@
         "compiler-team-contributors": [
             "@compiler-errors",
             "@jackh726",
-            "@fee1-dead"
+            "@fee1-dead",
+            "@TaKO8Ki"
         ],
         "compiler": [
             "compiler-team",
@@ -58,7 +59,8 @@
             "@compiler-errors",
             "@davidtwco",
             "@estebank",
-            "@oli-obk"
+            "@oli-obk",
+            "@TaKO8Ki"
         ],
         "parser": [
             "@davidtwco",
