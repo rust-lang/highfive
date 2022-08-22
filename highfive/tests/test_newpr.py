@@ -1160,10 +1160,10 @@ class TestChooseReviewer(TestNewPR):
         handler = HighfiveHandlerMock(
             Payload({}), repo_config=self.fakes['config']['circular_groups']
         ).handler
-        with pytest.raises(AssertionError):
-            handler.choose_reviewer(
-                'rust', 'rust-lang', self.fakes['diff']['normal'], 'fooauthor'
-            )
+        chosen_reviewers = handler.choose_reviewer(
+            'rust', 'rust-lang', self.fakes['diff']['normal'], 'fooauthor'
+        )
+        assert chosen_reviewers is None
 
     def test_nested_groups(self):
         """Test choosing a reviewer from group with nested groups.

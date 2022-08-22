@@ -343,10 +343,10 @@ class HighfiveHandler(object):
                     reviewers.append(username)
             elif p in groups:
                 # avoid infinite loops
-                assert p not in seen, "group %s refers to itself" % p
-                seen.add(p)
-                # we allow groups in groups, so they need to be queued to be resolved
-                potential.extend(groups[p])
+                if p not in seen:
+                    seen.add(p)
+                    # we allow groups in groups, so they need to be queued to be resolved
+                    potential.extend(groups[p])
 
         if reviewers:
             random.seed()
