@@ -145,5 +145,11 @@
         "src/doc":                               ["docs"],
         "src/doc/rustdoc":                       ["rustdoc"]
     },
+    "mentions": {
+        "src/rustdoc-json-types": {
+            "message": "Some changes occurred in the rustdoc JSON types module",
+            "reviewers": ["@obi1kenobi"]
+        }
+    },
     "new_pr_labels": ["S-waiting-on-review"]
 }
