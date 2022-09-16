@@ -115,6 +115,7 @@
         "src/doc":                               ["doc"],
         "src/etc":                               ["@Mark-Simulacrum"],
         "src/librustdoc":                        ["rustdoc"],
+        "src/rustdoc-json-types":                ["rustdoc"],
         "src/llvm-project":                      ["@cuviper"],
         "src/stage0.txt":                        ["@Mark-Simulacrum"],
         "src/tools/cargo":                       ["@ehuss", "@joshtriplett"],
