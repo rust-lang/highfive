@@ -131,6 +131,7 @@
         "src/ci":                                ["infra-ci"],
         "src/etc":                               ["@Mark-Simulacrum"],
         "src/librustdoc":                        ["rustdoc"],
+        "src/rustdoc-json-types":                ["rustdoc"],
         "src/llvm-project":                      ["@cuviper"],
         "src/stage0.json":                       ["bootstrap"],
         "src/tools/cargo":                       ["@ehuss", "@joshtriplett"],
