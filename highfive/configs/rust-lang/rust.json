@@ -65,9 +65,11 @@
         "parser": [
             "@davidtwco",
             "@estebank",
+            "@nnethercote",
             "@petrochenkov"
         ],
         "lexer": [
+            "@nnethercote",
             "@petrochenkov"
         ],
         "mir": [
