@@ -253,11 +253,16 @@ class TestNewComment(object):
     def make_mocks(cls, patcherize):
         cls.mocks = patcherize((
             ('ConfigParser', 'highfive.newpr.ConfigParser'),
+            ('load_json_file', 'highfive.newpr.HighfiveHandler._load_json_file'),
         ))
 
         config_mock = mock.Mock()
         config_mock.get.side_effect = ('integration-user', 'integration-token')
         cls.mocks['ConfigParser'].RawConfigParser.return_value = config_mock
+        cls.mocks['load_json_file'].side_effect = (
+            fakes.get_repo_configs()['individuals_no_dirs'],
+            fakes.get_global_configs()['base'],
+        )
 
     def test_author_is_commenter(self):
         payload = fakes.Payload.new_comment()
