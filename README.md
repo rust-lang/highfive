@@ -1,5 +1,11 @@
-Highfive [![Build Status](https://travis-ci.com/rust-lang/highfive.svg?branch=master)](https://travis-ci.com/rust-lang/highfive)
+Highfive
 ========
+
+This repository is no longer running on rust-lang infrastructure; instead the
+relevant code lives in [triagebot](https://github.com/rust-lang/triagebot).
+This repository has been archived to retain it for the future.
+
+----
 
 GitHub hooks to provide an encouraging atmosphere for new
 contributors. Highfive assigns pull requests to users based on rules
