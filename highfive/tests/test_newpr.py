@@ -113,6 +113,8 @@ class TestNewPRGeneral(TestNewPR):
         base_msg = """Thanks for the pull request, and welcome! The Rust team is excited to review your changes, and you should hear from %s soon.
 
 Please see [the contribution instructions](%s) for more information.
+
+Tip: when your PR is ready for review, don't forget to fire up the command `@rustbot ready` to put your PR in the review queue of your assigned reviewer: this will help speed up the overall review process.
 """
 
         # No reviewer, no config contributing link.
